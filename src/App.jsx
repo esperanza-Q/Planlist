@@ -1,40 +1,62 @@
-// src/App.jsx
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Header from './components/Header/Header';
+import Sidebar from './components/Sidebar/Sidebar';
+import ToggleButton from './components/Sidebar/ToggleButton';
+
 import Home from './pages/Home';
-import Meeting from './pages/Meeting';
-import Dining from './pages/Dining';
-import Travel from './pages/Travel';
-import Login from './pages/Login';
-import Mypage from './pages/Mypage';
-import Register from './pages/Register';
+import Project from './pages/Project';
+import Calendar from './pages/Calendar';
+import Note from './pages/Note';
+import Setting from './pages/Setting';
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const sidebarRef = useRef(null);
+
+  const toggleSidebar = () => setSidebarOpen(prev => !prev);
+
+  // 👇 클릭 바깥 감지
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        sidebarRef.current &&
+        !sidebarRef.current.contains(event.target)
+      ) {
+        setSidebarOpen(false);
+      }
+    };
+
+    if (isSidebarOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    // clean-up
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isSidebarOpen]);
 
   return (
     <Router>
-      <Header
-        logoSrc="/logo.png"
-        navItems={[
-          { label: '미팅', path: '/meeting' },
-          { label: '회식', path: '/dining' },
-          { label: '여행', path: '/travel' },
-        ]}
-        isLoggedIn={isLoggedIn}
-        setIsLoggedIn={setIsLoggedIn}
-      />
+      <div style={{ display: 'flex' }}>
+        {isSidebarOpen ? (
+          <Sidebar ref={sidebarRef} toggleSidebar={toggleSidebar} />
+        ) : (
+          <ToggleButton onClick={toggleSidebar} />
+        )}
 
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/meeting" element={<Meeting />} />
-        <Route path="/dining" element={<Dining />} />
-        <Route path="/travel" element={<Travel />} />
-        <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
-        <Route path="/mypage" element={<Mypage />} />
-        <Route path="/register" element={<Register />} />
-      </Routes>
+        <main style={{ flex: 1, padding: '20px' }}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/project" element={<Project />} />
+            <Route path="/calendar" element={<Calendar />} />
+            <Route path="/note" element={<Note />} />
+            <Route path="/setting" element={<Setting />} />
+          </Routes>
+        </main>
+      </div>
     </Router>
   );
 }
