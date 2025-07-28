@@ -15,7 +15,19 @@ const NextEventCard = () => {
       .catch(err => console.error('Failed to fetch event:', err));
   }, []);
 
-  if (!event) return <div className='event-card'>No events to import</div>; // 로딩 중일 때 처리
+  if (!event) return (
+    <div className="event-card">
+      <div className="event-header">
+        <img src={bell} alt="bell-icon" className="bell-icon" />
+        <div className="event-title">
+          <p className="event-label">Next Event</p>
+          <p className="event-name">
+            <span className="event-dot" />No events to import
+          </p>
+        </div>
+      </div>
+    </div>
+  ) ; // 로딩 중일 때 처리
 
   return (
     <div className="event-card">

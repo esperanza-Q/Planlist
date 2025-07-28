@@ -1,0 +1,55 @@
+
+.header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'IBM Plex Sans KR', sans-serif;
+  margin: 68px 264px 0px 337px;
+  
+}
+
+.date-time-group {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.date-box,
+.time-box {
+  padding: 0.4rem 0.8rem;
+  background-color: var(--EEF1F6);
+  border: 1px solid var(--Galaxy);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #333;
+  display: flex;
+  align-items: center;
+}
+
+.time-box .red-dot {
+  width: 8px;
+  height: 8px;
+  background-color: var(--point-Red);
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.add-btn {
+  padding: 0.5rem 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  background-color: var(--Planetary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.add-btn:hover {
+  background-color: #1e3bb3;
+}

@@ -1,0 +1,119 @@
+.calendar-section {
+  font-family: 'IBM Plex Sans KR', sans-serif;
+  margin: 69px 264px 0px 337px;
+}
+
+.calendar-title {
+  font-weight: 600;
+  margin-bottom: 32px;
+}
+
+.calendar-container {
+  position: relative;
+  background-color: var(--EEF1F6);
+  border: 1px solid var(--Galaxy);
+  border-radius: 30px;
+  padding: 1.5rem;
+  width: 498px;
+  height: 527px;
+}
+
+/* react-calendar 기본 스타일 커스터마이징 */
+.react-calendar {
+  border: none;
+  background: none;
+  margin: 0px 60px;
+
+}
+
+/* 네비게이션 커스텀 */
+.react-calendar__navigation {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+  margin: 45px 50px 55px 50px;
+}
+
+.react-calendar__navigation__label__labelText{
+    font-family:  "Montserrat";
+    font-weight: bold;
+}
+
+.react-calendar__navigation button {
+  background: none;
+  border: none;
+  color: var(--Planetary);
+  font-size: 1.2rem;
+  cursor: pointer;
+  font-weight: 1000;
+}
+
+
+
+/* 요일 스타일 */
+.react-calendar__month-view__weekdays {
+  text-align: center;
+  font-weight: bold;
+  font-size: 17px;
+  color: #333;
+  margin-bottom: 26px;
+}
+
+.react-calendar__month-view__weekdays__weekday abbr {
+  text-decoration: none !important;
+  border-bottom: none !important;
+}
+
+
+react-calendar__month-view__days{
+     background: none;
+  border: none;
+  margin: 0px 60px;
+
+}
+
+
+
+/* 날짜 칸 스타일 */
+.react-calendar__tile {
+  padding: 0.5rem 0;
+  text-align: center;
+  border-radius: 50%;
+  font-size: 0.9rem;
+  color: #222;
+  height: 54px;
+  width: 54px;
+  margin: 0 auto;
+  background: none;
+  border: none;
+  font-weight: bold;
+}
+
+
+
+/* 선택된 날짜 */
+.react-calendar__tile--active {
+  border: solid 1px var(--Planetary);
+}
+
+
+/* 전체 가능한 날짜 */
+.tile-full {
+  background-color: var(--Planetary);
+  color: white;
+}
+
+/* 일부 가능한 날짜 */
+.tile-partial {
+  background-color: var(--Venus);
+  color: black;
+}
+
+
+/* 고양이 이미지 */
+.calendar-cat {
+  position: absolute;
+  bottom: -40px;
+  left: -100px;
+  width: 203px;
+}
