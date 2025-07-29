@@ -1,0 +1,80 @@
+.friend-item {
+  position: relative;
+  width: 90%;
+  height: 59px;
+  margin-bottom: 26px;
+  display: flex;
+  align-items: center;
+}
+
+.friend-avatar {
+  width: 58px;
+  height: 58px;
+  background-color: #0a205c;
+  border-radius: 29px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.friend-avatar img {
+  position: absolute;
+  width: 46px;
+  height: 45px;
+  top: 5px;
+  left: 7px;
+  object-fit: cover;
+}
+
+.friend-info {
+  margin-left: 23px;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.friend-name {
+  font-family: 'IBM Plex Sans KR', Helvetica;
+  font-weight: 600;
+  color: #354fae;
+  font-size: 25px;
+  letter-spacing: 1.25px;
+  line-height: normal;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.friend-email {
+  font-family: 'Inter', Helvetica;
+  font-weight: normal;
+  color: #354fae;
+  font-size: 18px;
+  letter-spacing: 1.8px;
+  line-height: normal;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 8px;
+}
+
+.friend-delete-btn {
+  width: 24px;
+  height: 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.friend-delete-btn:hover {
+  opacity: 0.7;
+}
+
+.delete-icon {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  top: 2px;
+  left: 2px;
+}
+

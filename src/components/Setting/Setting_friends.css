@@ -1,0 +1,243 @@
+ .friends-page {
+  background-color: white;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  width: 100%;
+}
+
+.friends-content {
+  background-color: white;
+  width: 1920px;
+  height: 1080px;
+  position: relative;
+}
+
+/* Tab Navigation */
+.tab {
+  position: absolute;
+  width: 66px;
+  height: 30px;
+  box-sizing: border-box;
+}
+.tab:hover{
+    opacity:0.7;
+}
+
+.tab-active {
+  position: relative;
+  width: 64px;
+  height: 30px;
+ margin-top:0px;
+  border-radius: 20px;
+  font-family: 'Inter', Helvetica;
+  font-weight: normal;
+  color: #081f5c;
+  font-size: 13px;
+  text-align: center;
+  letter-spacing: 0;
+  line-height: normal;
+
+  background-color: #bad6eb;
+}
+
+.tab-inactive {
+
+  position: relative;
+  
+  width: 64px;
+  height: 30px;
+  border-radius: 20px;
+  
+  font-family: 'Inter', Helvetica;
+  font-weight: normal;
+  color: #081f5c;
+  font-size: 13px;
+  text-align: center;
+  letter-spacing: 0;
+  line-height: normal;
+
+  border: 1px solid #081f5c;
+}
+
+.tab-active-text {
+  position: absolute;
+  width: 48px;
+  top: 7px;
+  left: 8px;
+}
+
+/* Friends List Card */
+.friends-list-card {
+  position: absolute;
+  width: 754px;
+  top: 270px;
+  left: 267px;
+  background-color: #eef1f6;
+  border-radius: 20px;
+  border: 1px solid #081f5c;
+  padding: 30px 35px 35px;
+  display: flex;
+  flex-direction: column;
+  min-height: 567px;
+  max-height: 700px;
+  overflow-y: auto;
+}
+
+.friends-list-title {
+  font-family: 'IBM Plex Sans KR', Helvetica;
+  font-weight: 600;
+  color: #354fae;
+  font-size: 24px;
+  letter-spacing: 1.5px;
+  line-height: normal;
+  margin-bottom: 40px;
+}
+
+.friends-list {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  flex-grow: 1;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+/* Add Friend Card */
+.add-friend-card {
+  position: absolute;
+  width: 631px;
+  top: 242px;
+  left: 1042px;
+  background-color: #eef1f6;
+  border-radius: 20px;
+  border: 1px solid #081f5c;
+  padding: 44px 0;
+  display: flex;
+  justify-content: center;
+  min-height: 237px;
+}
+
+.add-friend-form {
+  width: 368px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.email-input-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.email-label {
+  font-family: var(--body-base-font-family);
+  font-weight: var(--body-base-font-weight);
+  color: #1e1e1e;
+  font-size: var(--body-base-font-size);
+}
+
+.email-input {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 16px;
+  background-color: white;
+  border-radius: 8px;
+  border: 1px solid #d9d9d9;
+  font-family: var(--single-line-body-base-font-family);
+  font-size: var(--single-line-body-base-font-size);
+  color: #1e1e1e;
+}
+
+.email-input:focus {
+  outline: none;
+  border-color: #354fae;
+}
+
+.add-friend-button {
+  width: 306px;
+  height: 50px;
+  background-color: #334eac;
+  border-radius: 30px;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-friend-button:hover {
+  background-color: #2a3f8e;
+}
+
+.add-friend-text {
+  font-family: 'IBM Plex Sans KR', Helvetica;
+  font-weight: 600;
+  color: white;
+  font-size: 15px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Friend Requests Card */
+.friend-requests-card {
+  position: absolute;
+  width: 631px;
+  top: 520px;
+  left: 1042px;
+  background-color: #eef1f6;
+  border-radius: 20px;
+  border: 1px solid #081f5c;
+  padding: 40px 41px;
+  display: flex;
+  flex-direction: column;
+  min-height: 354px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.friend-requests-title {
+  font-family: 'IBM Plex Sans KR', Helvetica;
+  font-weight: 600;
+  color: #354fae;
+  font-size: 24px;
+  letter-spacing: 1.5px;
+  line-height: normal;
+  margin-bottom: 44px;
+}
+
+.friend-requests-list {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  flex-grow: 1;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+/* Custom scrollbar */
+.friends-list::-webkit-scrollbar,
+.friend-requests-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.friends-list::-webkit-scrollbar-track,
+.friend-requests-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.friends-list::-webkit-scrollbar-thumb,
+.friend-requests-list::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.friends-list::-webkit-scrollbar-thumb:hover,
+.friend-requests-list::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
