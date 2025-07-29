@@ -8,6 +8,9 @@ import Project from './pages/Project';
 import Calendar from './pages/Calendar';
 import Note from './pages/Note';
 import Setting from './pages/Setting';
+import Setting_friends from './components/Setting/Setting_friends';
+
+import './tailwind.css';
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
