@@ -1,13 +1,19 @@
 import { href } from "react-router-dom";
+import HomeHeaderBar from "../components/HomeHeaderBar/HomeHeaderBar";
+import ScheduledEvents from "../components/ScheduledEvents/ScheduledEvents";
+import FreeTimeCalender from "../components/FreeTimeCalendar/FreeTimeCalendar";
 
-function Home() {
+
+
+
+const Home = () => {
   return (
-    <div>
-        <h2>Home Page</h2>
-        <h6> Lorem ipsum dol
-            or sit amet consectetur adipisicing elit. 
-            Iure vero officiis assumenda ratione eveniet minima. Aut iste debitis facilis, dolorem accusantium quos nesciunt, reiciendis aliquid libero, ut quaerat eum modi.</h6>
+    <div className="home-container">
+      <HomeHeaderBar />
+      <ScheduledEvents />
+      <FreeTimeCalender />
     </div>
   );
-}
+};
+
 export default Home;
