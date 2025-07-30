@@ -48,8 +48,7 @@ const DayCalendar = ({ currentDate, events }) => {
                   onClick={() => navigate(`/event/${event.id}`)}
                 >
                   <div className="day-event-title">
-                    <div className={`day-dot event-${event.color || 'blue'}`} />
-                    {event.title}
+                    • {event.title}
                   </div>
                   <div className="day-event-time">
                     {event.startTime} → {event.endTime}

@@ -29,6 +29,7 @@ const MonthCalendar = ({ currentDate, events }) => {
 
   return (
     <div className="month-calendar">
+      <h2 className="week-calendar-title">{format(currentDate, 'MMMM yyyy')}</h2>
       <div className="month-header">
         {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map(day => (
           <div className="month-cell header-cell" key={day}>

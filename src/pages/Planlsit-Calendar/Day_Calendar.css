@@ -100,16 +100,3 @@
 .event-red { background-color: #ffd1d1; border: solid 1px var(--point-Red); color: #b30000;  }
 
 
-
-
-.day-event-title .day-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  margin-right: 6px;
-}
-
-.day-event-title .day-dot.event-red { background-color: var(--point-Red); border: solid 1px var(--point-Red;)}
-.day-event-title .day-dot.event-blue { background-color: var(--Universe); border: solid 1px var(--Universe);}
-.day-event-title .day-dot.event-green { background-color: var(--Green-border); border:solid 1px var(--Green-border); }
-.day-event-title .day-dot.event-yellow { background-color: var(--Yellow-border); border: solid 1px var(--Yellow-border);} 

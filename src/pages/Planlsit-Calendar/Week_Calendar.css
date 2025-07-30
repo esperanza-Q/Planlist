@@ -5,6 +5,14 @@
 
 }
 
+.week-calendar-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0px 0px 35px 0px;
+  text-align: end;
+
+}
+
 .calendar-grid {
   display: flex;
   flex-direction: column;
@@ -31,7 +39,7 @@
   border-bottom: 1px solid #ddd;
 }
 
-.cell {
+.week-cell {
   height: 60px;
   border-bottom: 1px solid #f0f0f0;
   border-left: 1px solid #f5f5f5;
@@ -39,17 +47,8 @@
   padding: 2px;
 }
 
-.event {
-  background-color: #e6f0ff;
-  padding: 3px 6px;
-  border-radius: 4px;
-  font-size: 11px;
-  cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  cursor: pointer;
-}
+
+
 
 
 .event-green { background-color: #d6f5d6; border: solid 1px var(--Green-border); color: #007f00;}

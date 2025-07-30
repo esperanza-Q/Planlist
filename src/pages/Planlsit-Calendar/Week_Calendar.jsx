@@ -3,25 +3,23 @@ import { format, addDays, startOfWeek } from 'date-fns';
 import './Week_Calendar.css';
 import { useNavigate } from 'react-router-dom';
 
-// ✅ 0~23시로 확장
 const hours = Array.from({ length: 24 }, (_, i) => i);
 
 const WeekCalendar = ({ currentDate, events }) => {
   const navigate = useNavigate();
 
-  const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 }); // Monday 기준
+  const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 }); 
   const days = useMemo(
     () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
     [weekStart]
   );
 
-  // "12:30" → 12
   const getHour = (timeStr) => parseInt(timeStr.split(':')[0], 10);
 
   return (
     <div className="week-calendar">
+      <h2 className="week-calendar-title">{format(currentDate, 'MMMM yyyy')}</h2>
       <div className="calendar-grid">
-        {/* 헤더: 요일 */}
         <div className="header-row">
           <div className="time-cell" />
           {days.map((day) => (
@@ -31,7 +29,6 @@ const WeekCalendar = ({ currentDate, events }) => {
           ))}
         </div>
 
-        {/* 시간별 줄 */}
         {hours.map((hour) => (
           <div className="row" key={hour}>
             <div className="time-cell">
@@ -55,14 +52,14 @@ const WeekCalendar = ({ currentDate, events }) => {
               });
 
               return (
-                <div key={dayStr + hour} className="cell">
+                <div key={dayStr + hour} className="week-cell">
                   {dayEvents.map((event) => (
                     <div
                       key={event.id}
                       className={`event event-${event.color || 'blue'}`}
                       onClick={() => navigate(`/event/${event.id}`)}
-                    >
-                      {event.title}
+                    >  
+                     • {event.title}
                     </div>
                   ))}
                 </div>
