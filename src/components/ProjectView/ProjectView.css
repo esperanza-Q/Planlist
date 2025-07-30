@@ -1,0 +1,200 @@
+.homeContainer{
+    width: 1980px;
+}
+
+/*--
+filter buttons
+--*/
+
+.buttons{
+    
+    font-family: 'inter', helvetica;
+    font-size: 15px;
+    font-weight: 500;
+    position:relative;
+    margin-top: 134px;
+    margin-left:auto;
+    margin-right:auto;
+    margin-bottom: 35px;
+    padding:0px;
+    width:990px;
+    height: 32px;
+    display: flex;           
+    gap: 12px;
+}
+
+.buttons button{
+    height:32px;
+    min-width: 45px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 8px;
+    display: flex;
+    align-items:center;
+    justify-content: center;
+    border: 1px solid #081F5C;
+    background-color: #EEF1F6;
+}
+
+.buttons button:hover{
+    opacity:70%;
+}
+
+.circle{
+    
+    width:10px;
+    height:10px;
+    margin-right:5px;
+    border-radius: 5px;
+    background-color: #334EAC;
+}
+
+.circle.red{
+     background: #FF383C;
+}
+
+.addProject{
+    margin-left: auto;
+    width:150px;
+    height:32px;
+    display: flex;
+    padding-right:5px;
+    align-items:center;
+    justify-content: center;
+    color:#ECECEC;
+    border-radius: 8px;
+    border: 1px solid #334EAC;
+    background-color: #334EAC;
+    
+}
+.addProject img{
+    margin-right:3px;
+}
+
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+
+/*--ProjectViewIem--*/
+
+.ItemDiv{ 
+    font-family: 'IBM Plex Sans KR', sans-serif;
+    position:relative;
+    margin-bottom: 20px;
+    margin-left:auto;
+    margin-right:auto;
+    padding:0px;
+    width:990px;
+    height: 135px;
+    background-color: #EEF1F6;
+    border-radius: 20px;
+    border: 1px solid #081F5C;
+}
+
+.ItemDiv:hover{
+    
+    opacity: 70%;
+}
+
+.title{
+    font-family: 'IBM Plex Sans KR', sans-serif;
+    color:#334EAC;
+    position:absolute;
+    left:83px;
+    top:31px;
+    height:28px;
+    font-size:20px;
+    font-weight: 600;
+}
+
+.project-description{
+    position:absolute;
+    margin:0px;
+    padding:0px;
+    top:65px;
+    left:83px;
+    color: #B3B3B3;
+}
+
+.project-status-indicator {
+    position:absolute;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    text-transform: capitalize;
+}
+
+.status-circle {
+    position:absolute;
+    top:37px;
+    left:54px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display:inline-block; 
+}
+
+
+.status-circle.In-progress {
+    background-color: #FF383C;
+}
+
+.status-circle.Finished {
+    background-color:#334EAC;
+}
+
+.status-label.In-progress {
+    color: #FF383C;
+}
+
+.status-label{
+    position:absolute;
+    width:100px;
+    top:86px;
+    left:83px;
+}
+.status-label.Finished {
+    color: #334EAC;
+}
+
+.userContainer{
+    position: absolute;
+    top: 82px;
+    right: 67px;
+    
+    display: flex;
+    align-items: center;
+    
+}
+
+.user img{
+    position:relative;
+    width:25px;
+    height:25px;
+    margin-left: 5px;
+}
+
+.dates{
+    position: absolute;
+    height:14px;
+    font-size:15px;
+    color:#081F5C;
+    top: 38px;
+    right: 67px;
+    
+
+}
+
+.category{
+    position:absolute;
+    font-size: 10px;
+    color:#081F5C;
+    top: 61px;
+    right: 67px;
+}
+
+

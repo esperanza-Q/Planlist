@@ -10,7 +10,8 @@ import Planlist_Calendar from './pages/Planlsit-Calendar/Planlist_Main';
 import Note from './pages/Note';
 import AddFreeTimePage from "./pages/AddFreeTimePage";
 import Setting from './pages/Setting';
-import Setting_friends from './components/Setting/Setting_friends';
+
+import ProjectCreate from "./components/ProjectCreate/ProjectCreate";
 
 
 function App() {
@@ -43,6 +44,7 @@ function App() {
   }, [isSidebarOpen]);
 
   return (
+    <div>
     <Router>
       <div style={{ display: 'flex' }}>
         {isSidebarOpen ? (
@@ -59,10 +61,18 @@ function App() {
             <Route path="/note" element={<Note />} />
             <Route path="/setting" element={<Setting />} />
             <Route path="/add-free-time" element={<AddFreeTimePage/>}/>
+            <Route path="/project/create" element={<ProjectCreate />} />
           </Routes>
         </main>
       </div>
     </Router>
+
+
+  
+    
+
+    </div>
+    
   );
 }
 
