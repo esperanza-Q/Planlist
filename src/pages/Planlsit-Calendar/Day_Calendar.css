@@ -1,0 +1,102 @@
+.day_calendar-container{
+  width: 1185px;
+  margin: 0px 367px;
+
+}
+
+.day-calendar-container {
+  display: flex;
+  font-family: 'IBM Plex Sans KR', sans-serif;
+  position: relative;
+  flex-direction: column;
+  height: auto;
+  width: 1185px;
+  margin: 0px 367px;
+}
+
+.day-body-wrapper {
+  display: flex;
+  position: relative;
+}
+
+.day-hours-column {
+  width: 100px;
+  border-right: 1px solid #ddd;
+}
+
+.day-hour-label {
+  height: 60px;
+  font-size: 14px;
+  padding: 0px 8px;
+  text-align: center;
+  line-height: 60px;
+  color: var(--Galaxy);
+}
+
+.day-schedule-column {
+  flex: 1;
+  position: relative;
+}
+
+.day-schedule-grid {
+  position: relative;
+  height: calc(24 * 60px);
+  border-left: 1px solid #eee;
+}
+
+.day-time-slot {
+  height: 60px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.day-event-block {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  border-radius: 8px;
+  margin-top: 10px;
+  margin-left: 20px;
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.day-event-title {
+  display: flex;
+  align-items: baseline;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.day-event-time {
+  font-size: 11px;
+  color: #555;
+}
+
+.day-calendar-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+  font-weight: bold;
+  font-size: 18px;
+  gap: 1rem;
+}
+
+
+.event {
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.event-green { background-color: #d6f5d6; border: solid 1px var(--Green-border); color: #007f00;}
+.event-blue { background-color: #cce5ff; border: solid 1px var(--Universe); color: #004a9f; }
+.event-yellow { background-color: #fff7c2; border: solid 1px var(--Yellow-border) ; color: #a68b00; }
+.event-red { background-color: #ffd1d1; border: solid 1px var(--point-Red); color: #b30000;  }
+
+
