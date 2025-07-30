@@ -3,14 +3,15 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Sidebar from './components/Sidebar/Sidebar';
 import ToggleButton from './components/Sidebar/ToggleButton';
 
+
 import Home from './pages/Home';
 import Project from './pages/Project';
-import Calendar from './pages/Calendar';
+import Planlist_Calendar from './pages/Planlsit-Calendar/Planlist_Main';
 import Note from './pages/Note';
+import AddFreeTimePage from "./pages/AddFreeTimePage";
 import Setting from './pages/Setting';
 import Setting_friends from './components/Setting/Setting_friends';
 
-import './tailwind.css';
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -54,9 +55,10 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/project" element={<Project />} />
-            <Route path="/calendar" element={<Calendar />} />
+            <Route path="/calendar" element={<Planlist_Calendar />} />
             <Route path="/note" element={<Note />} />
             <Route path="/setting" element={<Setting />} />
+            <Route path="/add-free-time" element={<AddFreeTimePage/>}/>
           </Routes>
         </main>
       </div>
