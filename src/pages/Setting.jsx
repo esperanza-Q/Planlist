@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import MypageProfile from '../components/Setting/MyPageProfile.jsx';
-import Setting_friends from '../components/Setting/Setting_friends.jsx';
+import MypageProfile from '../components/Setting/ProfileTab/SettingProfile.jsx';
+import Setting_friends from '../components/Setting/FriendsTab/SettingFriends.jsx';
 
 function Setting() {
   const [view, setView] = useState('profile'); // default is profile

@@ -8,11 +8,10 @@ const allProjects=[
   {
     id: 1,
     title: 'Team Branding Workshop',
-    description: 'workshop for branding things',
     category: 'meeting',
     status: 'Finished',
-    startDate: '2025-08-01',
-    endDate: '2025-08-07',
+    startDate: '2025-07-01',
+    endDate: '2025-07-07',
     users: [
       { name: 'A', avatar: ProfilePic },
       { name: 'B', avatar: ProfilePic },
@@ -27,7 +26,6 @@ const allProjects=[
   {
           id: 2,
           title: 'Personal Training session 2',
-          description: 'workout session',
           category: 'PT',
           status: 'In progress',
           startDate: '2025-08-06',
@@ -42,11 +40,38 @@ const allProjects=[
      {
           id: 3,
           title: 'Personal Training session ',
-          description: 'workout session',
           category: 'PT',
           status: 'In progress',
           startDate: '2025-07-25',
           endDate: '2025-07-26',
+          users: [
+            { name: 'A', avatar: ProfilePic },
+            { name: 'B', avatar: ProfilePic },
+            { name: 'C', avatar: ProfilePic },
+            { name: 'D', avatar: ProfilePic }
+          ]
+    },
+    {
+          id: 4,
+          title: 'Personal Training session ',
+          category: 'PT',
+          status: 'Upcoming',
+          startDate: '2025-07-26',
+          endDate: '2025-07-26',
+          users: [
+            { name: 'A', avatar: ProfilePic },
+            { name: 'B', avatar: ProfilePic },
+            { name: 'C', avatar: ProfilePic },
+            { name: 'D', avatar: ProfilePic }
+          ]
+    },
+    {
+          id: 4,
+          title: 'Personal Training session ',
+          category: 'PT',
+          status: 'Finished',
+          startDate: '2025-06-26',
+          endDate: '2025-06-26',
           users: [
             { name: 'A', avatar: ProfilePic },
             { name: 'B', avatar: ProfilePic },
