@@ -53,6 +53,10 @@ filter buttons
      background: #FF383C;
 }
 
+.circle.green{
+     background: #1CAC4C;
+}
+
 .addProject{
     margin-left: auto;
     width:150px;
@@ -78,7 +82,7 @@ a {
 }
 
 
-/*--ProjectViewIem--*/
+/*--ProjectViewItem--*/
 
 .ItemDiv{ 
     font-family: 'IBM Plex Sans KR', sans-serif;
@@ -104,20 +108,12 @@ a {
     color:#334EAC;
     position:absolute;
     left:83px;
-    top:31px;
+    top:35px;
     height:28px;
     font-size:20px;
     font-weight: 600;
 }
 
-.project-description{
-    position:absolute;
-    margin:0px;
-    padding:0px;
-    top:65px;
-    left:83px;
-    color: #B3B3B3;
-}
 
 .project-status-indicator {
     position:absolute;
@@ -130,7 +126,7 @@ a {
 
 .status-circle {
     position:absolute;
-    top:37px;
+    top:41px;
     left:54px;
     width: 18px;
     height: 18px;
@@ -147,14 +143,22 @@ a {
     background-color:#334EAC;
 }
 
+.status-circle.Upcoming {
+    background-color:#1CAC4C;
+}
+
 .status-label.In-progress {
     color: #FF383C;
+}
+
+.status-label.Upcoming{
+    color: #1CAC4C;
 }
 
 .status-label{
     position:absolute;
     width:100px;
-    top:86px;
+    top:77px;
     left:83px;
 }
 .status-label.Finished {

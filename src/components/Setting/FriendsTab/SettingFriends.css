@@ -1,0 +1,212 @@
+/*--layout--*/
+.button:hover{
+    opacity: 70%;
+}
+
+.screen{
+    display:flex;
+}
+
+.LayoutDiv{
+    position:relative;
+    margin-top: 290px;
+}
+
+/*--profile/friend tab--*/
+.tab{
+    position:relative;
+    width:135px;
+    height:30px;
+    top:250px;
+    left:203px;
+    display:flex;
+    flex-direction: row;
+}
+
+.tab button{
+    width:65px;
+    height: 30px;
+    border-radius: 20px;
+    background-color:#EEf1F6;
+    border: 1px solid #081F5C;
+    color:#081F5C;
+    margin-right: 6px;
+}
+
+.tab button:disabled{
+    background-color:#BAD6EB;
+    border: 1px solid #BAD6EB;
+    color:#081F5C;
+}
+
+/*FriendCard*/
+
+.friend-card{
+    position:relative;
+    margin-left: 40px;
+    margin-top:292px;
+    width:630px;
+    height:fit-content;
+    min-height: 354px;
+    background-color: #EEf1F6;
+    border-radius:20px;
+    border: 1px solid #081F5C;
+    align-items: center;
+    
+}
+
+
+/*--FriendRequestCard--*/
+
+.friend-request-card{
+    position:relative;
+    margin-left: 55px;
+    width:630px;
+    height:fit-content;
+    min-height: 354px;
+    background-color: #EEf1F6;
+    border-radius:20px;
+    border: 1px solid #081F5C;
+    align-items: center;
+    
+}
+
+.friend-request-card-title{
+    font-family: 'IBM Plex Sans KR', sans-serif;
+    position:static;
+    top:46px;
+    left:42px;
+    font-size:33px;
+    font-weight:600;
+    color:#354FAE;
+    margin-left:42px;
+    margin-top:46px;
+    margin-bottom:23px;
+}
+
+.friend-request-item-container{
+    position:static;
+    
+    margin-left:62px;
+    height:fit-content;
+    display:flex;
+    flex-direction: column;
+    margin-bottom:35px;
+}
+
+.friend-request-item{
+    position:relative;
+    width:490px;
+    height:100px;
+
+}
+
+.friend-avatar{
+    position:absolute;
+    top:17px;
+    left:15px;
+    width:65px;
+    height:65px;
+}
+
+.friend-name{
+    position:absolute;
+    top: 20px;
+    left:110px;
+    font-weight:600;
+    color:#354FAE;
+    font-size: 25px;
+}
+
+.friend-email{
+    position:absolute;
+    top:52px;
+    left:121px;
+    color:#354FAE;
+    font-size:18px;
+}
+
+.action-button{
+    position:absolute; 
+    outline:none;
+    border:none;
+    width:24px;
+    height:24px;
+    padding:0px;
+    margin:0px;
+}
+
+.action-button img{
+    position:absolute;
+    
+    padding:0px;
+    margin:0px;
+    width:24px;
+    height:24px;
+
+}
+
+.action-button:hover{
+    opacity:70%;
+    
+}
+
+.action-button.accept{
+    top:28px;
+    left:412px;
+}
+.action-button.decline{
+    top:28px;
+    left:455px;
+}
+
+/*--AddFriendCard--*/
+
+.add-friend-card{
+    position: relative;
+    width:630px;
+    height:240px;
+    margin-left: 55px;
+    margin-bottom: 30px;
+    background-color: #EEf1F6;
+    border-radius: 20px;
+    border:1px solid #081F5C;
+}
+
+.add-friend-email{
+    position:absolute;
+    top:44px;
+    left: 132px;
+}
+
+.email-input {
+    position: absolute;
+    top:74px;
+    left:132px;
+    padding:0px 20px 0px 20px;
+    margin-top: 3px;
+    margin-bottom:3px;
+    width:315px;
+    height:40px;
+    border-radius: 8px;
+    border: 1px solid #D9D9D9;
+}
+
+.email-input:focus{
+    outline: none;
+}
+
+.add-friend-button{
+    position:absolute;
+    top:136px;
+    left:163px;
+    height:50px;
+    width:295px;
+    border-radius: 30px;
+    font-family: 'IBM Plex Sans KR', sans-serif;
+    font-weight: 600;
+    color:#FFFFFF;
+    background-color: #354FAE;
+    border:1px solid #354FAE;
+}
+

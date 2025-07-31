@@ -11,8 +11,11 @@ const ProjectFilterView = ({ projects }) => {
       if (filter === 'all') return true;
       return project.status === filter;
     })
-    .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
-
+    .sort((a, b) => {
+      if (a.status === "Finished" && b.status !== "Finished") return 1;
+      if (a.status !== "Finished" && b.status === "Finished") return -1;
+      return new Date(a.startDate) - new Date(b.startDate); // fallback: sort by date
+    });
   return (
     <div className='homeContainer'>
       {/* Button header */}
@@ -24,6 +27,10 @@ const ProjectFilterView = ({ projects }) => {
             <div className="circle red"></div>
             In progress
             </button>
+        <button onClick={() => setFilter('Upcoming')}>
+          <div className="circle green"></div>
+          Upcoming
+        </button>
         <button onClick={() => setFilter('Finished')}>
             <div className="circle"></div>
             Finished
