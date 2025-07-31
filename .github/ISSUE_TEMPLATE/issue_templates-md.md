@@ -1,6 +1,6 @@
 ---
 name: ISSUE_TEMPLATES.md
-about: Suggest an idea for this project
+about: 이슈템플릿
 title: ''
 labels: ''
 assignees: ''
