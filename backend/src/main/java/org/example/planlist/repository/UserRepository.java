@@ -1,4 +1,4 @@
 package org.example.planlist.repository;
 
-public class testRepository {
+public interface UserRepository {
 }
