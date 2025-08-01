@@ -22,8 +22,8 @@ public class PlannerProjectMapper {
 
     public static PlannerProjectResponseDTO toResponseDTO(PlannerProject entity) {
         return PlannerProjectResponseDTO.builder()
-                .projectId(entity.getId())
-                .creatorId(entity.getCreator().getId())
+//                .projectId(entity.getId())
+//                .creatorId(entity.getCreator().getId())
                 .projectTitle(entity.getProjectTitle())
                 .category(entity.getCategory())
                 .status(entity.getStatus())
