@@ -5,7 +5,6 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -20,16 +19,16 @@ public class ParticipantAvailability {
     @Column(name = "shared_id", nullable = false)
     private Long sharedId;
 
-    @Column(name = "date", nullable = true)
+    @Column(name = "date")
     private LocalDate date;
 
     @Column(name = "all_day", nullable = false)
     private Boolean all_day;
 
-    @Column(name = "start_time", nullable = true)
+    @Column(name = "start_time")
     private LocalDateTime start_time;
 
-    @Column(name = "end_time", nullable = true)
+    @Column(name = "end_time")
     private LocalDateTime end_time;
 
     @OneToOne(fetch = FetchType.LAZY)
