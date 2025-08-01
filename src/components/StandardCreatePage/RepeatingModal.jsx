@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './RepeatingModal.css';
+import RepeatIcon from '../../icons/RepeatIcon';
 
 const RepeatingModal = ({ onClose, onSave }) => {
   const [repeatCount, setRepeatCount] = useState(2);
@@ -11,14 +12,13 @@ const RepeatingModal = ({ onClose, onSave }) => {
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-box">
-        <div className="modal-header">
-          <h3>🔁 Repeating</h3>
-          <button onClick={onClose}>✕</button>
+    <div className="Repeating-modal-overlay">
+      <div className="Repeating-modal-box">
+        <div className="Repeating-modal-header">
+          <RepeatIcon className="Repeating-modal-icon" /> <h3> Repeating</h3>
         </div>
 
-        <div className="modal-content">
+        <div className="Repeating-modal-content">
           <p>Set how and how often you'd like to repeat this.</p>
 
           <label>How many times to repeat</label>
@@ -29,13 +29,13 @@ const RepeatingModal = ({ onClose, onSave }) => {
           <label>Repeat method</label>
           <select value={repeatMethod} onChange={(e) => setRepeatMethod(e.target.value)}>
             <option value="Same weekday">Same weekday</option>
-            <option value="Every X days">Every X days</option>
+            <option value="Same date">Same date</option>
           </select>
         </div>
 
-        <div className="modal-footer">
-          <button className="btn-cancel" onClick={onClose}>Cancel</button>
-          <button className="btn-save" onClick={handleSave}>Save</button>
+        <div className="Repeating-modal-footer">
+          <button className="Repeating-btn-cancel" onClick={onClose}>Cancel</button>
+          <button className="Repeating-btn-save" onClick={handleSave}>Save</button>
         </div>
       </div>
     </div>

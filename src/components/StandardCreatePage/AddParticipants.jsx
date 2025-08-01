@@ -122,7 +122,7 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
           </ul>
         </div>
       </div>
-       <button className="project-next-button" onClick={handleNext}><ProjectNextIcon/></button>
+       <button className="project2-next-button" onClick={handleNext}><ProjectNextIcon/></button>
       
     </div>
   );
