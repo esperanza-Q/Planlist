@@ -166,7 +166,7 @@ const WeeklyCalendar = () => {
           {days.map((day, index) => (
             <div
               key={index}
-              className={`day-header ${isDayFullySelected(index) ? "main-selected" : ""}`}
+              className={`free-day-header ${isDayFullySelected(index) ? "main-selected" : ""}`}
               onClick={() => toggleMainDay(index)}
             >
               <div>{day}</div>

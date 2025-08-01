@@ -12,6 +12,12 @@ import AddFreeTimePage from "./pages/AddFreeTimePage";
 import Setting from './pages/Setting';
 
 import ProjectCreate from "./components/ProjectCreate/ProjectCreate";
+
+import StandardPage from './pages/CreateCategory/StandardCreatePage';
+import MeetingPage from './pages/CreateCategory/MeetingCreatePage';
+import TravelPage from './pages/CreateCategory/TravelCreatePage';
+import PTPage from './pages/CreateCategory/PTCreatePage';
+
 import ProjectViewMeeting from "./components/ProjectViewMeeting/ProjectViewMeeting"
 import ProjectViewMeetingDetails from "./components/ProjectViewMeeting/ProjectViewMeetingDetails"
 
@@ -65,6 +71,13 @@ function App() {
             <Route path="/add-free-time" element={<AddFreeTimePage/>}/>
 
             <Route path="/project/create" element={<ProjectCreate />} />
+            
+            <Route path="/project/create/standard" element={<StandardPage />} />
+            <Route path="/project/create/meeting" element={<MeetingPage />} />
+            <Route path="/project/create/travel" element={<TravelPage />} />
+            <Route path="/project/create/pt" element={<PTPage />} />
+
+            
             <Route path="/project/meeting" element={<ProjectViewMeeting />}/>
             <Route path="/project/meeting/details" element={<ProjectViewMeetingDetails />}/>
 
