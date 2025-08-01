@@ -17,7 +17,7 @@ public class PlannerProject {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "project_id", nullable = false)
+    @Column(name = "project_id", unique = true, nullable = false)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

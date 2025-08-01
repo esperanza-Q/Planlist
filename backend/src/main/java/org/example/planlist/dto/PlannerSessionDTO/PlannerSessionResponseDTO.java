@@ -13,8 +13,6 @@ import java.time.LocalTime;
 @SuperBuilder
 public abstract class PlannerSessionResponseDTO {
 
-//    private Long plannerId;
-//    private Long projectId;
     private String title;
     private Integer week;
     private LocalDate date;
