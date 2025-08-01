@@ -14,7 +14,7 @@ const sampleProject = {
     description: "Weekly catch-up and planning meeting.",
     category: 'meeting',
     status: 'Finished',
-    repeat:'tuesday',
+    repeat:'none',
     startDate: '2025-07-01',
     startTime: '18:00',
     endTime: '20:00',

@@ -12,11 +12,16 @@ const MeetingInfoCard =({ project }) =>{
         <div className="meeting-info-card">
             <h2 className="card-title">{project.title}</h2>
             <p className="project-description">{project.description}</p>
-            <div className="repeat-container">
-                <img src={calendar_icon} className="calendar"/>
-                <p className="project-repeat"> 
+            <div className="info-container">
+                <img src={calendar_icon} className="icon"/>
+                
+                <div className="info-text">
+                    
+                    <div className="project-info"> 
                     {project.repeat === "none" ? `${project.startDate}` : `repeat every ${project.repeat}`}
-                </p>
+                    </div>
+                </div>
+                
             </div>
             
             <div className="friends-section">

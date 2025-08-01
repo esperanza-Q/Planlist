@@ -60,7 +60,8 @@ button:hover{
     color:#C5C5C5;
 }
 
-.repeat-container{
+.info-container{
+    
     display: flex;
     top:133px;
     left:37px;
@@ -68,14 +69,14 @@ button:hover{
     
 }
 
-.calendar{
-    width:20px;
-    height:20px;
+.icon{
+    width:25px;
+    height:25px;
     margin-top:2px;
 }
 
-.project-repeat{
-    margin:0px 0px 0px 10px;
+.info-text{
+    margin:3px 0px 0px 10px;
     padding:0px;
     color:#0A205C;
 }
@@ -293,4 +294,23 @@ button:hover{
 
 .meeting-link:hover{
     background-color: #BAD6EB;
+}
+
+/*--
+
+
+
+
+meetingDetailinfocard
+
+
+
+--*/
+
+
+.project-info{
+    position:relative;
+    font-size: 20px;
+    top:-3px;
+    left:-1px;
 }

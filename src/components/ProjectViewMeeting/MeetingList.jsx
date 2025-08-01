@@ -13,10 +13,12 @@ const MeetingList =({project}) =>{
             
             <div className="meeting-list">
                 {project.meetings.map((meeting, index) => (
-                    <button className="meeting-link">
                     <Link to="details">
-                        {meeting}</Link>
+                    <button className="meeting-link">
+                    
+                        {meeting}
                     </button>
+                    </Link>
                 ))}
             </div>
 

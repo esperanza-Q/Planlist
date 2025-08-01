@@ -6,17 +6,48 @@ import google_meets from "../../assets/google_meet_logo.svg"
 import memo_trashbin from "../../assets/memo_trashbin.svg"
 import arrow from "../../assets/arrow.svg"
 import calendar_icon from "../../assets/calendar_icon.svg"
+import location_icon from "../../assets/location_icon.svg"
 
 const MeetingInfoCard =({ project }) =>{
     return(
         <div className="meeting-info-card">
             <h2 className="card-title">{project.title}</h2>
             <p className="project-description">{project.description}</p>
-            <div className="repeat-container">
-                <img src={calendar_icon} className="calendar"/>
-                <p className="project-repeat"> 
-                    {project.repeat === "none" ? `${project.startDate}` : `repeat every ${project.repeat}`}
-                </p>
+            <div className="info-container">
+                <img src={calendar_icon} className="icon"/>
+                <div className="info-text">
+                    <div className="project-info">
+                        {project.endTime === "none"?
+                        `${project.startDate}  ${project.startTime}`: 
+                        `${project.startDate}  ${project.startTime}~${project.endTime}`}
+                        
+                    </div>
+                    
+                    <div className="project-subinfo">
+                        {project.repeat === "none" ? 
+                        `no repeat` : 
+                        `repeat every ${project.repeat}`}
+                    </div>
+                </div>
+            </div>
+            <div className="spacer" style={{height: '15px'}}></div>
+            <div className="info-container">
+                <img src={location_icon} className="icon"/>
+                <div className="info-text">
+                    <div className="project-info">
+                        {project.placeName === "none"?
+                        `none`: 
+                        `${project.placeName}`}
+
+
+                    </div>
+                    
+                    <div className="project-subinfo">
+                        {project.placeName === "none" ? 
+                        ` ` : 
+                        `${project.placeAddress}`}
+                    </div>
+                </div>
             </div>
             
             <div className="friends-section">
