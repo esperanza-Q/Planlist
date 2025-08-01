@@ -24,8 +24,8 @@ public class MeetingSessionMapper {
 
     public static MeetingSessionResponseDTO toResponseDTO(MeetingSession entity) {
         return MeetingSessionResponseDTO.builder()
-                .plannerId(entity.getId())
-                .projectId(entity.getProject().getId())
+//                .plannerId(entity.getId())
+//                .projectId(entity.getProject().getId())
                 .title(entity.getTitle())
                 .week(entity.getWeek())
                 .date(entity.getDate())

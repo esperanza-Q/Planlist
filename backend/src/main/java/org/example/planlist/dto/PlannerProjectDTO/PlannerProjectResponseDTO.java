@@ -13,8 +13,8 @@ import java.time.LocalDateTime;
 @Builder
 public class PlannerProjectResponseDTO {
 
-    private Long projectId;
-    private Long creatorId;
+//    private Long projectId;
+//    private Long creatorId;
     private String projectTitle;
     private PlannerProject.Category category;
     private PlannerProject.Status status;
