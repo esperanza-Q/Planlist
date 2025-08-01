@@ -1,0 +1,92 @@
+.form-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.form-box {
+  background: var(--EEF1F6);
+  border: solid 1px var(--Galaxy);
+  padding: 2rem;
+  border-radius: 12px;
+  width: 879px;
+  height: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 200px 500px 100px 500px;
+}
+
+.form-icon {
+    background-color: white;
+    border: 1px solid var(--Planetary);
+    border-radius: 17px;
+    width: 84px;
+    height: 84px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.start-project-icon {
+  width: 33px;
+  height: 33px;
+  color: var(--Planetary);
+}
+
+.underSection{
+    display: flex;
+    flex-direction: column;
+    margin: 34px 130px;
+}
+
+
+.form-box h2{
+    margin-bottom: 0px;
+    text-align: center;
+    font-size: 28px;
+}
+
+
+.form-description {
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  font-size: 24.5px;
+}
+
+.form-box label{
+    margin-bottom: 12px;
+    font-size: 24px;
+}
+
+
+.title-box{
+    width: 616px;
+    border: 1px solid var(--Galaxy);
+}
+input {
+  font-size: 22px;
+  height: 40px;
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: 1px solid var(--Galaxy);
+  margin-bottom: 1rem;
+}
+
+.date-picker-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.project-next-button {
+  background: none;
+  border: none;
+  width: 43px;
+  height: 43px;
+  margin-left: 1700px;
+  margin-right: 100px;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
