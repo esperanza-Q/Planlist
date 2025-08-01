@@ -16,21 +16,17 @@ public class StandardSessionMapper {
                 .time(dto.getTime())
                 .location(dto.getLocation())
                 .isFinalized(dto.getIsFinalized())
-
                 .build();
     }
 
     public static StandardSessionResponseDTO toResponseDTO(StandardSession entity) {
         return StandardSessionResponseDTO.builder()
-//                .plannerId(entity.getId())
-//                .projectId(entity.getProject().getId())
                 .title(entity.getTitle())
                 .week(entity.getWeek())
                 .date(entity.getDate())
                 .time(entity.getTime())
                 .location(entity.getLocation())
                 .isFinalized(entity.getIsFinalized())
-
                 .build();
     }
 }
