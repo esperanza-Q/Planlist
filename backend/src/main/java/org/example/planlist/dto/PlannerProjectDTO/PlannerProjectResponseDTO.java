@@ -1,6 +1,5 @@
 package org.example.planlist.dto.PlannerProjectDTO;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.example.planlist.entity.PlannerProject;
 

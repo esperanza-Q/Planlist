@@ -19,7 +19,7 @@ public class ProjectParticipant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "invitee_id", nullable = false)
-    private Long inviteeId;
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", nullable = false)
@@ -33,17 +33,18 @@ public class ProjectParticipant {
     @Column(nullable = false)
     private Response response;
 
-    public enum Response {
-        WAITING,
-        ACCEPTED,
-        REJECTED
-    }
-
     @Column(name = "response_at")
     private LocalDateTime responseAt;
 
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    // Enum
+    public enum Response {
+        WAITING,
+        ACCEPTED,
+        REJECTED
+    }
 
     public enum Role {
         TRAINER,
