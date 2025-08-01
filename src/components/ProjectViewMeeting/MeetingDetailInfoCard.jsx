@@ -1,16 +1,11 @@
-import React from "react";
-
-import ProfilePic from "../../assets/ProfilePic.png"
 import edit_icon from "../../assets/edit_icon.svg"
 import google_meets from "../../assets/google_meet_logo.svg"
-import memo_trashbin from "../../assets/memo_trashbin.svg"
-import arrow from "../../assets/arrow.svg"
 import calendar_icon from "../../assets/calendar_icon.svg"
 import location_icon from "../../assets/location_icon.svg"
 
 const MeetingInfoCard =({ project }) =>{
     return(
-        <div className="meeting-info-card">
+        <div className="info-card">
             <h2 className="card-title">{project.title}</h2>
             <p className="project-description">{project.description}</p>
             <div className="info-container">

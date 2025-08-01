@@ -54,7 +54,7 @@ const allProjects=[
     {
           id: 4,
           title: 'Personal Training session ',
-          category: 'PT',
+          category: 'standard',
           status: 'Upcoming',
           startDate: '2025-07-26',
           endDate: '2025-07-26',
