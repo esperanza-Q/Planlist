@@ -66,7 +66,7 @@ const allProjects=[
           ]
     },
     {
-          id: 4,
+          id: 5,
           title: 'Personal Training session ',
           category: 'PT',
           status: 'Finished',

@@ -1,348 +1,296 @@
-/* Main container styles */
-.project-info-container {
-  background-color: white;
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  min-height: 100vh;
-  padding: 20px;
-  box-sizing: border-box;
+/*--layout--*/
+.screen{
+    width:1980px;
+    height:1080px;
+}
+.project-view-meeting{
+    position:absolute;
+    display:flex;
+    flex-direction: row;
+    top:114px;
+    left:360px;
+    margin:0px;
+
+    
 }
 
-.project-content {
-  background-color: white;
-  width: 100%;
-  max-width: 1980px;
-  height: 1080px;
-  position: relative;
+button:hover{
+    opacity: 70%;
 }
 
-/* Card styles */
-.card {
-  position: absolute;
-  background-color: #eef1f6;
-  border-radius: 30px;
-  border: 1px solid #081f5c;
-  box-sizing: border-box;
-  overflow: hidden;
+::-webkit-scrollbar{
+  display:none;
 }
 
-/* Project info card */
-.project-info-card {
-  width: 637px;
-  height: 330px;
-  top: 117px;
-  left: 332px;
+/*--meeting-info-card--*/
+
+.meeting-info-card{
+    position:relative;
+    width:560px;
+    height:wrap;
+    padding:40px;
+    margin-right:42px;
+    margin-bottom: 52px;
+    background-color: #EEF1F6;
+    border-radius:20px;
+    border:1px solid #0A205C;
+    font-family: 'IBM Plex Sans KR', sans-serif;
 }
 
-.card-title {
-  font-family: 'IBM Plex Sans KR', Helvetica;
-  font-weight: bold;
-  color: #354fae;
-  font-size: 33px;
-  letter-spacing: 1.65px;
-  margin: 38px 0 0 38px;
+.meeting-edit-button{ 
+    position:absolute;
+    outline:0px;
+    border:0px;
+    top:50px;
+    left:555px;
+    width:20px;
+    height:20px;
 }
 
-.project-description {
-  font-family: 'Inter', Helvetica;
-  font-weight: normal;
-  color: #c5c5c5;
-  font-size: 13px;
-  margin: 20px 0 0 40px;
-  width: 331px;
+.card-title{
+    font-family: 'IBM Plex Sans KR', sans-serif;
+    color:#354FAE;
+    font-size: 33px;
+    margin:0px 0px 8px 0px;
+    font-weight: 600;;
 }
 
-.schedule-icon {
-  position: absolute;
-  width: 24px;
-  height: 24px;
-  top: 127px;
-  left: 39px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.project-description{
+    margin:0px 0px 18px 3px;
+    color:#C5C5C5;
 }
 
-.schedule-text {
-  position: absolute;
-  font-family: 'Inter', Helvetica;
-  font-weight: normal;
-  color: #0a205c;
-  font-size: 13px;
-  top: 130px;
-  left: 71px;
+.repeat-container{
+    display: flex;
+    top:133px;
+    left:37px;
+    flex-direction: row;
+    
 }
 
-/* Friend tag styles */
-.friend-tags-container {
-  display: flex;
-  position: absolute;
-  top: 177px;
-  left: 39px;
-  gap: 5px;  
+.calendar{
+    width:20px;
+    height:20px;
+    margin-top:2px;
 }
 
-.friend-tag {
-  position: relative;
-  width: fit-content;
-  padding:3px;
-  height: 31px;
-  background-color: white;
-  border-radius: 20px;
-  border: 1px solid #081f5c;
-  display: flex;
-  align-items: center;
+.project-repeat{
+    margin:0px 0px 0px 10px;
+    padding:0px;
+    color:#0A205C;
+}
+
+.friends-small-list {
+    width: 397px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* 4 columns */
+    gap: 7px;
+    margin-top:18px;
+}
+
+.friend-small{
+    width:84px;
+    height:31px;
+    padding: 0px 10px 0px 10px;
+    background-color: white;
+    border-radius: 20px;
+    border:1px solid #0A205C;
+    align-content:center;
+    align-items: center;
+}
+
+.friend-small-avatar{
+    width: 23px;
+    height: 23px;
+    margin-top: 4px;
+
+}
+
+.friend-small-name{
+    position:absolute;
+    margin: 3px 0px 0px 5px;
+    width:50px;
+    color:#0A205C;
+}
+
+.meet-button {
+    display:flex;
+    flex-direction: row;
+    margin-top: 30px;
+    left:37px;
+    height:50px;
+    width:562px;
+    border-radius: 30px;
+    
+    align-items: center;
+    align-content: center;
+    background-color: #354FAE;
+    border:1px solid #354FAE;
+}
+
+.meet-button img{
+    margin-left:184px;
+    margin-right:4px;
+    width:33px;
+    height:33px;
+}
+
+.meet-button p{
+    margin-top:14px;
+    font-family: 'IBM Plex Sans KR', sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    color:#FFFFFF;
+}
+
+/*--add button--*/
+.meet-button.add {
+    margin-top:0px;
+    
+}
+
+.meet-button.add p{
+    margin-left: 237px;
+    
+}
+
+/*-- MemoCard --*/
+
+.memo-card{
+    position:relative;
+    width: 550px;
+    height: 674px;
+    padding:45px;
+    background-color: #EEF1F6;
+    border-radius: 4px;
+    border: 1px solid #0A205C;
+    border-radius: 20px;
+}
+
+.tab.memo{
+    position:absolute;
+    top:108px;
+    left:45px;
+}
+
+.memo-list{
+    margin:85px 0px 25px 0px;
+    padding:0px;
+    height:460px;
+    overflow-y:scroll;
+    -ms-overflow-style: none;
+    
 }
 
 
 
-.friend-tag img {
-  width: 25px;
-  margin-left: 5px;
-  height: 25px;
-  object-fit: cover;
+.memo-item{
+    position:relative;
+    margin:0px 0px 30px 0px;
+    padding:30px 40px 30px 40px;
+    
+    height:140px;
+    background-color: white;
 }
 
-.friend-name {
-  font-family: 'IBM Plex Sans KR', Helvetica;
-  font-weight: normal;
-  color: #0a205c;
-  font-size: 13px;
-  margin-left: 9px;
+.memo-delete-button{ 
+    background-color: white;
+    position:absolute;
+    outline:0px;
+    border:0px;
+    top:35px;
+    left:491px;
+    width:20px;
+    height:20px;
 }
 
-.edit-project {
-  position: absolute;
-  font-family: 'IBM Plex Sans KR', Helvetica;
-  font-weight: 500;
-  color: #7096d1;
-  font-size: 13px;
-  text-align: right;
-  top: 186px;
-  left: 478px;
+.memo-edit-button{
+    position:absolute;
 }
 
-.edit-icon {
-  position: absolute;
-  width: 27px;
-  height: 27px;
-  top: 181px;
-  left: 563px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.memo-edit-button{
+    background-color: white;
+    position:absolute;
+    outline:0px;
+    border:0px;
+    top:150px;
+    left:493px;
+    width:14px;
+    height:14px;
 }
 
-.edit-icon img {
-  width: 22px;
-  height: 18px;
+.memo-title{
+    width:470px;
+    font-family: 'IBM Plex Sans KR', sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    color:#354FAE;
 }
 
-/* Create meeting button */
-.create-meeting-btn {
-  position: absolute;
-  width: 545px;
-  height: 50px;
-  top: 234px;
-  left: 46px;
-  background-color: #334eac;
-  border-radius: 25px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-family: 'IBM Plex Sans KR', Helvetica;
-  font-weight: 600;
-  font-size: 16px;
-  cursor: pointer;
+.memo-content{
+    position:absolute;
+    top:59px;
+    left:42px;
+    width:470px;
+
 }
 
-.create-meeting-btn img {
-  width: 32px;
-  height: 32px;
-  margin-right: 10px;
+.memo-tag{
+    position:absolute;
+    top: 149px;
+    left:42px;
+    font-size: 12px;
 }
 
-/* Meetings card */
-.meetings-card {
-  width: 637px;
-  height: 327px;
-  top: 500px;
-  left: 332px;
+
+/*--MeetingList--*/
+
+.meeting-list-card{
+    position:relative;
+    width:560px;
+    padding:40px;
+    height:250px;
+    background-color: #EEF1F6;
+    border: 1px solid #0A205C;
+    border-radius: 20px;
 }
 
-.meetings-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 29px 35px 0 48px;
+.add-meeting{
+    position:absolute;
+    top:55px;
+    left:425px;
+    width:172px;
+    height:32px;
+    background-color: white;
+    color:#0A205C;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 30px;
+
 }
 
-.meetings-title {
-  font-family: 'IBM Plex Sans KR', Helvetica;
-  font-weight: bold;
-  color: #354fae;
-  font-size: 30px;
-  letter-spacing: 1.5px;
+.meeting-list{
+    width:560px;
+    height:180px;
+    padding-left:0px;
+    overflow-y: scroll;
+    
 }
 
-.add-meeting-btn {
-  width: 172px;
-  height: 32px;
-  background-color: white;
-  border-radius: 20px;
-  border: 1px solid #081f5c;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'IBM Plex Sans KR', Helvetica;
-  font-weight: 600;
-  color: #0a205c;
-  font-size: 13px;
-  cursor: pointer;
+.meeting-link{
+    width:540px;
+    margin-left:8px;
+    margin-top:10px;
+    padding-left: 30px;
+    height:50px;
+    border:none;
+    border-radius: 20px;
+    align-content:left;
+    font-size: 20px; 
+    color: #0A205C;
+    text-align: left;
 }
 
-.meeting-list {
-  margin-top: 35px;
-  margin-left: 72px;
-}
-
-.meeting-item {
-  font-family: 'IBM Plex Sans KR', Helvetica;
-  font-weight: normal;
-  color: #081f5c;
-  font-size: 20px;
-  margin-bottom: 25px;
-}
-
-/* Memo card */
-.memo-card {
-  width: 637px;
-  height: 734px;
-  top: 117px;
-  left: 1011px;
-}
-
-.memo-tabs {
-  display: flex;
-  margin: 30px 0 0 54px;
-  gap: 10px; 
-}
-
-.memo-tab {
-  width: 95px;
-  height: 31px;
-  border-radius: 20px;
-  border: 1px solid #081f5c;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Inter', Helvetica;
-  font-weight: normal;
-  color: #0a205c;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.memo-list {
-  margin-top: 40px;
-  margin-left: 45px;
-  display: flex;
-  flex-direction: column;
-  gap: 30px; 
-}
-
-.memo-item {
-  width: 549px;
-  height: 198px;
-  background-color: white;
-  border-radius: 4px;
-  padding: 24px;
-  position: relative;
-  box-sizing: border-box;
-}
-
-.memo-project-title {
-  font-family: 'IBM Plex Sans KR', Helvetica;
-  font-weight: 600;
-  color: #334eac;
-  font-size: 16px;
-  margin: 0;
-}
-
-.memo-description {
-  font-family: 'IBM Plex Sans KR', Helvetica;
-  font-weight: normal;
-  color: #242a31;
-  font-size: 14px;
-  margin-top: 15px;
-  line-height: 21px;
-}
-
-.memo-category {
-  position: absolute;
-  bottom: 24px;
-  left: 40px;
-  font-family: 'IBM Plex Sans KR', Helvetica;
-  font-weight: 600;
-  color: #4d5a66;
-  font-size: 12px;
-}
-
-.memo-options {
-  position: absolute;
-  top: 30px;
-  right: 24px;
-  width: 15px;
-  height: 15px;
-  cursor: pointer;
-}
-
-.memo-delete {
-  position: absolute;
-  bottom: 24px;
-  right: 24px;
-  width: 14px;
-  height: 14px;
-  cursor: pointer;
-}
-
-.add-memo-btn {
-  width: 545px;
-  height: 50px;
-  background-color: #334eac;
-  border-radius: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-family: 'IBM Plex Sans KR', Helvetica;
-  font-weight: 600;
-  font-size: 15px;
-  margin: 0 auto;
-  margin-top: 20px;
-  cursor: pointer;
-}
-
-/* Media queries for responsiveness */
-@media (max-width: 1980px) {
-  .project-content {
-    transform: scale(0.9);
-    transform-origin: top center;
-  }
-}
-
-@media (max-width: 1600px) {
-  .project-content {
-    transform: scale(0.8);
-    transform-origin: top center;
-  }
-}
-
-@media (max-width: 1400px) {
-  .project-content {
-    transform: scale(0.7);
-    transform-origin: top center;
-  }
+.meeting-link:hover{
+    background-color: #BAD6EB;
 }

@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import "./ProjectView.css";
 import ProfileOverflow from '../../assets/profile_overflow.svg';
 
+
+
 const ProjectViewItem = ({project}) => {
     const navigate = useNavigate();
     const handleClick = () => {
@@ -24,7 +26,7 @@ const ProjectViewItem = ({project}) => {
           path += "standard";
       }
 
-      navigate(`${path}/${project.id}`);
+      navigate(`${path}`,{ state: {project} });
     };
       
     return(

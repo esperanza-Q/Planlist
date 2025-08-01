@@ -12,6 +12,8 @@ import AddFreeTimePage from "./pages/AddFreeTimePage";
 import Setting from './pages/Setting';
 
 import ProjectCreate from "./components/ProjectCreate/ProjectCreate";
+import ProjectViewMeeting from "./components/ProjectViewMeeting/ProjectViewMeeting"
+import ProjectViewMeetingDetails from "./components/ProjectViewMeeting/ProjectViewMeetingDetails"
 
 
 function App() {
@@ -61,7 +63,12 @@ function App() {
             <Route path="/note" element={<Note />} />
             <Route path="/setting" element={<Setting />} />
             <Route path="/add-free-time" element={<AddFreeTimePage/>}/>
+
             <Route path="/project/create" element={<ProjectCreate />} />
+            <Route path="/project/meeting" element={<ProjectViewMeeting />}/>
+            <Route path="/project/meeting/details" element={<ProjectViewMeetingDetails />}/>
+
+
           </Routes>
         </main>
       </div>
