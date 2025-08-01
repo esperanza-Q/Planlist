@@ -13,7 +13,7 @@
 
 }
 
-.calendar-grid {
+.week-calendar-grid {
   display: flex;
   flex-direction: column;
 }
