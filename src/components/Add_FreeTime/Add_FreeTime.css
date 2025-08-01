@@ -103,7 +103,7 @@ button{
   background-color: rgb(186,214,235,0.5); 
 }
 
-.day-header.main-selected {
+.free-day-header.main-selected {
   font-weight: bold;
   color: var(--Planetary);
 }

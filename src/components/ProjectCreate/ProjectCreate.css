@@ -1,0 +1,61 @@
+.category-selector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'IBM Plex Sans KR', sans-serif;
+  margin-top: 160px;
+}
+
+.category-selector h2{
+    color: var(--Planetary);
+}
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  justify-content: center;
+  width: 922px;
+  height: auto;
+}
+
+.category-card {
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.image-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.category-img {
+  width: 453px;
+  height: 255px;
+}
+
+.checkMark-icon {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 3px solid var(--Planetary);
+
+}
+
+.continue-button {
+  margin-top: 30px;
+  padding: 12px 24px;
+  background-color: var(--Galaxy);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.continue-button:disabled {
+  background-color: #999;
+  cursor: default;
+}

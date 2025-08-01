@@ -19,7 +19,7 @@ const WeekCalendar = ({ currentDate, events }) => {
   return (
     <div className="week-calendar">
       <h2 className="week-calendar-title">{format(currentDate, 'MMMM yyyy')}</h2>
-      <div className="calendar-grid">
+      <div className="week-calendar-grid">
         <div className="header-row">
           <div className="time-cell" />
           {days.map((day) => (
