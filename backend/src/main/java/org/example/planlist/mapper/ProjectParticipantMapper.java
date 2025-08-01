@@ -10,8 +10,8 @@ public class ProjectParticipantMapper {
 
     public static ProjectParticipant toEntity(ProjectParticipantRequestDTO dto, User user, PlannerProject project) {
         return ProjectParticipant.builder()
-                .user(user)
                 .project(project)
+                .user(user)
                 .response(dto.getResponse())
                 .responseAt(dto.getResponseAt())
                 .role(dto.getRole())
@@ -20,11 +20,7 @@ public class ProjectParticipantMapper {
 
     public static ProjectParticipantResponseDTO toResponseDTO(ProjectParticipant entity) {
         return ProjectParticipantResponseDTO.builder()
-//                .inviteeId(entity.getId())
-//                .userId(entity.getUser().getId())
-//                .projectId(entity.getProject().getId())
                 .response(entity.getResponse())
-//                .responseAt(entity.getResponseAt())
                 .role(entity.getRole())
                 .build();
     }

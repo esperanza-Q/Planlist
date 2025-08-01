@@ -1,9 +1,7 @@
 package org.example.planlist.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
@@ -20,7 +18,7 @@ public abstract class PlannerSession {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "planner_id")
+    @Column(name = "planner_id", unique = true)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
