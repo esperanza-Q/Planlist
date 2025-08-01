@@ -1,6 +1,5 @@
-import React from "react";
 
-import MeetingInfoCard from "../../components/ProjectViewMeeting/MeetingInfoCard"
+import MeetingDetailInfoCard from "../../components/ProjectViewMeeting/MeetingDetailInfoCard"
 import MeetingList from "../../components/ProjectViewMeeting/MeetingList";
 import MemoCard from "../../components/ProjectViewMeeting/MemoCard"
 import "./ProjectViewMeeting.css"
@@ -15,9 +14,13 @@ const sampleProject = {
     description: "Weekly catch-up and planning meeting.",
     category: 'meeting',
     status: 'Finished',
-    repeat:'tuesday',
+    repeat:'none',
     startDate: '2025-07-01',
-    endDate: '2025-07-07',
+    startTime: '18:00',
+    endTime: '20:00',
+    endDate: 'none',
+    placeName: 'place',
+    placeAddress:'seoul, seongbuk-gu, ...',
     users: [
       { name: 'A', avatar: ProfilePic },
       { name: 'B', avatar: ProfilePic },
@@ -79,24 +82,21 @@ const exampleMemos = [
   }
 ];
 
-const ProjectViewMeeting = () => {
-  
+const ProjectViewMeetingDetails = () => {
 
-  return (
-    <div className="screen">
-      <div className="project-view-meeting">
+    return(
+        <div className="screen">
+      <div className="project-view-meeting detail">
       <div className="layout ProjectViewMeeting">
-        <MeetingInfoCard project={sampleProject}/>
-        <MeetingList project={sampleProject}/>
+        <MeetingDetailInfoCard project={sampleProject}/>
+        
       </div>
       
       <MemoCard initialMemos={exampleMemos}/>
     </div>
 
     </div>
-    
-    
-  );
-};
+    )
+}
 
-export default ProjectViewMeeting;
+export default ProjectViewMeetingDetails;
