@@ -1,10 +1,7 @@
 package org.example.planlist.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -18,7 +15,7 @@ public class ProjectParticipant {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "invitee_id", nullable = false)
+    @Column(name = "invitee_id", unique = true, nullable = false)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

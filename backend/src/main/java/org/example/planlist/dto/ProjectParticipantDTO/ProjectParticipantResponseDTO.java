@@ -12,10 +12,6 @@ import java.time.LocalDateTime;
 @Builder
 public class ProjectParticipantResponseDTO {
 
-//    private Long inviteeId;
-//    private Long projectId;
-//    private Long userId;
     private ProjectParticipant.Response response;
-//    private LocalDateTime responseAt;
     private ProjectParticipant.Role role;
 }

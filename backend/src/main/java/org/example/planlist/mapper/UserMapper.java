@@ -16,7 +16,6 @@ public class UserMapper {
 
     public static UserResponseDTO toResponseDTO(User entity) {
         return UserResponseDTO.builder()
-//                .userId(entity.getId())
                 .email(entity.getEmail())
                 .profileImage(entity.getProfileImage())
                 .name(entity.getName())
