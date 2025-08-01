@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 
 import memo_trashbin from "../../assets/memo_trashbin.svg"
 import arrow from "../../assets/arrow.svg"
+import "./MemoCard.css"
 
 const MemoCard =({ initialMemos = [], onChange })=> {
   const [activeTab, setActiveTab] = useState("personal");

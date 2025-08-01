@@ -1,8 +1,6 @@
-import React from "react";
-
 import MeetingInfoCard from "../../components/ProjectViewMeeting/MeetingInfoCard"
 import MeetingList from "../../components/ProjectViewMeeting/MeetingList";
-import MemoCard from "../../components/ProjectViewMeeting/MemoCard"
+import MemoCard from "../ProjectView/MemoCard"
 import "./ProjectViewMeeting.css"
 
 import ProfilePic from "../../assets/ProfilePic.png"
