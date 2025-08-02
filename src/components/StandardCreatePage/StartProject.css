@@ -81,12 +81,13 @@ input {
 }
 
 .project-next-button {
-  background: none;
-  border: none;
+  position: fixed; 
+  bottom: 84px;     
+  right: 140px;    
   width: 43px;
   height: 43px;
-  margin-left: 1700px;
-  margin-right: 100px;
+  background: none;
+  border: none;
   font-size: 1.2rem;
   cursor: pointer;
 }

@@ -12,7 +12,7 @@ const MemoModal = ({ onClose, onSave }) => {
       type,
       title,
       description: desc,
-      category: type === 'personal' ? 'Travel' : 'Standard',
+      category: 'Standard', // Create 페이지별로 고정값 변경 필요
     });
     onClose();
   };

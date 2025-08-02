@@ -1,21 +1,33 @@
 .step5-container {
   display: flex;
-  gap: 1rem;
+  gap: 5rem;
   font-family: 'IBM Plex Sans KR', sans-serif;
   justify-content: center;
   align-items: center;
-  margin-top: 50px;
+  margin-top: 90px;
+  margin-left: 100px;
+ 
 }
 
 /* 상단 타이틀 + 프로필 */
 .save-project-title {
   display: flex;
-  align-items: baseline;
+  align-items: center;
+  gap: 16px;
 }
 
-.save-project-title h2 {
+.save-project-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.save-project-title-row h2 {
   font-size: 1.8rem;
   font-weight: 600;
+  margin: 0;
 }
 
 .save-project-profile-pics {
@@ -78,6 +90,18 @@
   font-size: 0.95rem;
   width: 519x;
   margin-top: 1.2rem;
+}
+
+
+.save-project-tofrom-title{
+    display: flex;
+    flex-direction: column;
+
+}
+
+.save-project-tofrom-title h5{
+    margin: 0px;
+    margin-left: 5px;
 }
 
 .save-project-time-inputs {
@@ -191,21 +215,29 @@ input[type="file"] {
   width: 707px;
   display: flex;
   flex-direction: column;
-  gap: 2.5rem;
+  gap: 1.7rem;
 }
 
 .save-project-memo-section {
   display: flex;
   flex-direction: column;
+  height: 277px; 
+  border: none;
+  border-radius: 16px;
+  padding: 16px;
+  background-color: none;
+  width: 770px;
 }
+
 
 .save-project-memo-header {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   font-weight: 600;
-  margin-bottom: 1rem;
   font-size: 1.1rem;
+  margin-bottom: 12px;
 }
+
 
 .save-project-memo-header-button{
     border: none;
@@ -214,42 +246,18 @@ input[type="file"] {
 
 
 
-.save-project-memo-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
+.save-project-memo-placeholder {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); 
+  gap: 16px;
+  max-height: 320px; 
+  overflow-y: auto;
+  padding-right: 6px;
 }
 
-/* 메모 카드 */
-.save-project-memo-card {
-  background: #f5f9ff;
-  width: 240px;
-  padding: 1.2rem;
-  border-radius: 14px;
-  border: 1px solid #c6d3e6;
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  position: relative;
-  transition: all 0.2s ease;
-}
 
-.save-project-memo-title {
-  font-weight: 600;
-  font-size: 1rem;
-  color: #1e3a8a;
-}
 
-.save-project-memo-desc {
-  font-size: 0.88rem;
-  color: #4a5568;
-}
 
-.save-project-memo-meta {
-  font-size: 0.8rem;
-  color: #718096;
-  margin-top: auto;
-}
 
 .save-project-delete-btn {
   position: absolute;

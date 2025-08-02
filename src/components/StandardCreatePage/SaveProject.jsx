@@ -4,14 +4,20 @@ import MemoModal from './MemoModal';
 
 import { ReactComponent as BackIcon } from '../../assets/prev_arrow.svg';
 import { ReactComponent as ProfileOverflowIcon } from '../../assets/profile_overflow.svg';
-import profile1 from '../../assets/ProfilePic.png';
-import profile2 from '../../assets/ProfilePic02.svg';
 import SaveIcon from '../../icons/SaveIcon';
 import PlusCircleIcon from '../../icons/PlusCircleIcon';
 import GridCirclePlusIcon from '../../icons/GridCirclePlusIcon';
 import LocationIcon from '../../icons/LocationIcon';
 import Clock4Icon from '../../icons/Clock4Icon';
 import PlusIcon from '../../icons/PlusIcon';
+
+import profile1 from "../../assets/ProfilePic.png"
+import profile2 from '../../assets/ProfilePic02.svg';
+import profile3 from '../../assets/ProfilePic03.svg';
+import profile4 from '../../assets/ProfilePic04.svg';
+
+import MemoPart from '../Memo/MemoPart';
+
 
 const mockFormData = {
   projectName: 'Team Collaboration',
@@ -28,11 +34,12 @@ const mockFormData = {
 };
 
 const SavePorject = ({
-  formData = mockFormData,
+  formData,
   updateFormData = () => {},
   nextStep = () => {},
   prevStep = () => {},
 }) => {
+const safeFormData = formData && Object.keys(formData).length > 0 ? formData : mockFormData;
   const [myMemos, setMyMemos] = useState([]);
   const [teamMemos, setTeamMemos] = useState([]);
   const [references, setReferences] = useState([]);
@@ -45,8 +52,11 @@ const SavePorject = ({
   });
   const [memoModalOpen, setMemoModalOpen] = useState(false);
 
-  const projectName = formData.projectName || 'Untitled Project';
-  const invitedFriends = formData.invitedFriends || [];
+    const projectName = safeFormData.projectName || 'Untitled Project';
+    const invitedFriends = safeFormData.invitedFriends || [];
+    console.log("✅ formData:", formData);
+    console.log("✅ safeFormData:", safeFormData);
+    console.log("✅ invitedFriends:", invitedFriends);
 
   const handleSave = async () => {
     const payload = {
@@ -90,32 +100,50 @@ const SavePorject = ({
       {/* Title & Profile */}
       <div className="save-project-left-section">
         <div className="save-project-title">
-          <button onClick={prevStep} className="prev-button">
-            <BackIcon />
-          </button>
-          <h2>{projectName}</h2>
-          <div className="save-project-profile-pics">
-            {invitedFriends.slice(0, 3).map((friend, index) => (
-              <img key={index} src={friend.profileImage} alt="profile" className="save-project-profile-pic" />
-            ))}
-            {invitedFriends.length > 3 && <ProfileOverflowIcon className="save-project-profile-overflow-icon" />}
-          </div>
+            <button onClick={prevStep} className="prev-button">
+                <BackIcon />
+            </button>
+
+            <div className="save-project-title-row">
+                <h2>{projectName}</h2>
+                <div className="save-project-profile-pics">
+                    {invitedFriends.length === 0 && <p style={{ color: 'gray' }}>No invited friends</p>}
+                    {invitedFriends.map((friend, index) => (
+                        <img
+                        key={index}
+                        src={friend.profileImage}
+                        alt={friend.name}
+                        className="save-project-profile-pic"
+                        style={{ width: '36px', height: '36px', borderRadius: '50%' }}
+                        />
+                    ))}
+                    </div>
+
+            </div>
         </div>
+
 
         {/* Date / Location / File Upload */}
         <div className="save-project-left-panel">
           <section className="save-project-section-box">
             <label><Clock4Icon /> Date & Time</label>
             <input value={dateTime.date} disabled />
+            
             <div className="save-project-time-inputs">
-              <input
-                value={dateTime.start}
-                onChange={(e) => setDateTime({ ...dateTime, start: e.target.value })}
-              />
-              <input
-                value={dateTime.end}
-                onChange={(e) => setDateTime({ ...dateTime, end: e.target.value })}
-              />
+                 <div className="save-project-tofrom-title">
+                    <h5>To</h5>
+                    <input
+                        value={dateTime.start}
+                        onChange={(e) => setDateTime({ ...dateTime, start: e.target.value })}
+                    />
+              </div>
+                <div className="save-project-tofrom-title">
+                    <h5>From</h5>
+                    <input
+                    value={dateTime.end}
+                    onChange={(e) => setDateTime({ ...dateTime, end: e.target.value })}
+                    />
+                </div>
             </div>
           </section>
 
@@ -176,8 +204,13 @@ const SavePorject = ({
               <PlusCircleIcon />
             </button>
           </div>
-          {/* 공간만 확보 */}
-          <div className="save-project-memo-placeholder" />
+          {/* MY MEMO 영역 */}
+            <div className="save-project-memo-placeholder">
+            {myMemos.map((memo, index) => (
+                <MemoPart key={index} memo={{ ...memo, isMine: true }} />
+            ))}
+            </div>
+
         </div>
 
         <div className="save-project-memo-section">
@@ -187,8 +220,13 @@ const SavePorject = ({
               <PlusCircleIcon />
             </button>
           </div>
-          {/* 공간만 확보 */}
-          <div className="save-project-memo-placeholder" />
+          {/* TEAM MEMO 영역 */}
+            <div className="save-project-memo-placeholder">
+            {teamMemos.map((memo, index) => (
+                <MemoPart key={index} memo={{ ...memo, isMine: false }} />
+            ))}
+            </div>
+
         </div>
       </div>
 

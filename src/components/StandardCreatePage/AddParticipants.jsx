@@ -13,12 +13,12 @@ import profile4 from '../../assets/ProfilePic04.svg';
 
 //테스트 데이터 
 const mockFriends = [
-  { id: 1, name: 'NAME1', email: 'example1@gmail.com', profileImage: profile1 },
-  { id: 2, name: 'NAME2', email: 'example2@gmail.com', profileImage: profile2 },
-  { id: 3, name: 'NAME3', email: 'example3@gmail.com', profileImage: profile3 },
-  { id: 4, name: 'NAME4', email: 'example4@gmail.com', profileImage: profile4 },
-  { id: 5, name: 'NAME5', email: 'example5@gmail.com', profileImage: profile1 },
-  { id: 6, name: 'NAME6', email: 'example6@gmail.com', profileImage: profile1 },
+  { id: 1, name: 'NAME1', email: 'example1@gmail.com', profileImage: profile1, status: 'accepted' },
+  { id: 2, name: 'NAME2', email: 'example2@gmail.com', profileImage: profile2, status: 'waiting' },
+  { id: 3, name: 'NAME3', email: 'example3@gmail.com', profileImage: profile3, status: 'waiting' },
+  { id: 4, name: 'NAME4', email: 'example4@gmail.com', profileImage: profile4, status: 'accepted' },
+  { id: 5, name: 'NAME5', email: 'example5@gmail.com', profileImage: profile1, status: 'waiting' },
+  { id: 6, name: 'NAME6', email: 'example6@gmail.com', profileImage: profile1, status: 'accepted' },
 ];
 
 const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
@@ -30,12 +30,14 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
 
   const handleInvite = (friend) => {
     if (!participants.find(p => p.email === friend.email)) {
-      setParticipants(prev => [
+        setParticipants(prev => [
         ...prev,
-        { ...friend, status: 'waiting' }
-      ]);
-    }
-  };
+        { ...friend, status: friend.status }
+        ]);
+        }
+    };
+
+
 
   const handleRemove = (email) => {
     setParticipants(prev => prev.filter(p => p.email !== email));

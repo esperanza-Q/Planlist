@@ -13,7 +13,7 @@ const center = {
 
 const PlaceMap = ({ selectedPlace }) => {
   const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: 'YOUR_GOOGLE_MAPS_API_KEY', // 🔑 반드시 설정!
+    googleMapsApiKey: 'YOUR_GOOGLE_MAPS_API_KEY', // API 받아서 따로 설정 필요
   });
 
   if (!isLoaded) return <div>Loading Map...</div>;
