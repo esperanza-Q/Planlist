@@ -1,10 +1,8 @@
-
-import MeetingDetailInfoCard from "../../components/ProjectViewMeeting/MeetingDetailInfoCard"
-import MemoCard from "../ProjectView/MemoCard"
-import "./ProjectViewMeeting.css"
+import MemoCard from "../../components/ProjectView/MemoCard"
+import StandardInfoCard from "../../components/ProjectViewStandard/StandardInfoCard"
+import './ProjectViewStandard.css'
 
 import ProfilePic from "../../assets/ProfilePic.png"
-
 
 const sampleProject = {
   
@@ -13,13 +11,9 @@ const sampleProject = {
     description: "Weekly catch-up and planning meeting.",
     category: 'meeting',
     status: 'Finished',
-    repeat:'none',
+    repeat:'tuesday',
     startDate: '2025-07-01',
-    startTime: '18:00',
-    endTime: '20:00',
-    endDate: 'none',
-    placeName: 'place',
-    placeAddress:'seoul, seongbuk-gu, ...',
+    endDate: '2025-07-07',
     users: [
       { name: 'A', avatar: ProfilePic },
       { name: 'B', avatar: ProfilePic },
@@ -81,21 +75,20 @@ const exampleMemos = [
   }
 ];
 
-const ProjectViewMeetingDetails = () => {
 
-    return(
-        <div className="screen">
-      <div className="project-view-meeting detail">
-      <div className="layout ProjectViewMeeting">
-        <MeetingDetailInfoCard project={sampleProject}/>
-        
+const ProjectViewStandard = () => {
+    return (
+      <div className="screen">
+        <div className="layout-standard">
+            
+            <div>
+              <StandardInfoCard project={sampleProject}/> 
+            </div>
+            <MemoCard initialMemos={exampleMemos}/>
+        </div>
       </div>
-      
-      <MemoCard initialMemos={exampleMemos}/>
-    </div>
-
-    </div>
+        
     )
 }
 
-export default ProjectViewMeetingDetails;
+export default ProjectViewStandard;

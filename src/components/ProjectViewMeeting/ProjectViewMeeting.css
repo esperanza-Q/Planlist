@@ -22,12 +22,12 @@ button:hover{
   display:none;
 }
 
-/*--meeting-info-card--*/
+/*--info-card--*/
 
-.meeting-info-card{
+.info-card{
     position:relative;
     width:560px;
-    height:wrap;
+    height:auto;
     padding:40px;
     margin-right:42px;
     margin-bottom: 52px;
@@ -153,94 +153,6 @@ button:hover{
 .meet-button.add p{
     margin-left: 237px;
     
-}
-
-/*-- MemoCard --*/
-
-.memo-card{
-    position:relative;
-    width: 550px;
-    height: 674px;
-    padding:45px;
-    background-color: #EEF1F6;
-    border-radius: 4px;
-    border: 1px solid #0A205C;
-    border-radius: 20px;
-}
-
-.tab.memo{
-    position:absolute;
-    top:108px;
-    left:45px;
-}
-
-.memo-list{
-    margin:85px 0px 25px 0px;
-    padding:0px;
-    height:460px;
-    overflow-y:scroll;
-    -ms-overflow-style: none;
-    
-}
-
-
-
-.memo-item{
-    position:relative;
-    margin:0px 0px 30px 0px;
-    padding:30px 40px 30px 40px;
-    
-    height:140px;
-    background-color: white;
-}
-
-.memo-delete-button{ 
-    background-color: white;
-    position:absolute;
-    outline:0px;
-    border:0px;
-    top:35px;
-    left:491px;
-    width:20px;
-    height:20px;
-}
-
-.memo-edit-button{
-    position:absolute;
-}
-
-.memo-edit-button{
-    background-color: white;
-    position:absolute;
-    outline:0px;
-    border:0px;
-    top:150px;
-    left:493px;
-    width:14px;
-    height:14px;
-}
-
-.memo-title{
-    width:470px;
-    font-family: 'IBM Plex Sans KR', sans-serif;
-    font-weight: 600;
-    font-size: 16px;
-    color:#354FAE;
-}
-
-.memo-content{
-    position:absolute;
-    top:59px;
-    left:42px;
-    width:470px;
-
-}
-
-.memo-tag{
-    position:absolute;
-    top: 149px;
-    left:42px;
-    font-size: 12px;
 }
 
 
