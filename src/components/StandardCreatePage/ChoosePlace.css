@@ -1,35 +1,121 @@
 .choose-place-container {
+  position: relative;
+  font-family: 'Montserrat', sans-serif;
+  width: 1510px;
+  height: 774px;
+  margin-left: 204px;
+  margin-top: 120px;
   display: flex;
-  padding: 2rem;
-  gap: 1rem;
+  flex-direction: column
+
+
+}
+
+.choose-title {
+    display: flex;
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  color: #0a1f44;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.choose-content {
+  display: flex;
+  gap: 2rem;
 }
 
 .map-section {
-  width: 65%;
-  height: 500px;
+  flex: 2;
+  height: 520px;
+  border-radius: 15px;
+  overflow: hidden;
+  border: 1px solid #dcdfe4;
 }
 
-.search-panel {
-  width: 35%;
+.choose-search-panel {
+  flex: 1;
   display: flex;
   flex-direction: column;
 }
 
-.place-list {
-  margin-top: 1rem;
-  overflow-y: auto;
-  max-height: 400px;
+.choose-search-bar {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 25px;
+  padding: 0.4rem 1rem;
+  margin-bottom: 1rem;
+  background-color: white;
+  height: 48px;
 }
 
-.place-item {
-  padding: 0.8rem;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  margin-bottom: 0.5rem;
+.choose-search-bar input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  background: transparent;
+  margin-bottom: 0px;
+}
+
+.choose-search-button {
+  background: none;
+  border: none;
   cursor: pointer;
 }
 
+.place-list {
+  list-style: none; 
+  padding: 0;       
+  margin: 0;
+  overflow-y: auto;
+  max-height: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.place-item {
+  padding: 1rem;
+  border-radius: 15px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  display: flex;
+  flex-direction: column;
+  background: var(--EEF1F6);
+}
+
 .place-item.selected {
-  border: 2px solid #1e3a8a;
-  background: #e0e7ff;
+  border: 1px solid var(--Galaxy);
+}
+
+.place-item.not-selected {
+  background-color: var(--EEF1F6); 
+}
+
+.place-title {
+  font-weight: bold;
+  margin-bottom: 0.3rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.place-address,
+.place-desc {
+  font-size: 12px;
+  color: #555;
+}
+
+
+.project2-next-button {
+  position: absolute;
+  bottom: 2rem;
+  right: 3rem;
+  background: none;
+  border: none;
+  cursor: pointer;
 }

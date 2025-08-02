@@ -2,40 +2,51 @@ import React, { useState } from 'react';
 import './SavePorject.css';
 import MemoModal from './MemoModal';
 
-const SavePorject = ({ formData, updateFormData, nextStep, prevStep }) => {
+import { ReactComponent as BackIcon } from '../../assets/prev_arrow.svg';
+import { ReactComponent as ProfileOverflowIcon } from '../../assets/profile_overflow.svg';
+import profile1 from '../../assets/ProfilePic.png';
+import profile2 from '../../assets/ProfilePic02.svg';
+import SaveIcon from '../../icons/SaveIcon';
+import PlusCircleIcon from '../../icons/PlusCircleIcon';
+import GridCirclePlusIcon from '../../icons/GridCirclePlusIcon';
+import LocationIcon from '../../icons/LocationIcon';
+import Clock4Icon from '../../icons/Clock4Icon';
+import PlusIcon from '../../icons/PlusIcon';
+
+const mockFormData = {
+  projectName: 'Team Collaboration',
+  invitedFriends: [
+    { id: 1, name: 'Alice', profileImage: profile1 },
+    { id: 2, name: 'Bob', profileImage: profile2 },
+  ],
+  selectedDate: '2025-08-05',
+  startTime: '10:00 am',
+  endTime: '12:00 pm',
+  place: {
+    name: 'Sungshin Univ. Library',
+  },
+};
+
+const SavePorject = ({
+  formData = mockFormData,
+  updateFormData = () => {},
+  nextStep = () => {},
+  prevStep = () => {},
+}) => {
   const [myMemos, setMyMemos] = useState([]);
   const [teamMemos, setTeamMemos] = useState([]);
   const [references, setReferences] = useState([]);
+  const [uploadedFiles, setUploadedFiles] = useState([]);
   const [locationMemo, setLocationMemo] = useState(formData.place?.name || '');
   const [dateTime, setDateTime] = useState({
     date: formData.selectedDate,
-    start: '12:00 am',
-    end: '1:00 am',
+    start: formData.startTime || '12:00 am',
+    end: formData.endTime || '1:00 am',
   });
-
   const [memoModalOpen, setMemoModalOpen] = useState(false);
 
-  const handleMemoSave = (memo) => {
-    if (memo.type === 'personal') {
-      setMyMemos(prev => [...prev, memo]);
-    } else {
-      setTeamMemos(prev => [...prev, memo]);
-    }
-  };
-
-  const deleteMemo = (type, id) => {
-    if (type === 'personal') setMyMemos(myMemos.filter(m => m.id !== id));
-    else setTeamMemos(teamMemos.filter(m => m.id !== id));
-  };
-
-  const addReference = () => {
-    const newRef = `Data ${references.length + 1}`;
-    setReferences([...references, newRef]);
-  };
-
-  const deleteReference = (index) => {
-    setReferences(refs => refs.filter((_, i) => i !== index));
-  };
+  const projectName = formData.projectName || 'Untitled Project';
+  const invitedFriends = formData.invitedFriends || [];
 
   const handleSave = async () => {
     const payload = {
@@ -49,16 +60,22 @@ const SavePorject = ({ formData, updateFormData, nextStep, prevStep }) => {
       },
     };
 
+    const formDataObj = new FormData();
+    formDataObj.append('data', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
+
+    uploadedFiles.forEach((file) => {
+      formDataObj.append('files', file);
+    });
+
     try {
       const res = await fetch('/api/project/save', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: formDataObj,
       });
 
       if (res.ok) {
         alert('저장 완료!');
-        nextStep(); // or redirect
+        nextStep();
       } else {
         alert('저장 실패!');
       }
@@ -70,87 +87,129 @@ const SavePorject = ({ formData, updateFormData, nextStep, prevStep }) => {
 
   return (
     <div className="step5-container">
-      <h2>Project Name</h2>
-
-      {/* DateTime + Reference + Location */}
-      <div className="left-panel">
-        <section className="section-box">
-          <label>Date & Time</label>
-          <input value={dateTime.date} disabled />
-          <div className="time-inputs">
-            <input value={dateTime.start} onChange={(e) => setDateTime({ ...dateTime, start: e.target.value })} />
-            <input value={dateTime.end} onChange={(e) => setDateTime({ ...dateTime, end: e.target.value })} />
-          </div>
-        </section>
-
-        <section className="section-box">
-          <label>Add Reference</label>
-          <div className="reference-list">
-            {references.map((ref, i) => (
-              <span key={i}>
-                {ref} <button onClick={() => deleteReference(i)}>❌</button>
-              </span>
+      {/* Title & Profile */}
+      <div className="save-project-left-section">
+        <div className="save-project-title">
+          <button onClick={prevStep} className="prev-button">
+            <BackIcon />
+          </button>
+          <h2>{projectName}</h2>
+          <div className="save-project-profile-pics">
+            {invitedFriends.slice(0, 3).map((friend, index) => (
+              <img key={index} src={friend.profileImage} alt="profile" className="save-project-profile-pic" />
             ))}
-            <button onClick={addReference}>＋</button>
-          </div>
-        </section>
-
-        <section className="section-box">
-          <label>Choose location</label>
-          <input value={locationMemo} onChange={(e) => setLocationMemo(e.target.value)} />
-        </section>
-      </div>
-
-      {/* Memos */}
-      <div className="right-panel">
-        <div className="memo-section">
-          <div className="memo-header">
-            MY MEMO 
-            <button onClick={() => setMemoModalOpen(true)}>＋</button>
-          </div>
-          <div className="memo-list">
-            {myMemos.map((m) => (
-              <MemoCard key={m.id} memo={m} onDelete={() => deleteMemo('personal', m.id)} />
-            ))}
+            {invitedFriends.length > 3 && <ProfileOverflowIcon className="save-project-profile-overflow-icon" />}
           </div>
         </div>
 
-        <div className="memo-section">
-          <div className="memo-header">
-            TEAM MEMO 
-            <button onClick={() => setMemoModalOpen(true)}>＋</button>
-          </div>
-          <div className="memo-list">
-            {teamMemos.map((m) => (
-              <MemoCard key={m.id} memo={m} onDelete={() => deleteMemo('group', m.id)} />
-            ))}
-          </div>
+        {/* Date / Location / File Upload */}
+        <div className="save-project-left-panel">
+          <section className="save-project-section-box">
+            <label><Clock4Icon /> Date & Time</label>
+            <input value={dateTime.date} disabled />
+            <div className="save-project-time-inputs">
+              <input
+                value={dateTime.start}
+                onChange={(e) => setDateTime({ ...dateTime, start: e.target.value })}
+              />
+              <input
+                value={dateTime.end}
+                onChange={(e) => setDateTime({ ...dateTime, end: e.target.value })}
+              />
+            </div>
+          </section>
+
+          <section className="save-project-section-box">
+            <label><LocationIcon /> Choose location</label>
+            <input value={locationMemo} onChange={(e) => setLocationMemo(e.target.value)} />
+          </section>
+
+          <section className="save-project-section-box">
+            <label><GridCirclePlusIcon /> Add Reference (Upload)</label>
+
+            {/* 실제 파일 input은 숨기고, label을 클릭하면 열리도록 */}
+            <div className="file-upload-wrapper">
+                <label htmlFor="file-upload" className="custom-file-upload">
+                <PlusIcon/> Select File
+                </label>
+                <input
+                id="file-upload"
+                type="file"
+                multiple
+                accept=".pdf,.jpg,.png,.jpeg"
+                onChange={(e) => setUploadedFiles([...uploadedFiles, ...Array.from(e.target.files)])}
+                />
+                <span className="file-count">
+                {uploadedFiles.length > 0
+                    ? `${uploadedFiles.length} Selected files`
+                    : 'No files selected'}
+                </span>
+            </div>
+
+            <ul className="save-project-file-preview-list">
+                {uploadedFiles.map((file, i) => (
+                    <li key={i} className="file-tag">
+                    <span className="file-name">{file.name}</span>
+                    <button
+                        className="delete-file-button"
+                        onClick={() =>
+                        setUploadedFiles((prev) => prev.filter((_, index) => index !== i))
+                        }
+                    >
+                        ⨉
+                    </button>
+                    </li>
+                ))}
+            </ul>
+
+            </section>
+
         </div>
       </div>
 
-      <div className="bottom-right">
-        <button className="save-button" onClick={handleSave}>💾 Save</button>
+      {/* Right Panel - Memo 영역 */}
+      <div className="save-project-right-panel">
+        <div className="save-project-memo-section">
+          <div className="save-project-memo-header">
+            MY MEMO
+            <button className="save-project-memo-header-button" onClick={() => setMemoModalOpen(true)}>
+              <PlusCircleIcon />
+            </button>
+          </div>
+          {/* 공간만 확보 */}
+          <div className="save-project-memo-placeholder" />
+        </div>
+
+        <div className="save-project-memo-section">
+          <div className="save-project-memo-header">
+            TEAM MEMO
+            <button className="save-project-memo-header-button" onClick={() => setMemoModalOpen(true)}>
+              <PlusCircleIcon />
+            </button>
+          </div>
+          {/* 공간만 확보 */}
+          <div className="save-project-memo-placeholder" />
+        </div>
+      </div>
+
+      {/* Save 버튼 */}
+      <div className="save-project-bottom-right">
+        <button className="save-project-save-button" onClick={handleSave}>
+          Save <SaveIcon />
+        </button>
       </div>
 
       {memoModalOpen && (
         <MemoModal
           onClose={() => setMemoModalOpen(false)}
-          onSave={handleMemoSave}
+          onSave={(memo) => {
+            if (memo.type === 'personal') setMyMemos(prev => [...prev, memo]);
+            else setTeamMemos(prev => [...prev, memo]);
+          }}
         />
       )}
     </div>
   );
 };
-
-const MemoCard = ({ memo, onDelete }) => (
-  <div className="memo-card">
-    <div className="memo-title">{memo.title}</div>
-    <div className="memo-desc">
-      {memo.description || 'A short description about context of this category goes here.'}
-    </div>
-    <div className="memo-meta">{memo.category}</div>
-    <button className="delete-btn" onClick={onDelete}>🗑</button>
-  </div>
-);
 
 export default SavePorject;
