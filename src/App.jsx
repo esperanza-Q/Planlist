@@ -24,6 +24,8 @@ import ProjectViewMeetingDetails from "./components/ProjectViewMeeting/ProjectVi
 import ProjectViewStandard from "./components/ProjectViewStandard/ProjectViewStandard"
 import NotePage from './pages/Note';
 import MemoDetailPage from './pages/MemoDetailPage';
+import ProjectPage from "./components/ProjectCreate/ProjectPage";
+
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -67,14 +69,18 @@ function App() {
         <main style={{ flex: 1, padding: '20px' }}>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/project" element={<Project />} />
+            <Route path="/project/list" element={<Project />} />
+
+
+
             <Route path="/calendar" element={<Planlist_Calendar />} />
             <Route path="/note" element={<Note />} />
             <Route path="/setting" element={<Setting />} />
             <Route path="/add-free-time" element={<AddFreeTimePage/>}/>
 
+
+            <Route path="/project" element={<ProjectPage />} />
             <Route path="/project/create" element={<ProjectCreate />} />
-            
             <Route path="/project/create/standard" element={<StandardPage />} />
             <Route path="/project/create/meeting" element={<MeetingPage />} />
             <Route path="/project/create/travel" element={<TravelPage />} />

@@ -58,6 +58,7 @@ const mockProjects = [
     type: 'meeting',
     image: Overview_Cat04,
   },
+  
 ];
 
 const ProjectOverview = () => {
@@ -80,8 +81,8 @@ const ProjectOverview = () => {
           <div className="circle-orbit" ref={circleRef}>
             {mockProjects.map((project, index) => {
               const deg = angle + (360 / mockProjects.length) * index;
-              const x = 450 * Math.cos((deg * Math.PI) / 180);
-              const y = 200 * Math.sin((deg * Math.PI) / 180);
+              const x = 500 * Math.cos((deg * Math.PI) / 180);
+              const y = 225 * Math.sin((deg * Math.PI) / 180);
               return (
                 <div
                   key={project.id}
@@ -90,7 +91,7 @@ const ProjectOverview = () => {
                     transform: `translate(${x}px, ${y}px)`,
                     position: 'absolute',
                     top: '40%',
-                    left: '-30%',
+                    left: '-47%',
                   }}
                 >
                   <img src={project.image} alt="icon" className="project-icon" />

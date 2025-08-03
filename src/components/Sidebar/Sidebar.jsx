@@ -16,6 +16,7 @@ import DumbbellAltIcon from '../../icons/DumbbellAltIcon';
 import PlaneIcon from '../../icons/PlaneIcon';
 
 
+
 const viewOptions = [
   { label: 'Standard', icon: <CubeAltIcon />, path: '/standard' },
   { label: 'Meeting', icon: <DiscussionIcon />, path: '/meeting' },
@@ -25,6 +26,13 @@ const viewOptions = [
 
 const Sidebar = forwardRef(({ isOpen }, ref) => {
     const location = useLocation();
+    const params = new URLSearchParams(location.search);
+    const selectedCategory = params.get('category'); 
+    const isAnyCategoryActive = viewOptions.some(
+    ({ label }) =>
+      selectedCategory &&
+      selectedCategory.toLowerCase() === label.toLowerCase()
+  );
     return (
     <div ref={ref} className={`sidebar ${isOpen ? "open" : ""}`}>
     <aside className="sidebar">
@@ -33,26 +41,31 @@ const Sidebar = forwardRef(({ isOpen }, ref) => {
 
         <nav className="sidebar-menu">
             <SidebarItem label="Home" to="/" icon={<HomeIcon />} />
-            <SidebarItem label="Project" to="/project" icon={<FolderOpenIcon />} />
+            <SidebarItem label="Project" to="/project/list" icon={<FolderOpenIcon />} />
             <SidebarItem label="Planlist Calendar" to="/calendar" icon={<CalendarCheckIcon />} />
             <SidebarItem label="Note" to="/note" icon={<NoteIcon />} />
             <SidebarItem label="Setting" to="/setting" icon={<UserCircleIcon/>} />
         </nav>
 
         <div className="sidebar-section">
-          <p className="section-title">Current View</p>
+          <p className={`section-title ${isAnyCategoryActive ? 'active-view' : ''}`}>
+            Current View
+          </p>
           <div className="view-buttons">
-            {viewOptions.map(({ label, icon, path }) => {
-                const isActive = location.pathname === path; 
+            {viewOptions.map(({ label, icon }) => {
+              const isActive =
+                selectedCategory &&
+                selectedCategory.toLowerCase() === label.toLowerCase();
 
                 return (
+                  
                     <button
-                    key={label}
-                    className={`view-button ${isActive ? 'active-view' : ''}`} // 나중에 project와 연결 필요
-                    disabled
+                      key={label}
+                      className={`view-button ${isActive ? 'active-view' : ''}`} // 나중에 project와 연결 필요
+                      disabled
                     >
-                    <div className="view-icon">{icon}</div>
-                    <span>{label}</span>
+                      <div className="view-icon">{icon}</div>
+                      <span>{label}</span>
                     </button>
                 );
             })}
@@ -60,8 +73,6 @@ const Sidebar = forwardRef(({ isOpen }, ref) => {
         </div>
         <NextEventCard />
       </div>
-
-    
     </aside>
     </div>
   );
