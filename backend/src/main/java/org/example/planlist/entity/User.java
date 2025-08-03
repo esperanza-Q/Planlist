@@ -1,5 +1,6 @@
 package org.example.planlist.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -32,4 +33,29 @@ public class User {
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<ProjectParticipant> projectParticipants;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @JsonManagedReference
+    private List<FreeTimeCalendar> freeTimeCalendars;
+
+    @OneToMany(mappedBy = "user1", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @JsonManagedReference
+    private List<Friend> friends1;
+
+    @OneToMany(mappedBy = "user2", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @JsonManagedReference
+    private List<Friend> friends2;
+
+    @OneToMany(mappedBy = "sender", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @JsonManagedReference
+    private List<FriendRequest> sendFriendRequests;
+
+    @OneToMany(mappedBy = "receiver", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @JsonManagedReference
+    private List<FriendRequest> receiveFriendRequests;
+
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @JsonManagedReference
+    private ProjectCount projectCount;
+
 }
