@@ -58,4 +58,8 @@ public class User {
     @JsonManagedReference
     private ProjectCount projectCount;
 
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @JsonManagedReference
+    private List<PtComment> PtComments;
+
 }
