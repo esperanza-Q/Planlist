@@ -39,7 +39,7 @@ const ProjectFilterView = ({ projects }) => {
         
         <div className='addProject'>
             <img src={addIcon}/>
-            <Link to="create">Create project</Link>
+            <Link to="/project/create">Create project</Link>
         </div>
         
       </div>

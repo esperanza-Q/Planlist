@@ -1,3 +1,4 @@
+// ProjectCreate.jsx
 import React, { useState } from "react";
 import './ProjectCreate.css';
 import StandardImg from '../../assets/Standard.png';
@@ -21,22 +22,8 @@ const ProjectCreate = () => {
   const handleContinue = () => {
     if (!selected) return;
 
-    switch (selected) {
-      case 'standard':
-        navigate('/project/create/standard');
-        break;
-      case 'meeting':
-        navigate('/project/create/meeting');
-        break;
-      case 'travel':
-        navigate('/project/create/travel');
-        break;
-      case 'pt':
-        navigate('/project/create/pt');
-        break;
-      default:
-        break;
-    }
+    console.log("Navigating to:", `/project?category=${selected}`);
+    navigate(`/project?category=${selected}`);
   };
 
   return (
