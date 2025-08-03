@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import EventCard from "./EventCard";
-import Upcoming_event from '../../assets/Upcoming_event.svg';
-import In_progress_event from '../../assets/In_progress_event.svg';
-import Finished_event from '../../assets/Finished_event.svg';
+import Upcoming_event from '../../../assets/Upcoming_event.svg';
+import In_progress_event from '../../../assets/In_progress_event.svg';
+import Finished_event from '../../../assets/Finished_event.svg';
 
 import "./ScheduledEvents.css";
 

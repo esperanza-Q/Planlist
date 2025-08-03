@@ -1,0 +1,13 @@
+.home-container {
+  padding: 20px 40px;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.home-bottom-section {
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  margin-top: 32px;
+  align-items: center;
+  margin: 32px 0px 0px 337px;
+}
