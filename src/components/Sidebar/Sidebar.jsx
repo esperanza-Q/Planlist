@@ -40,7 +40,7 @@ const Sidebar = forwardRef(({ isOpen }, ref) => {
         <img src={planlist_logo} alt="Planlist Logo" className="sidebar-logo" />
 
         <nav className="sidebar-menu">
-            <SidebarItem label="Home" to="/" icon={<HomeIcon />} />
+            <SidebarItem label="Home" to="/home" icon={<HomeIcon />} />
             <SidebarItem label="Project" to="/project/list" icon={<FolderOpenIcon />} />
             <SidebarItem label="Planlist Calendar" to="/calendar" icon={<CalendarCheckIcon />} />
             <SidebarItem label="Note" to="/note" icon={<NoteIcon />} />
