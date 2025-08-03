@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Calendar from "react-calendar";
 import "./FreeTimeCalendar.css";
-import Cat_ver01 from "../../assets/Cat_ver01.png";
+import Cat_ver01 from "../../../assets/Cat_ver01.png";
 
 const CalendarSection = () => {
   const [date, setDate] = useState(new Date());

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./HomeHeaderBar.css";
-import PlusIcon from "../../icons/PlusIcon";
+import PlusIcon from "../../../icons/PlusIcon";
 
 const HeaderBar = () => {
   const [time, setTime] = useState(new Date());
