@@ -14,6 +14,7 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
+@DiscriminatorColumn(name = "session_type") // 선택사항: DTYPE 대신 이름 지정
 public abstract class PlannerSession {
 
     @Id

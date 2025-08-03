@@ -11,6 +11,7 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @SuperBuilder
 @PrimaryKeyJoinColumn(name = "planner_id")
+@DiscriminatorValue("STANDARD")
 public class StandardSession extends PlannerSession {
 
     @Column(nullable = false)

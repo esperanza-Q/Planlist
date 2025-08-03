@@ -13,6 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 @SuperBuilder
 @PrimaryKeyJoinColumn(name = "planner_id")
+@DiscriminatorValue("MEETING")
 public class MeetingSession extends PlannerSession {
 
     @Column(name = "is_recurring", nullable = false)
