@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Entity
 @Builder
 @AllArgsConstructor
-@Table(name="date_planner") // DatePlanner 인식 안 됨
+@Table(name= "date_planner")
 public class DatePlanner {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -48,7 +48,7 @@ public class DatePlanner {
     @Column(name = "longitude")
     private Float longitude;
 
-    @Column(name = "visitTime")
+    @Column(name = "visit_time")
     private LocalDateTime visitTime;
 
     @Column(name = "created_at") // 예외 발생시를 위해 nullable
