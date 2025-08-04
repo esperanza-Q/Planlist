@@ -32,16 +32,36 @@ public class SecurityConfig {
     public JwtTokenFilter jwtTokenFilter() {
         return new JwtTokenFilter(jwtTokenProvider, userDetailsService);
     }
+
+    //로컬 로그인
+//    @Bean
+//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+//        http
+//                .csrf(csrf -> csrf.disable())
+//                .authorizeHttpRequests(auth -> auth
+//                        .requestMatchers("/test/**", "/api/users/**","/api/auth/**", "/api/calculator/**", "/api/board/**").permitAll()
+//                        .anyRequest().authenticated()
+//                )
+//                .addFilterBefore(new JwtTokenFilter(jwtTokenProvider, userDetailsService), UsernamePasswordAuthenticationFilter.class);  // UserDetailsService 사용
+//
+//        return http.build();
+//    }
+
+    //소셜 로그인
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/test/**", "/api/users/**","/api/auth/**", "/api/calculator/**", "/api/board/**").permitAll()
-                        .anyRequest().authenticated()
+                .authorizeRequests(authorizeRequests ->
+                        authorizeRequests
+                                .requestMatchers("/auth/google", "/auth/kakao", "/auth/naver").permitAll() // 소셜 로그인 엔드포인트는 인증 없이 접근 가능
+                                .anyRequest().authenticated() // 그 외의 요청은 인증이 필요
                 )
-                .addFilterBefore(new JwtTokenFilter(jwtTokenProvider, userDetailsService), UsernamePasswordAuthenticationFilter.class);  // UserDetailsService 사용
-
+                .formLogin(formLogin ->
+                        formLogin
+                                .loginPage("/login") // 커스텀 로그인 페이지 설정
+                                .permitAll() // 로그인 페이지는 누구나 접근 가능
+                )
+                .csrf(csrf -> csrf.disable()); // 개발 시 CSRF 보호를 비활성화
         return http.build();
     }
 
@@ -56,4 +76,6 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
+
+
 }
