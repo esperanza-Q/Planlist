@@ -2,7 +2,6 @@ package org.example.planlist.dto.DatePlannerDTO;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import org.springframework.cglib.core.Local;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
