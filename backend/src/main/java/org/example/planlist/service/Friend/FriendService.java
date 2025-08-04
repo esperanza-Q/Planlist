@@ -1,4 +1,4 @@
-package org.example.planlist.service;
+package org.example.planlist.service.Friend;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,8 +21,11 @@ public class FriendService {
     private final UserRepository userRepository;
     private final FriendRepository friendRepository;
 
-    //친구아이디 찾기
+    //친구DB아이디 찾기
     public Optional<Friend> findByFriendId(Long friendId) {return friendRepository.findByFriendId(friendId);}
+
+    //친구 이메일로 찾기 ( 여기서 좀 더 변경 필요. 현재는 그냥 유저 이메일로 찾는 거임 )
+    public Optional<User> findByEmail(String email) {return userRepository.findByEmail(email);}
 
     //해당 유저가 가진 모든 친구 목록을 합쳐서 반환
     @Transactional
