@@ -38,7 +38,7 @@ public class PlannerProject {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "confirmed_at", nullable = false)
+    @Column(name = "confirmed_at")
     private LocalDateTime confirmedAt;
 
     @Column(name = "start_date")
