@@ -15,7 +15,7 @@ public class WishlistResponseDTO {
     private Float longitude;
     private String category; // enum 문자열로 넘겨받기
     private String memo;     // 메모는 optional
-    private Integer cost;    // 비용도 optional
+    private Long cost;    // 비용도 optional
     private Long projectId;
     private Long inviteeId;
 
