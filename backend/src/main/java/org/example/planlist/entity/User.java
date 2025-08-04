@@ -9,6 +9,7 @@ import java.util.List;
 @Entity
 @Table(name = "users")
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -21,6 +22,9 @@ public class User {
 
     @Column(nullable = false, unique = true)
     private String email;
+
+    @Column(name = "password", length = 255, nullable = false)
+    private String password; // 비밀번호
 
     @Column(name = "profile_image", nullable = false)
     private String profileImage;
