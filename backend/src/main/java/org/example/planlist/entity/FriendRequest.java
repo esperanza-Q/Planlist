@@ -14,7 +14,7 @@ import java.time.LocalDate;
 @Entity
 @Builder
 @AllArgsConstructor
-@Table(name="FriendRequest")
+@Table(name="FriendRequest", uniqueConstraints = @UniqueConstraint(columnNames = {"sender_id", "receiver_id"}))
 public class FriendRequest {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)

@@ -48,20 +48,50 @@ public class SecurityConfig {
 //    }
 
     //소셜 로그인
+//    @Bean
+//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+//        http
+//                .authorizeRequests(authorizeRequests ->
+//                        authorizeRequests
+//                                .requestMatchers("/auth/google", "/auth/kakao", "/auth/naver").permitAll() // 소셜 로그인 엔드포인트는 인증 없이 접근 가능
+//                                .anyRequest().authenticated() // 그 외의 요청은 인증이 필요
+//                )
+//                .formLogin(formLogin ->
+//                        formLogin
+//                                .loginPage("/login") // 커스텀 로그인 페이지 설정
+//                                .permitAll() // 로그인 페이지는 누구나 접근 가능
+//                )
+//                .csrf(csrf -> csrf.disable()); // 개발 시 CSRF 보호를 비활성화
+//        return http.build();
+//    }
+
+    //소셜+로컬 로그인
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .authorizeRequests(authorizeRequests ->
-                        authorizeRequests
-                                .requestMatchers("/auth/google", "/auth/kakao", "/auth/naver").permitAll() // 소셜 로그인 엔드포인트는 인증 없이 접근 가능
-                                .anyRequest().authenticated() // 그 외의 요청은 인증이 필요
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
+                        // 로컬 로그인 및 회원가입 API, 테스트 API 공개
+                        .requestMatchers("/test/**", "/api/users/**", "/api/auth/**", "/api/calculator/**", "/api/board/**").permitAll()
+
+                        // 소셜 로그인 엔드포인트 공개
+                        .requestMatchers("/auth/google", "/auth/kakao", "/auth/naver").permitAll()
+
+                        // 커스텀 로그인 페이지 공개
+                        .requestMatchers("/login").permitAll()
+
+                        // 나머지 요청은 인증 필요
+                        .anyRequest().authenticated()
                 )
-                .formLogin(formLogin ->
-                        formLogin
-                                .loginPage("/login") // 커스텀 로그인 페이지 설정
-                                .permitAll() // 로그인 페이지는 누구나 접근 가능
+                // formLogin 설정: 커스텀 로그인 페이지 사용
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .permitAll()
                 )
-                .csrf(csrf -> csrf.disable()); // 개발 시 CSRF 보호를 비활성화
+                // JWT 토큰 필터를 UsernamePasswordAuthenticationFilter 전에 추가
+                .addFilterBefore(new JwtTokenFilter(jwtTokenProvider, userDetailsService),
+                        UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 
