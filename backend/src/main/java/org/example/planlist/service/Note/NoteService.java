@@ -4,6 +4,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.planlist.dto.NoteDTO.NoteDTO;
+import org.example.planlist.dto.NoteDTO.NoteUpdateDTO;
+import org.example.planlist.dto.NoteDTO.response.NoteDetailResponseDTO;
+import org.example.planlist.dto.NoteDTO.response.NoteSimpleResponseDTO;
 import org.example.planlist.entity.Note;
 import org.example.planlist.entity.PlannerProject;
 import org.example.planlist.entity.User;
@@ -19,6 +22,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -34,28 +38,49 @@ public class NoteService {
         return noteRepository.findByNoteId(noteId);
     }
 
-//    public void WriteNote(NoteDTO noteDTO, Long projectId) {
-//        User writer = SecurityUtil.getCurrentUser();
-//        PlannerProject plannerProject = plannerProjectRepository.findByProjectId(projectId);
-//
-//        Note note = Note.builder()
-//                .project(plannerProject)
-//                .title(noteDTO.getTitle())
-//                .content(noteDTO.getContent())
-//                .user(writer)
-//                .build();
-//        noteRepository.save(note);
-//    }
-
     @Transactional
-    public void putNote(NoteDTO noteDTO) {
-        Note note = Note.builder()
-                .noteId(noteDTO.getNoteId())
-                .title(noteDTO.getTitle())
-                .content(noteDTO.getContent())
-                .build();
+    public void putNote(NoteUpdateDTO noteUpdateDTO) throws IOException {
+        Note note = noteRepository.findByNoteId(noteUpdateDTO.getNoteId())
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 게시물입니다."));
 
-        noteRepository.save(note);
+        // 제목, 내용, 공개범위 수정
+        note.update(
+                noteUpdateDTO.getTitle(),
+                noteUpdateDTO.getContent(),
+                Note.Share.valueOf(noteUpdateDTO.getShare())
+        );
+
+        // 기존 이미지 URL 리스트 복사
+        List<String> currentImageUrls = noteUpdateDTO.getImageUrls() != null
+                ? new ArrayList<>(noteUpdateDTO.getImageUrls())
+                : new ArrayList<>();
+
+        // ✅ 삭제할 이미지 처리
+        if (noteUpdateDTO.getDeleteImages() != null && !noteUpdateDTO.getDeleteImages().isEmpty()) {
+            for (String urlToDelete : noteUpdateDTO.getDeleteImages()) {
+                boolean removed = currentImageUrls.remove(urlToDelete);
+                if (removed) {
+                    try {
+                        String key = s3Service.getKeyUrl(urlToDelete);
+                        s3Service.deleteFile(key);
+                    } catch (Exception e) {
+                        log.error("S3 이미지 삭제 실패: {}", urlToDelete, e);
+                    }
+                }
+            }
+        }
+
+        // ✅ 새 이미지 업로드 처리
+        if (noteUpdateDTO.getImages() != null && !noteUpdateDTO.getImages().isEmpty()) {
+            for (MultipartFile image : noteUpdateDTO.getImages()) {
+                String url = s3Service.upload(image);
+                currentImageUrls.add(url);
+            }
+        }
+
+        // ✅ 변경된 이미지 리스트 저장
+        note.setImage(currentImageUrls);
+        noteRepository.save(note); // 명시적 저장
     }
 
     @Transactional
@@ -86,43 +111,61 @@ public class NoteService {
         noteRepository.save(note);
     }
 
-
     @Transactional
-    public String getFileUrl(Long noteId) {
-        Note note = noteRepository.findByNoteId(noteId)
+    public void deleteNote(Long noteId) {
+        Note note = noteRepository.findById(noteId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 게시물입니다."));
 
-        //원래 이미지파일이 String일 때 사용하던 코드
-//        String fileName = board.getImage();
-//        return s3Service.getFileUrl(fileName);
-
-        //여긴 JSON 형식으로 바꾼 후 사용하는 코드
-        List<String> images = note.getImage();
-        if (images != null && !images.isEmpty()) {
-            return s3Service.getFileUrl(images.get(0)); // 첫 번째 이미지 반환
-        } else {
-            return null; // 또는 기본 URL 반환
-        }
-    }
-
-    @Transactional
-    // 일반 게시물 삭제와 사진 게시물 삭제를 하나로 합쳤다
-    public void deleteBoard(Long noteId) {
-        Note note = noteRepository.findByNoteId(noteId)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 게시물입니다."));
-
-        //원래 이미지파일이 String일 때 사용하던 코드
-//        if(board.getImage() != null && !board.getImage().isEmpty()) {
-//            s3Service.deleteFile(board.getImage());
-//        }
-
-        //여긴 JSON 형식으로 바꾼 후 사용하는 코드
         if (note.getImage() != null && !note.getImage().isEmpty()) {
-            for (String fileName : note.getImage()) {
-                s3Service.deleteFile(fileName); // ✅ 여러 이미지 삭제
+            for (String imageUrl : note.getImage()) {
+                String key = s3Service.getKeyUrl(imageUrl);  // URL → key 변환
+                s3Service.deleteFile(key);
             }
         }
 
-        noteRepository.deleteByNoteId(noteId);
+        noteRepository.delete(note);
+    }
+
+    public NoteDetailResponseDTO getNoteDetail(Long noteId) {
+        Note note = noteRepository.findById(noteId)
+                .orElseThrow(() -> new RuntimeException("해당 노트를 찾을 수 없습니다."));
+
+        NoteDetailResponseDTO dto = new NoteDetailResponseDTO();
+        dto.setNoteId(note.getNoteId());
+        dto.setProjectName(note.getProject().getProjectTitle());
+        dto.setTitle(note.getTitle());
+        dto.setContent(note.getContent());
+        dto.setCategory(note.getProject().getCategory());
+        dto.setShare(note.getShare());
+        dto.setImageUrls(note.getImage());  // image 컬렉션 반환
+
+        return dto;
+    }
+
+    public List<NoteSimpleResponseDTO> getUserNotes() {
+
+        User user = SecurityUtil.getCurrentUser();
+
+        List<Note> notes = noteRepository.findAllByUserId(user.getId());
+
+        return notes.stream()
+                .map(note -> new NoteSimpleResponseDTO(
+                        note.getNoteId(),
+                        note.getProject().getProjectTitle(),
+                        note.getTitle(),
+                        note.getProject().getCategory(),
+                        note.getShare()
+                ))
+                .collect(Collectors.toList());
+    }
+
+
+    private String extractKeyFromUrl(String url) {
+        String bucketUrlPrefix = "https://planlistbucket.s3.ap-northeast-2.amazonaws.com/";
+        if (url.startsWith(bucketUrlPrefix)) {
+            return url.substring(bucketUrlPrefix.length());
+        }
+        throw new IllegalArgumentException("잘못된 S3 URL: " + url);
     }
 }
+

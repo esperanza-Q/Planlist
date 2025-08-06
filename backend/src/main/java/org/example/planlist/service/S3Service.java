@@ -11,6 +11,8 @@ import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.UUID;
 
 @Service
@@ -52,21 +54,47 @@ public class S3Service {
         return s3Client.utilities().getUrl(request).toString();
     }
 
-    public String getKeyUrl(String fullUrl) {
-        if (fullUrl == null || !fullUrl.startsWith("https://")) {
-            return fullUrl;
-        }
+//    public String getKeyUrl(String fullUrl) {
+//        if (fullUrl == null || !fullUrl.startsWith("https://")) {
+//            return fullUrl;
+//        }
+//
+//        return fullUrl.substring(fullUrl.indexOf(".com/") + 5);
+//    }
 
-        return fullUrl.substring(fullUrl.indexOf(".com/") + 5);
+    public String getKeyUrl(String url) {
+        // S3 URL 형식에 맞게 key 부분만 추출
+        // 예: https://bucket-name.s3.region.amazonaws.com/folder/file.jpg
+        // → folder/file.jpg 반환
+
+        try {
+            URL parsedUrl = new URL(url);
+            String path = parsedUrl.getPath(); // "/folder/file.jpg"
+            if (path.startsWith("/")) {
+                path = path.substring(1); // "folder/file.jpg"
+            }
+            return path;
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("Invalid S3 URL: " + url);
+        }
     }
 
-    public void deleteFile(String fullUrl) {
+//    public void deleteFile(String fullUrl) {
+//
+//        if (fullUrl == null || fullUrl.isEmpty()) {
+//            return;  // 예외 방지
+//        }
+//
+//        String key = getKeyUrl(fullUrl);
+//        DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+//                .bucket(bucket)
+//                .key(key)
+//                .build();
+//
+//        s3Client.deleteObject(deleteObjectRequest);
+//    }
 
-        if (fullUrl == null || fullUrl.isEmpty()) {
-            return;  // 예외 방지
-        }
-
-        String key = getKeyUrl(fullUrl);
+    public void deleteFile(String key) {
         DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
                 .bucket(bucket)
                 .key(key)
@@ -74,8 +102,6 @@ public class S3Service {
 
         s3Client.deleteObject(deleteObjectRequest);
     }
-
-
 
 
 }
