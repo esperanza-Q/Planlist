@@ -2,10 +2,12 @@ package org.example.planlist.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Setter
 @Entity
 @Table(name = "notes")
 @Getter
@@ -51,5 +53,11 @@ public class Note {
     public enum Share {
         PERSONAL,
         GROUP
+    }
+
+    public void update(String title, String content, Share share) {
+        this.title = title;
+        this.content = content;
+        this.share = share;
     }
 }
