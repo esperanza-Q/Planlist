@@ -2,6 +2,7 @@ package org.example.planlist.config;
 
 import org.example.planlist.security.JwtTokenFilter;
 import org.example.planlist.security.JwtTokenProvider;
+import org.example.planlist.service.CustomOAuth2UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -21,10 +22,13 @@ public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final UserDetailsService userDetailsService;
+    private final CustomOAuth2UserService customOAuth2UserService;
 
-    public SecurityConfig(JwtTokenProvider jwtTokenProvider, @Lazy UserDetailsService userDetailsService) { // Lazy 적용
+    public SecurityConfig(JwtTokenProvider jwtTokenProvider, @Lazy UserDetailsService userDetailsService,
+                          CustomOAuth2UserService customOAuth2UserService) { // Lazy 적용
         this.jwtTokenProvider = jwtTokenProvider;
         this.userDetailsService = userDetailsService;
+        this.customOAuth2UserService = customOAuth2UserService;
     }
 
     //JWT 인증 필터 등록
@@ -65,30 +69,39 @@ public class SecurityConfig {
 //        return http.build();
 //    }
 
-    //소셜+로컬 로그인
+    //로컬+소셜로그인
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // 로컬 로그인 및 회원가입 API, 테스트 API 공개
-                        .requestMatchers("/test/**", "/api/users/**", "/api/auth/**", "/api/calculator/**", "/api/board/**").permitAll()
-
-                        // 소셜 로그인 엔드포인트 공개
-                        .requestMatchers("/auth/google", "/auth/kakao", "/auth/naver").permitAll()
-
-                        // 커스텀 로그인 페이지 공개
-                        .requestMatchers("/login").permitAll()
-
-                        // 나머지 요청은 인증 필요
+                        .requestMatchers(
+                                "/test/**",
+                                "/api/users/**",
+                                "/api/auth/**",
+                                "/api/calculator/**",
+                                "/api/board/**",
+                                "/auth/google",
+                                "/auth/kakao",
+                                "/auth/naver",
+                                "/login"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
-                // formLogin 설정: 커스텀 로그인 페이지 사용
+                // 기존 form 로그인(로컬 로그인) 설정
                 .formLogin(form -> form
-                        .loginPage("/login")
+                        .loginPage("/login")      // 커스텀 로그인 페이지 URL
                         .permitAll()
                 )
-                // JWT 토큰 필터를 UsernamePasswordAuthenticationFilter 전에 추가
+                // OAuth2 로그인 설정 (구글 등 소셜 로그인)
+                .oauth2Login(oauth2 -> oauth2
+                                // loginPage() 미지정 => 스프링이 기본 OAuth2 로그인 흐름만 처리
+                                .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                                .defaultSuccessUrl("http://localhost:3000", true)
+                        // 필요시 커스텀 OAuth2UserService 지정 가능
+                        //.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                )
+                // JWT 필터는 UsernamePasswordAuthenticationFilter 앞에 둡니다.
                 .addFilterBefore(new JwtTokenFilter(jwtTokenProvider, userDetailsService),
                         UsernamePasswordAuthenticationFilter.class);
 
