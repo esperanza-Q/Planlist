@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Setter
 public class ProjectParticipant {
 
     @Id
@@ -46,5 +47,10 @@ public class ProjectParticipant {
     public enum Role {
         TRAINER,
         TRAINEE
+    }
+
+    public void update(Response response, LocalDateTime responseAt) {
+        this.response = response;
+        this.responseAt = responseAt;
     }
 }
