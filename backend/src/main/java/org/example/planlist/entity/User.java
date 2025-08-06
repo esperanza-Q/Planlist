@@ -42,11 +42,11 @@ public class User {
     @JsonManagedReference
     private List<FreeTimeCalendar> freeTimeCalendars;
 
-    @OneToMany(mappedBy = "user1", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "user1", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @JsonManagedReference
     private List<Friend> friends1;
 
-    @OneToMany(mappedBy = "user2", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "user2", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @JsonManagedReference
     private List<Friend> friends2;
 
@@ -54,7 +54,7 @@ public class User {
     @JsonManagedReference
     private List<FriendRequest> sendFriendRequests;
 
-    @OneToMany(mappedBy = "receiver", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "receiver", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @JsonManagedReference
     private List<FriendRequest> receiveFriendRequests;
 
