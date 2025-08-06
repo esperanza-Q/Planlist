@@ -1,39 +1,20 @@
 package org.example.planlist.dto.FriendDTO.response;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Data
 public class FriendListResponseDTO {
-    private List<FriendDTO> friends;
-    private List<FriendrequestDTO> friendRequest;
+    private List<FriendResponseDTO> friends;
+    private List<FriendrequestResponseDTO> friendRequest;
 
     public FriendListResponseDTO() {
     }
 
-    public FriendListResponseDTO(List<FriendDTO> friends, List<FriendrequestDTO> friendRequest) {
+    public FriendListResponseDTO(List<FriendResponseDTO> friends, List<FriendrequestResponseDTO> friendRequest) {
         this.friends = friends;
         this.friendRequest = friendRequest;
     }
 }
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-class FriendDTO {
-    private String name;
-    private String email;
-    private String profileImage;
-}
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-class FriendrequestDTO {
-    private String name;
-    private String email;
-    private String profileImage;
-}

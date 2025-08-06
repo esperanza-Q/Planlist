@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class FriendrequestResponseDTO {
+public class FriendResponseDTO {
     private String name;
     private String email;
     private String profileImage;
