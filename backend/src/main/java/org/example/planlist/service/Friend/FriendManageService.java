@@ -2,7 +2,10 @@ package org.example.planlist.service.Friend;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.planlist.dto.FriendDTO.request.RequestAcceptRequestDTO;
+import org.example.planlist.dto.FriendDTO.request.RequestRejectRequestDTO;
 import org.example.planlist.dto.FriendDTO.request.RequestSendRequestDTO;
+import org.example.planlist.entity.Friend;
 import org.example.planlist.entity.FriendRequest;
 import org.example.planlist.entity.User;
 import org.example.planlist.repository.FriendRepository;
@@ -59,6 +62,51 @@ public class FriendManageService {
                 .build();
 
         friendRequestRepository.save(friendRequest);
+    }
+
+    @Transactional
+    public void acceptFriendRequest(RequestAcceptRequestDTO requestAcceptRequestDTO) {
+
+        String email = requestAcceptRequestDTO.getRequestEmail();
+        User requester = userRepository.findByEmail(email).orElseThrow(() ->
+                new IllegalArgumentException("해당 이메일의 사용자가 없습니다."));
+        User me = SecurityUtil.getCurrentUser();
+
+
+        FriendRequest request = friendRequestRepository.findBySenderAndReceiver(requester, me).orElse(null);
+
+        if(request == null) {
+            throw new IllegalArgumentException("해당 친구 요청이 없습니다.");
+        }
+
+        friendRequestRepository.delete(request);
+
+
+        Friend friend = Friend.builder()
+                .user1(me)
+                .user2(requester)
+//                .message(requestSendRequestDTO.getMessage()) // 필요하다면
+                .build();
+
+        friendRepository.save(friend);
+    }
+
+    @Transactional
+    public void rejectFriendRequest(RequestRejectRequestDTO requestRejectRequestDTO) {
+
+        String email = requestRejectRequestDTO.getRequestEmail();
+        User requester = findByEmail(email).orElseThrow(() ->
+                new IllegalArgumentException("해당 이메일의 사용자가 없습니다."));
+        User me = SecurityUtil.getCurrentUser();
+
+        FriendRequest request = friendRequestRepository.findBySenderAndReceiver(requester, me).orElse(null);;
+
+        if(request == null) {
+            throw new IllegalArgumentException("해당 친구 요청이 없습니다.");
+        }
+
+        friendRequestRepository.delete(request);
+
     }
 
 }
