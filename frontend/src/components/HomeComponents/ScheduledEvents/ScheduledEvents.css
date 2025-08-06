@@ -1,0 +1,50 @@
+
+.second-section{
+    font-family: 'IBM Plex Sans KR', sans-serif;
+  margin: 28px 264px 0px 337px;
+}
+
+.home-section-title {
+  font-weight: 600;
+  margin: 51px 0px 0px 0px;
+  color: #111;
+}
+
+.scheduled-events {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.section-event-card {
+    margin: 32px 0px 0px 0px;
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background-color: var(--EEF1F6);
+  border: 1px solid var(--Planetary);
+  border-radius: 12px;
+  width: 421px;
+}
+
+
+.event-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    padding: 13px;
+}
+
+.event-info h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--Galaxy);
+}
+
+.event-info p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--Galaxy);
+}

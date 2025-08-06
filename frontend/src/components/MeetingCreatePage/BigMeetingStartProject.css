@@ -1,0 +1,80 @@
+.BigMeeting-Start-form-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.BigMeeting-Start-form-box {
+  background: var(--EEF1F6);
+  border: solid 1px var(--Galaxy);
+  padding: 2.5rem;
+  border-radius: 12px;
+  width: 800px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 200px 510px 100px 510px;
+}
+
+.BigMeeting-Start-form-icon {
+    background-color: white;
+    border: 1px solid var(--Planetary);
+    border-radius: 17px;
+    width: 84px;
+    height: 84px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.BigMeeting-Start-start-project-icon {
+  width: 36px;
+  height: 36px;
+  color: var(--Planetary);
+}
+
+.BigMeeting-Start-underSection{
+    display: flex;
+    flex-direction: column;
+    margin: 34px 130px;
+    gap: 12px;
+}
+
+
+.BigMeeting-Start-form-box h2{
+    margin-bottom: 0px;
+    text-align: center;
+    font-size: 28px;
+}
+
+
+.BigMeeting-Start-form-description {
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  font-size: 24.5px;
+}
+
+.BigMeeting-Start-form-box label{
+    margin-bottom: 12px;
+    font-size: 24px;
+}
+
+
+.BigMeeting-Start-title-box{
+    width: 616px;
+    border: 1px solid var(--Galaxy);
+}
+
+
+.project-next-button {
+  position: fixed; 
+  bottom: 84px;     
+  right: 140px;    
+  width: 43px;
+  height: 43px;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
