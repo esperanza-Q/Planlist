@@ -2,10 +2,16 @@ package org.example.planlist.service.Friend;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.planlist.dto.FriendDTO.response.FriendResponseDTO;
+import org.example.planlist.dto.FriendDTO.response.FriendListResponseDTO;
+import org.example.planlist.dto.FriendDTO.response.FriendrequestResponseDTO;
 import org.example.planlist.entity.Friend;
+import org.example.planlist.entity.FriendRequest;
 import org.example.planlist.entity.User;
 import org.example.planlist.repository.FriendRepository;
+import org.example.planlist.repository.FriendRequestRepository;
 import org.example.planlist.repository.UserRepository;
+import org.example.planlist.security.SecurityUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,24 +21,47 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-
+@Transactional(readOnly = true)
 public class FriendService {
 
-    private final UserRepository userRepository;
     private final FriendRepository friendRepository;
+    private final FriendRequestRepository friendRequestRepository;
+    private final UserRepository userRepository;
 
-    //친구DB아이디 찾기
-    public Optional<Friend> findByFriendId(Long friendId) {return friendRepository.findByFriendId(friendId);}
+    public FriendListResponseDTO getAllFriendsForCurrentUser() {
+        User currentUser = SecurityUtil.getCurrentUser();
 
-    //친구 이메일로 찾기 ( 여기서 좀 더 변경 필요. 현재는 그냥 유저 이메일로 찾는 거임 )
-    public Optional<User> findByEmail(String email) {return userRepository.findByEmail(email);}
+        // 1. 중복 없는 친구 리스트
+        List<User> uniqueFriends = getUniqueFriends(currentUser);
 
-    //해당 유저가 가진 모든 친구 목록을 합쳐서 반환
-    @Transactional
-    public List<User> getAllFriends(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        List<FriendResponseDTO> friendResponseDTOS = uniqueFriends.stream()
+                .map(friendUser -> new FriendResponseDTO(
+                        friendUser.getName(),
+                        friendUser.getEmail(),
+                        friendUser.getProfileImage()))
+                .collect(Collectors.toList());
 
+        // 2. 받은 친구 요청 (중복 제거 X)
+        List<FriendRequest> receivedRequests = friendRequestRepository.findAllByReceiver(currentUser);
+
+        List<FriendrequestResponseDTO> requestDTOs = receivedRequests.stream()
+                .map(req -> {
+                    User sender = req.getSender();
+                    return new FriendrequestResponseDTO(
+                            sender.getName(),
+                            sender.getEmail(),
+                            sender.getProfileImage()
+                    );
+                })
+                .collect(Collectors.toList());
+
+        return new FriendListResponseDTO(friendResponseDTOS, requestDTOs);
+    }
+
+    /**
+     * 유저 기준으로 친구 목록을 양방향으로 조회하고 중복 제거
+     */
+    private List<User> getUniqueFriends(User user) {
         // user가 user1인 친구 관계에서 상대방 user2 모으기
         List<User> friendsFromUser1 = user.getFriends1().stream()
                 .map(Friend::getUser2)
@@ -43,7 +72,7 @@ public class FriendService {
                 .map(Friend::getUser1)
                 .collect(Collectors.toList());
 
-        // 둘 합치기 (중복 제거 포함)
+        // 중복 제거
         Set<User> allFriends = new HashSet<>();
         allFriends.addAll(friendsFromUser1);
         allFriends.addAll(friendsFromUser2);
