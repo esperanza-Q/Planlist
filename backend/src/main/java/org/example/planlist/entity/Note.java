@@ -3,6 +3,9 @@ package org.example.planlist.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "notes")
 @Getter
@@ -14,7 +17,7 @@ public class Note {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "note_id", nullable = false, unique = true)
-    private Long id;
+    private Long noteId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", nullable = false)
@@ -30,7 +33,15 @@ public class Note {
     @Column(nullable = false)
     private String content;
 
-    private String image;
+//    @ElementCollection(fetch = FetchType.LAZY)
+//    @CollectionTable(name = "note_images", joinColumns = @JoinColumn(name = "note_id"))
+//    @Column(name = "image_url")
+//    private List<String> image = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(name = "note_images", joinColumns = @JoinColumn(name = "note_id"))
+    @Column(name = "image_url")
+    private List<String> image;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
