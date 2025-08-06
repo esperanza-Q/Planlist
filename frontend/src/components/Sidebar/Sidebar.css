@@ -1,0 +1,95 @@
+.sidebar {
+    position: fixed;
+    z-index: 1000;
+  width: 15.625vw;
+  min-width: 300px;
+  height: 100vh; 
+  background-color: #EEF1F6;
+  border-right: 1px solid rgba(197, 197, 197, 0.5);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  box-sizing: border-box;
+  font-family: 'IBM Plex Sans KR', sans-serif;
+}
+
+
+.sidebar-logo {
+  color: #081F5C;
+  width: 156px;
+  height: 54px;
+  margin-top: 60px;
+  margin-left: 16px;
+  margin-bottom: 45px;
+}
+
+.sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 17px;
+  font-weight: 550;
+  color: #333;
+  padding: 12px 13px;
+  border-radius: 12px;
+  cursor: pointer;
+  text-decoration: none;
+  margin: 0px 10px;
+  line-height: 1;
+}
+
+.sidebar-item:hover {
+  background-color: rgb(186,214,235,0.5);
+}
+
+.sidebar-item.active {
+  background-color: #BAD6EB;
+  font-weight: 650;
+}
+
+
+
+.section-title {
+  font-size: 17px;
+  color: #C5C5C5;
+  margin: 60px 16px 25px 16px;
+  font-weight: 650;
+}
+
+.section-title.active-view {
+  color: #334EAC;
+}
+
+.view-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin: 10px 16px;
+}
+
+.view-button {
+  border: 1px solid #C5C5C5;
+  border-radius: 12px;
+  padding: 12px 5px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #C5C5C5;
+  
+}
+
+.view-icon {
+  margin-bottom: 4px;
+}
+
+
+.view-button.active-view {
+  color: #334EAC;
+  border: 1px solid #334EAC;
+}
