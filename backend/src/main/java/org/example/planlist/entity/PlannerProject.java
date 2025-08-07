@@ -10,6 +10,7 @@ import java.util.List;
 @Entity
 @Table(name = "planner_projects")
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -62,5 +63,19 @@ public class PlannerProject {
         UPCOMING,
         INPROGRESS,
         FINISHED
+    }
+
+    @PrePersist
+    @PreUpdate
+    private void autoSetConfirmedAt() {
+        if (projectTitle != null &&
+                category != null &&
+                status != null &&
+                startDate != null &&
+                participants != null &&
+                createdAt != null
+        ) {
+            confirmedAt = LocalDateTime.now();
+        }
     }
 }

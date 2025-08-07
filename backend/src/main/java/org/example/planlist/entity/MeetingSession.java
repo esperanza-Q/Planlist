@@ -9,6 +9,7 @@ import java.util.List;
 @Entity
 @Table(name = "meeting_sessions")
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder

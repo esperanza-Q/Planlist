@@ -5,6 +5,8 @@ import org.example.planlist.dto.PlannerProjectDTO.PlannerProjectResponseDTO;
 import org.example.planlist.entity.PlannerProject;
 import org.example.planlist.entity.User;
 
+import java.time.LocalDateTime;
+
 public class PlannerProjectMapper {
 
     public static PlannerProject toEntity(PlannerProjectRequestDTO dto, User creator) {
@@ -12,11 +14,11 @@ public class PlannerProjectMapper {
                 .creator(creator)
                 .projectTitle(dto.getProjectTitle())
                 .category(dto.getCategory())
-                .status(dto.getStatus())
+                .status(PlannerProject.Status.UPCOMMING)
                 .confirmedAt(dto.getConfirmedAt())
                 .startDate(dto.getStartDate())
                 .endDate(dto.getEndDate())
-                .createdAt(dto.getCreatedAt())
+                .createdAt(LocalDateTime.now())
                 .build();
     }
 
