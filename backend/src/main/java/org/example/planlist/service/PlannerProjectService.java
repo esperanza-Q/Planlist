@@ -15,6 +15,7 @@ import org.example.planlist.mapper.ProjectParticipantMapper;
 import org.example.planlist.repository.PlannerProjectRepository;
 import org.example.planlist.repository.ProjectParticipantRepository;
 import org.example.planlist.repository.UserRepository;
+import org.example.planlist.service.Friend.FriendService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -44,7 +45,7 @@ public class PlannerProjectService {
     // 2. 친구 목록 & 참여자 목록 조회 - @PostMapping("/{projectId}/invite")
     @Transactional
     public List<User> getFriendList(Long userId) {
-        return friendService.getAllFriends(userId);
+        return (List<User>) friendService.getAllFriendsForCurrentUser();
     }
 
     @Transactional
@@ -69,10 +70,10 @@ public class PlannerProjectService {
     }
 
     // 4. 친구 검색 - @PostMapping("/{projectId}/invite/search")
-    @Transactional
-    public List<User> searchFriends(Long userId, String keyword) {
-        return userRepository.searchFriends(userId, keyword);
-    }
+//    @Transactional
+//    public List<User> searchFriends(Long userId, String keyword) {
+//        return userRepository.searchFriends(userId, keyword);
+//    }
 
     // 5. 참여자 삭제 - @DeleteMapping("/{projectId}/delete/participant")
     @Transactional

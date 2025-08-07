@@ -1,6 +1,6 @@
 package org.example.planlist.repository;
 
-<<<<<<< HEAD
+
 import org.example.planlist.entity.Note;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -16,8 +16,4 @@ public interface NoteRepository extends JpaRepository<Note,Long> {
     List<Note> noteId(Long noteId);
 
     List<Note> findAllByUserId(Long userId);
-
-=======
-public interface NoteRepository {
->>>>>>> 2574e59 (WIP: 작업 중인 변경사항)
 }
