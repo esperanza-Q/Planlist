@@ -40,11 +40,11 @@ public class PlannerProjectController {
         return ResponseEntity.ok(response);
     }
 
-//    // 2. 친구 목록 조회
-//    @GetMapping("/{projectId}/invite/friends")
-//    public ResponseEntity<List<User>> getFriendList(Long userId) {
-//        return ResponseEntity.ok(plannerProjectService.getFriendList(userId));
-//    }
+    // 2. 친구 목록 조회
+    @GetMapping("/{projectId}/invite/friends")
+    public ResponseEntity<List<User>> getFriendList(Long userId) {
+        return ResponseEntity.ok(plannerProjectService.getFriendList(userId));
+    }
 //
 //    // 2. 참여자 목록 조회
 //    @GetMapping("/{projectId}/invite/participants")
@@ -64,14 +64,14 @@ public class PlannerProjectController {
         return ResponseEntity.ok().build();
     }
 
-    // 4. 친구 검색
-    @GetMapping("/{projectId}/invite/search")
-    public ResponseEntity<List<User>> searchFriends(
-            @PathVariable Long userId,
-            @RequestParam String keyword
-    ) {
-        return ResponseEntity.ok(plannerProjectService.searchFriends(userId, keyword));
-    }
+//    // 4. 친구 검색
+//    @GetMapping("/{projectId}/invite/search")
+//    public ResponseEntity<List<User>> searchFriends(
+//            @PathVariable Long userId,
+//            @RequestParam String keyword
+//    ) {
+//        return ResponseEntity.ok(plannerProjectService.searchFriends(userId, keyword));
+//    }
 
     // 5. 참여자 삭제
     @DeleteMapping("/{projectId}/delete/participant")
