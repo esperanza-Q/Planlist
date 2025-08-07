@@ -63,7 +63,7 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/user/password")
+    @PostMapping("/settings/profile/changePassword")
     public ApiResponse<String> getPassword(@AuthenticationPrincipal CustomUserDetails userDetails, @Valid @RequestBody UserPasswordRequestDTO requestDto ){
         User user = userDetails.getUser();
 
