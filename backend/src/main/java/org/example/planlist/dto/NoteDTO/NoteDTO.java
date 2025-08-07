@@ -33,6 +33,7 @@ public class NoteDTO {
 
     private List<String> imageUrls; // 저장된 S3 URL 리스트
 
+
     @NotNull
     private Note.Share share;
 }
