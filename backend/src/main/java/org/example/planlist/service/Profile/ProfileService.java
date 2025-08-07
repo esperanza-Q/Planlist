@@ -9,13 +9,17 @@ import org.example.planlist.dto.NoteDTO.NoteDTO;
 import org.example.planlist.dto.ProfileDTO.ProfileDTO;
 import org.example.planlist.dto.ProfileDTO.ProjectRequestDTO;
 import org.example.planlist.dto.ProfileDTO.ProjectRequestWrapperDTO;
+import org.example.planlist.dto.ProfileDTO.request.ProfileUpdateRequestDTO;
 import org.example.planlist.dto.ProfileDTO.request.ProjectRequestIdDTO;
 import org.example.planlist.entity.*;
 import org.example.planlist.repository.ProjectParticipantRepository;
+import org.example.planlist.repository.UserRepository;
 import org.example.planlist.security.SecurityUtil;
+import org.example.planlist.service.S3Service;
 import org.example.planlist.service.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -32,6 +36,8 @@ import java.util.stream.Collectors;
 public class ProfileService {
     private final ProjectParticipantRepository projectParticipantRepository;
 
+    private final UserRepository userRepository;
+    private final S3Service s3Service;
 
     @Transactional(readOnly = true)
     public ProjectRequestWrapperDTO getProfile() {
@@ -114,5 +120,30 @@ public class ProfileService {
 
 
     }
+
+    public void updateProfile(MultipartFile profileImage, String name) throws IOException {
+        User user = SecurityUtil.getCurrentUser();
+
+        // 이름 수정
+        if (name != null && !name.isBlank()) {
+            user.setName(name);
+        }
+
+        // 프로필 이미지 수정
+        if (profileImage != null && !profileImage.isEmpty()) {
+            // 기존 이미지 삭제
+            String existingUrl = user.getProfileImage();
+            if (existingUrl != null) {
+                s3Service.delete(existingUrl);
+            }
+
+            // 새 이미지 업로드
+            String uploadedUrl = s3Service.upload(profileImage);
+            user.setProfileImage(uploadedUrl);
+        }
+
+        userRepository.save(user); // 명시적으로 저장
+    }
+
 
 }
