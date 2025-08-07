@@ -10,12 +10,11 @@ const ScheduledEvents = () => {
   const [eventData, setEventData] = useState(null);
 
   
-  // 실제 API 넣기
-  useEffect(() => {
-    fetch("/api/scheduled-events") 
+    useEffect(() => {
+    fetch("/api/home")
       .then((res) => res.json())
       .then((data) => setEventData(data))
-      .catch((err) => console.error("Error fetching events:", err));
+      .catch((err) => console.error("Error fetching projectCount:", err));
   }, []);
 
   if (!eventData) return (
@@ -42,7 +41,7 @@ const ScheduledEvents = () => {
         />
         </div>
     </div>
-  );;
+  );
 
   return (
     <div className="second-section"> 
@@ -50,19 +49,19 @@ const ScheduledEvents = () => {
         <div className="scheduled-events">
         <EventCard
             icon={Upcoming_event}
-            count={eventData.upcoming}
+            count={eventData.projectCount.upcoming}
             label="Upcoming Event"
             bgColor="#FFF9F0"
         />
         <EventCard
             icon={In_progress_event}
-            count={eventData.inProgress}
+            count={eventData.projectCount.inProgress}
             label="In-progress Event"
             bgColor="#BAD6EB"
         />
         <EventCard
             icon={Finished_event}
-            count={eventData.finished}
+            count={eventData.projectCount.finished}
             label="Finished Event"
             bgColor="#7096D1"
         />

@@ -10,6 +10,7 @@ const CalendarSection = () => {
 
 
   // API 호출 (예시용)
+  /*
   useEffect(() => {
     const mockData = {
       partialAvailableDates: ["2025-08-14", "2025-08-15", "2025-08-16"],
@@ -18,25 +19,38 @@ const CalendarSection = () => {
     setPartialDates(mockData.partialAvailableDates);
     setFullDates(mockData.fullyAvailableDates);
   }, []);
-
-
-  /* API에 맞게 변경
-  useEffect(() => {
-  const fetchAvailability = async () => {
-    try {
-      const response = await fetch("/api/available-dates"); // ✅ 실제 API endpoint
-      const data = await response.json();
-
-      setPartialDates(data.partialAvailableDates || []);
-      setFullDates(data.fullyAvailableDates || []);
-    } catch (error) {
-      console.error("Failed to fetch availability data:", error);
-    }
-  };
-
-  fetchAvailability();
-}, []);
 */
+
+  /* API에 맞게 변경*/
+  useEffect(() => {
+    const fetchAvailability = async () => {
+      try {
+        const response = await fetch("/api/home");  // 백엔드 API
+        const data = await response.json();
+
+        const partial = [];
+        const full = [];
+
+        if (data.freeTimeCalendar) {
+          data.freeTimeCalendar.forEach((entry) => {
+            if (entry.allDay) {
+              full.push(entry.date);
+            } else {
+              partial.push(entry.date);
+            }
+          });
+        }
+
+        setPartialDates(partial);
+        setFullDates(full);
+      } catch (error) {
+        console.error("Failed to fetch freeTimeCalendar:", error);
+      }
+    };
+
+    fetchAvailability();
+  }, []);
+
 
   return (
     <div className="calendar-section">
