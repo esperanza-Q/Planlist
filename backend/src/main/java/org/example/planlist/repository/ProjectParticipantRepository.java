@@ -2,7 +2,6 @@ package org.example.planlist.repository;
 
 import org.example.planlist.dto.ProjectParticipantDTO.ProjectParticipantRequestDTO;
 import org.example.planlist.entity.PlannerProject;
-import org.example.planlist.entity.ProjectCount;
 import org.example.planlist.entity.ProjectParticipant;
 import org.example.planlist.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
