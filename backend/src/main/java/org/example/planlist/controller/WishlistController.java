@@ -22,4 +22,10 @@ public class WishlistController {
         return ResponseEntity.ok(" 카테고리에 항목이 추가되었습니다.");
     }
 
+    @DeleteMapping("/{wishlistId}")
+    public ResponseEntity<String> deleteWishlistItem(@PathVariable Long wishlistId) {
+        wishlistService.deleteItem(wishlistId);
+        return ResponseEntity.ok("위시리스트 항목이 삭제되었습니다.");
+    }
+
 }

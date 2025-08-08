@@ -63,6 +63,15 @@ public class WishlistService {
 
         wishlistRepository.save(wishlist);
     }
+
+    @Transactional
+    public void deleteItem(Long wishlistId) {
+        if (!wishlistRepository.existsById(wishlistId)) {
+            throw new EntityNotFoundException("삭제할 위시리스트 항목이 없습니다.");
+        }
+        wishlistRepository.deleteById(wishlistId);
+    }
+
 }
 
 
