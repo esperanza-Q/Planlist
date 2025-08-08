@@ -11,6 +11,8 @@ import jakarta.validation.constraints.NotNull;
 @AllArgsConstructor
 @Builder
 public class WishlistRequestDTO {
+    @NotNull(message = "위시리스트 ID가 필요합니다.")
+    private Long wishlistId;
 
     @NotBlank(message = "이름을 입력해주세요.")
     private String name;
