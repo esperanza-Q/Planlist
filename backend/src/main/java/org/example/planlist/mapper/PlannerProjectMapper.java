@@ -14,7 +14,7 @@ public class PlannerProjectMapper {
                 .creator(creator)
                 .projectTitle(dto.getProjectTitle())
                 .category(dto.getCategory())
-                .status(PlannerProject.Status.UPCOMING)
+                .status(PlannerProject.Status.UPCOMMING)
                 .confirmedAt(dto.getConfirmedAt())
                 .startDate(dto.getStartDate())
                 .endDate(dto.getEndDate())
