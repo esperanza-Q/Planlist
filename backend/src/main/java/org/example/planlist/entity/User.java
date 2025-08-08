@@ -58,7 +58,7 @@ public class User {
     @JsonManagedReference
     private List<FriendRequest> receiveFriendRequests;
 
-    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private ProjectCount projectCount;
 

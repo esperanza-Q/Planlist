@@ -21,7 +21,7 @@ public class ProjectCount {
 
     private Integer upComing;
     private Integer inProgress;
-    private Integer Finished;
+    private Integer finished;
 
     @OneToOne
     @JoinColumn(name = "user_id")
