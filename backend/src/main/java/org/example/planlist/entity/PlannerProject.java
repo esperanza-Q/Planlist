@@ -60,7 +60,7 @@ public class PlannerProject {
     }
 
     public enum Status {
-        UPCOMING,
+        UPCOMMING,
         INPROGRESS,
         FINISHED
     }
