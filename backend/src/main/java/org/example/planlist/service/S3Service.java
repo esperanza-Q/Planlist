@@ -94,6 +94,19 @@ public class S3Service {
 //        s3Client.deleteObject(deleteObjectRequest);
 //    }
 
+    public void delete(String imageUrl) {
+        if (imageUrl == null || imageUrl.isBlank()) return;
+
+        String key = getKeyUrl(imageUrl); // 올바르게 key 추출
+
+        DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .build();
+
+        s3Client.deleteObject(deleteRequest); // SDK v2 방식
+    }
+
     public void deleteFile(String key) {
         DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
                 .bucket(bucket)

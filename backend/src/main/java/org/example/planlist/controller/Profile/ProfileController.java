@@ -2,10 +2,14 @@ package org.example.planlist.controller.Profile;
 
 import lombok.RequiredArgsConstructor;
 import org.example.planlist.dto.ProfileDTO.ProjectRequestWrapperDTO;
+import org.example.planlist.dto.ProfileDTO.request.ProfileUpdateRequestDTO;
 import org.example.planlist.dto.ProfileDTO.request.ProjectRequestIdDTO;
 import org.example.planlist.service.Profile.ProfileService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/settings/profile")
@@ -30,5 +34,14 @@ public class ProfileController {
     public ResponseEntity<String> rejectProjectRequest(@RequestBody ProjectRequestIdDTO requestDTO) {
         profileService.rejectProjectRequest(requestDTO);
         return ResponseEntity.ok("프로젝트 요청이 거절되었습니다.");
+    }
+
+    @PutMapping("/updateProfile")
+    public ResponseEntity<Void> updateProfile(
+            @RequestPart(required = false) MultipartFile profileImage,
+            @RequestPart(required = false) String name
+    ) throws IOException {
+        profileService.updateProfile(profileImage, name);
+        return ResponseEntity.ok().build();
     }
 }
