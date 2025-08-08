@@ -71,8 +71,8 @@ public class PlannerProjectService {
 
     // 4. 친구 검색 - @PostMapping("/{projectId}/invite/search")
 //    @Transactional
-//    public List<User> searchFriends(Long userId, String keyword) {
-//        return userRepository.searchFriends(userId, keyword);
+//    public List<User> searchFriends(String keyword) {
+//        return userRepository.searchFriends(keyword);
 //    }
 
     // 5. 참여자 삭제 - @DeleteMapping("/{projectId}/delete/participant")
