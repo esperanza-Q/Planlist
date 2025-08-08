@@ -23,6 +23,9 @@ public interface ProjectParticipantRepository extends JpaRepository<ProjectParti
 
     boolean existsByProjectAndUser(PlannerProject project, User friend);
 
+    Optional<ProjectParticipant> findByIdAndProject_ProjectId(Long participantId, Long projectId);
+
+
 //import org.example.planlist.dto.ProjectParticipantDTO.ProjectParticipantRequestDTO;
 //import org.example.planlist.entity.PlannerProject;
 //import org.example.planlist.entity.ProjectParticipant;
