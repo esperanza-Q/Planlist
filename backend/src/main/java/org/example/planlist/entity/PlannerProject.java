@@ -18,7 +18,7 @@ public class PlannerProject {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "project_id", unique = true, nullable = false)
-    private Long id;
+    private Long projectId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "creator_id", nullable = false)
@@ -38,7 +38,7 @@ public class PlannerProject {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "confirmed_at", nullable = true)
+    @Column(name = "confirmed_at")
     private LocalDateTime confirmedAt;
 
     @Column(name = "start_date")
