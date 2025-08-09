@@ -91,7 +91,17 @@ public class PlannerProjectController {
         return ResponseEntity.ok().build();
     }
 
-    // 8. 프로젝트 최종 확정
+    // 8. 끝 날짜 설정
+    @PostMapping("/{projectId}/end-date")
+    public ResponseEntity<Void> setEndDate(
+            @PathVariable Long projectId,
+            @RequestParam String endDate // "yyyy-MM-dd" 형태로 넘어오도록
+    ) {
+        plannerProjectService.setEndDate(projectId, LocalDate.parse(endDate));
+        return ResponseEntity.ok().build();
+    }
+
+    // 9. 프로젝트 최종 확정
     @PostMapping("/{projectId}/finalize")
     public ResponseEntity<Void> finalizeProject(@PathVariable Long projectId) {
         plannerProjectService.finalizeProject(projectId);
