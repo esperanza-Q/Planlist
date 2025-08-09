@@ -5,6 +5,8 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @NoArgsConstructor
@@ -64,6 +66,13 @@ public class DatePlanner {
     private PlannerProject project;
 
     @ManyToOne
+    @JoinColumn(name = "invitee_id")
+    private ProjectParticipant participant;
+
+    @ManyToOne
     @JoinColumn(name = "wishlist_id")
     private Wishlist wishlist;
+
+    @OneToMany(mappedBy = "datePlanner", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MoveBetweenPlaces> moveBetweenPlacesList = new ArrayList<>();
 }
