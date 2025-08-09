@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @NoArgsConstructor
@@ -63,6 +65,9 @@ public class Wishlist {
     @ManyToOne
     @JoinColumn(name = "project_id")
     private PlannerProject project;
+
+    @OneToMany(mappedBy = "wishlist", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DatePlanner> datePlanners = new ArrayList<>();
 }
 
 
