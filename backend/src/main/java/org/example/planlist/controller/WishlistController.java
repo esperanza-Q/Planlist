@@ -14,7 +14,7 @@ public class WishlistController {
         this.wishlistService = wishlistService;
     }
 
-    // 카테고리 선택, 경로에서 projectId 가져옴
+    // 카테고리 선택, url 경로에서 projectId 가져옴
     @PostMapping("")
     public ResponseEntity<String> addWishlistItem(@PathVariable Long projectId,
                                                   @RequestBody WishlistRequestDTO requestDTO) {
