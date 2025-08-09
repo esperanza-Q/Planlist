@@ -31,7 +31,7 @@ public class MoveBetweenPlaces {
 
     @ManyToOne
     @JoinColumn(name = "calendar_id")
-    private ParticipantAvailability availability;
+    private DatePlanner datePlanner;
 
     @ManyToOne
     @JoinColumn(name = "project_id")
