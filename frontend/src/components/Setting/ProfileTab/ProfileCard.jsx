@@ -47,94 +47,101 @@ const ProfileCard = ({ profilePic, name: initialName, email: initialEmail }) =>{
         setConfirmPassword("");
     };
 
-    return(
-    <div className="profile-card">
-            
-        {isEditing ? (
-            <>
-                <label htmlFor="profile-upload">
-                    <img
-                        src={image}
-                        alt="Profile"
-                        className="profile-pic"
-                        style={{ cursor: "pointer" }}
-                        title="Click to change profile picture"
-                    />
-                </label>
-                <input
-                    id="profile-upload"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    style={{ display: "none" }}
-                />
-
-                <div className="profile-edit">
-                    
-                    
-                    <input
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        className="profile-input"
-                    />
-                    <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="profile-input"
-                    />
-                </div>
-                <div className="profile-button">
-                    <button className="save-button" onClick={handleSave}>Save</button>
-                    <button className="cancel-button" onClick={handleCancel}>Cancel</button>
-
-
-                </div>
-                                
-            </>
-        ) : (
+return (
+  <div className="profile-card">
+    <div >
+      {isEditing ? (
         <>
-            <img src={image} alt="Profile" className="profile-pic" />
+        <div className="profile-info-container">
+          <label htmlFor="profile-upload">
+            <img
+              src={image}
+              alt="Profile"
+              className="profile-pic"
+              style={{ cursor: "pointer" }}
+              title="Click to change profile picture"
+            />
+          </label>
 
+          <div className="profile-info">
+            <input
+              id="profile-upload"
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              style={{ display: "none" }}
+            />
+
+            <div className="profile-edit">
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="profile-input"
+              />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="profile-input"
+              />
+            </div>
+        </div>
+
+
+            
+            
+            <div className="profile-button">
+              <button className="save-button" onClick={handleSave}>Save</button>
+              <button className="cancel-button" onClick={handleCancel}>Cancel</button>
+            </div>
+          </div>
+          <div className="password-field">
+              <div className="password-label">Old password</div>
+              <input
+                type="password"
+                placeholder="Old Password"
+                value={oldPassword}
+                onChange={(e) => setOldPassword(e.target.value)}
+              />
+              <div className="password-label">New password</div>
+              <input
+                type="password"
+                placeholder="New Password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+              <input
+                type="password"
+                placeholder="Confirm New Password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+              <button className="change-button" onClick={handleChangePassword}>
+                Change Password
+              </button>
+            </div>
+
+        </>
+      ) : (
+        <>
+        <div className="profile-info-container">
+          <img src={image} alt="Profile" className="profile-pic" />
+          <div className="profile-info">
             <div className="profile-name">{name}</div>
             <p className="profile-email">{email}</p>
-            <button className="edit-button" onClick={() => setIsEditing(true)}><img src={edit_icon}/></button>
+          </div>
+        </div>
+
+          <button className="edit-button" onClick={() => setIsEditing(true)}>
+            <img src={edit_icon} alt="Edit" />
+          </button>
         </>
-        )}
-      
-
-    <div className="password-field">
-        <div className="password-label">old password</div>
-        <input
-            type="password"
-            placeholder="Old Password"
-            value={oldPassword}
-            onChange={(e) => setOldPassword(e.target.value)}
-        />
-        <div className="password-label">new password</div>
-        <input
-            type="password"
-            placeholder="New Password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-        />
-        <input
-        type="password"
-        placeholder="Confirm New Password"
-        value={confirmPassword}
-        onChange={(e) => setConfirmPassword(e.target.value)}
-    />
+      )}
     </div>
-    
-    
-    <button className="change-button" onClick={handleChangePassword}>
-        Change Password
-    </button>
-      
-    </div>
+  </div>
+);
 
-    ) 
 }
 
 export default ProfileCard;
