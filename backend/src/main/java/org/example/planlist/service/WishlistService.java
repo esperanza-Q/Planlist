@@ -25,8 +25,6 @@ public class WishlistService {
 
     @Transactional
     public void addItem(Long projectId, String categoryStr, WishlistRequestDTO dto) {
-        System.out.println("addItem 호출됨 - inviteeId: " + dto.getInviteeId() + ", projectId: " + projectId);
-
         // 1) 프로젝트 존재 체크
         PlannerProject project = plannerProjectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 프로젝트입니다."));
@@ -34,7 +32,7 @@ public class WishlistService {
         // 2) 참여자 조회 (inviteeId = ProjectParticipant PK)
         ProjectParticipant participant = projectParticipantRepository
                 .findByIdAndProject_ProjectId(dto.getInviteeId(), projectId)
-                .orElseThrow(() -> new EntityNotFoundException("해당 프로젝트의 참여자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new EntityNotFoundException("프로젝트 참여자가 아닙니다."));
 
 
         // 3) 카테고리 변환 (대소문자 무시)
