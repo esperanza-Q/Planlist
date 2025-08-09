@@ -89,6 +89,14 @@ public class PlannerProjectService {
         project.setStartDate(startDate);
     }
 
+    // 7. 종료 날짜 설정
+    @Transactional
+    public void setEndDate(Long projectId, LocalDate endDate) {
+        PlannerProject project = plannerProjectRepository.findById(projectId)
+                .orElseThrow(() -> new EntityNotFoundException("프로젝트를 찾을 수 없습니다."));
+        project.setEndDate(endDate);
+    }
+
     // 8. 프로젝트 최종 확정
     @Transactional
     public void finalizeProject(Long projectId) {
