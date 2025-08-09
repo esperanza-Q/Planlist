@@ -13,7 +13,10 @@ public class MeetingSessionMapper {
                 .title(dto.getTitle())
                 .week(dto.getWeek())
                 .date(dto.getDate())
-                .time(dto.getTime())
+
+                //‼️여기 수정하세요‼️
+//                .time(dto.getTime())
+
                 .location(dto.getLocation())
                 .isFinalized(dto.getIsFinalized())
                 .isRecurring(dto.getIsRecurring())
@@ -27,7 +30,10 @@ public class MeetingSessionMapper {
                 .title(entity.getTitle())
                 .week(entity.getWeek())
                 .date(entity.getDate())
-                .time(entity.getTime())
+
+                //‼️여기도 수정하세요‼️
+//                .time(entity.getTime())
+
                 .location(entity.getLocation())
                 .isFinalized(entity.getIsFinalized())
                 .isRecurring(entity.getIsRecurring())
