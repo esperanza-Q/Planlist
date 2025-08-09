@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class DatePlannerResponseDTO {
+    private Long calendarId;
     private LocalDate date;
     private String category;
     private String memo;
@@ -20,6 +21,12 @@ public class DatePlannerResponseDTO {
     private Float longitude;
     private LocalDateTime visitTime;
     private LocalDateTime createdAt;
+
     private Long projectId;
     private Long wishlistId;
+    private String wishlistName;
+
+    // 필요하면 참가자 정보도 간단히 추가 가능
+    // private Long participantId;
 }
+
