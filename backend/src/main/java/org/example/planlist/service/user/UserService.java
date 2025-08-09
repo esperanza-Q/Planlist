@@ -5,7 +5,9 @@ import org.example.planlist.apiPayload.exception.GeneralException;
 import org.example.planlist.dto.UserDTO.request.UserLoginRequestDTO;
 import org.example.planlist.dto.UserDTO.request.UserSignupRequestDTO;
 import org.example.planlist.dto.UserDTO.response.UserLoginResponseDTO;
+import org.example.planlist.entity.ProjectCount;
 import org.example.planlist.entity.User;
+import org.example.planlist.repository.ProjectCountRepository;
 import org.example.planlist.repository.UserRepository;
 import org.example.planlist.security.CustomUserDetails;
 import org.example.planlist.security.JwtTokenProvider;
@@ -23,11 +25,13 @@ public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final ProjectCountRepository projectCountRepository;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider, ProjectCountRepository projectCountRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.projectCountRepository = projectCountRepository;
     }
 
     // 🔑 회원가입 (비밀번호 암호화 후 저장)
@@ -40,6 +44,16 @@ public class UserService implements UserDetailsService {
         user.setPassword(passwordEncoder.encode(requestDto.getPassword()));
         user.setName(requestDto.getName());
         userRepository.save(user);
+
+        // 👇 회원가입 시 ProjectCount 0,0,0으로 생성
+        ProjectCount projectCount = ProjectCount.builder()
+                .user(user)
+                .upComing(0)
+                .inProgress(0)
+                .finished(0)
+                .build();
+
+        projectCountRepository.save(projectCount);
     }
 
     // 🔐 로그인 (ID/PW 검증 후 JWT 발급)

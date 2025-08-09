@@ -6,6 +6,7 @@ import org.example.planlist.dto.PlannerProjectDTO.PlannerProjectRequestDTO;
 import org.example.planlist.dto.PlannerProjectDTO.PlannerProjectResponseDTO;
 import org.example.planlist.dto.ProjectParticipantDTO.ProjectParticipantRequestDTO;
 import org.example.planlist.entity.User;
+import org.example.planlist.security.SecurityUtil;
 import org.example.planlist.service.PlannerProjectService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -67,10 +68,10 @@ public class PlannerProjectController {
 //    // 4. 친구 검색
 //    @GetMapping("/{projectId}/invite/search")
 //    public ResponseEntity<List<User>> searchFriends(
-//            @PathVariable Long userId,
 //            @RequestParam String keyword
 //    ) {
-//        return ResponseEntity.ok(plannerProjectService.searchFriends(userId, keyword));
+//        User currentUser = SecurityUtil.getCurrentUser();
+//        return ResponseEntity.ok(plannerProjectService.searchFriends(keyword));
 //    }
 
     // 5. 참여자 삭제
