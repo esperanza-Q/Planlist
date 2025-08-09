@@ -14,7 +14,7 @@ import java.util.List;
 @Entity
 @Builder
 @AllArgsConstructor
-@Table(name="PtSession")
+@Table(name="pt_session")
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorValue("PT")
 public class PtSession extends PlannerSession {
