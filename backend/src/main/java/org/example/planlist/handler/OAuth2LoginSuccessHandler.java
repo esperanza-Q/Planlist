@@ -18,7 +18,8 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
     public OAuth2LoginSuccessHandler(JwtTokenProvider jwtTokenProvider) {
         this.jwtTokenProvider = jwtTokenProvider;
-        setDefaultTargetUrl("http://localhost:3000");
+//        setDefaultTargetUrl("http://localhost:3000");
+        setDefaultTargetUrl("http://localhost:8080/calendar/events");
     }
 
     @Override
