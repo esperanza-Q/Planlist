@@ -6,6 +6,7 @@ import org.example.planlist.dto.PlannerProjectDTO.PlannerProjectRequestDTO;
 import org.example.planlist.dto.PlannerProjectDTO.PlannerProjectResponseDTO;
 import org.example.planlist.dto.ProjectParticipantDTO.ProjectParticipantRequestDTO;
 import org.example.planlist.entity.User;
+import org.example.planlist.security.SecurityUtil;
 import org.example.planlist.service.PlannerProjectService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -67,10 +68,10 @@ public class PlannerProjectController {
 //    // 4. 친구 검색
 //    @GetMapping("/{projectId}/invite/search")
 //    public ResponseEntity<List<User>> searchFriends(
-//            @PathVariable Long userId,
 //            @RequestParam String keyword
 //    ) {
-//        return ResponseEntity.ok(plannerProjectService.searchFriends(userId, keyword));
+//        User currentUser = SecurityUtil.getCurrentUser();
+//        return ResponseEntity.ok(plannerProjectService.searchFriends(keyword));
 //    }
 
     // 5. 참여자 삭제
@@ -90,7 +91,17 @@ public class PlannerProjectController {
         return ResponseEntity.ok().build();
     }
 
-    // 8. 프로젝트 최종 확정
+    // 8. 끝 날짜 설정
+    @PostMapping("/{projectId}/end-date")
+    public ResponseEntity<Void> setEndDate(
+            @PathVariable Long projectId,
+            @RequestParam String endDate // "yyyy-MM-dd" 형태로 넘어오도록
+    ) {
+        plannerProjectService.setEndDate(projectId, LocalDate.parse(endDate));
+        return ResponseEntity.ok().build();
+    }
+
+    // 9. 프로젝트 최종 확정
     @PostMapping("/{projectId}/finalize")
     public ResponseEntity<Void> finalizeProject(@PathVariable Long projectId) {
         plannerProjectService.finalizeProject(projectId);

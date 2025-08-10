@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -19,7 +20,7 @@ public class PlannerProject {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "project_id", unique = true, nullable = false)
-    private Long id;
+    private Long projectId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "creator_id", nullable = false)
@@ -39,7 +40,7 @@ public class PlannerProject {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "confirmed_at", nullable = true)
+    @Column(name = "confirmed_at")
     private LocalDateTime confirmedAt;
 
     @Column(name = "start_date")
@@ -60,7 +61,7 @@ public class PlannerProject {
     }
 
     public enum Status {
-        UPCOMING,
+        UPCOMMING,
         INPROGRESS,
         FINISHED
     }
@@ -78,4 +79,13 @@ public class PlannerProject {
             confirmedAt = LocalDateTime.now();
         }
     }
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DatePlanner> datePlanners = new ArrayList<>();
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Wishlist> wishlists = new ArrayList<>();
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MoveBetweenPlaces> moveBetweenPlacesList = new ArrayList<>();
 }

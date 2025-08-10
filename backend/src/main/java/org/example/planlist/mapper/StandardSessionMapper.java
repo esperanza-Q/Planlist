@@ -13,7 +13,8 @@ public class StandardSessionMapper {
                 .title(dto.getTitle())
                 .week(dto.getWeek())
                 .date(dto.getDate())
-                .time(dto.getTime())
+                //‼️여기 수정하세요‼️
+//                .time(dto.getTime())
                 .location(dto.getLocation())
                 .isFinalized(dto.getIsFinalized())
                 .build();
@@ -24,7 +25,8 @@ public class StandardSessionMapper {
                 .title(entity.getTitle())
                 .week(entity.getWeek())
                 .date(entity.getDate())
-                .time(entity.getTime())
+                //‼️여기 수정하세요‼️
+//                .time(entity.getTime())
                 .location(entity.getLocation())
                 .isFinalized(entity.getIsFinalized())
                 .build();
