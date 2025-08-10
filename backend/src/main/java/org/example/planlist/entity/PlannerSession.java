@@ -31,9 +31,12 @@ public abstract class PlannerSession {
 
     private Integer week;
     private LocalDate date;
-    private LocalTime time;
+//    private LocalTime time;
+
+    private LocalTime startTime;
+    private LocalTime endTime;
     private String location;
 
-    @Column(name = "id_finalized", nullable = false)
+    @Column(name = "is_finalized", nullable = false)
     private Boolean isFinalized;
 }
