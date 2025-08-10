@@ -35,31 +35,8 @@ public class DatePlannerService {
         this.wishlistRepository = wishlistRepository;
     }
 
-    public List<DatePlannerResponseDTO> getItemsByDateAndCategory(Long projectId, LocalDate date, String categoryStr) {
-        DatePlanner.Category category = Arrays.stream(DatePlanner.Category.values())
-                .filter(c -> c.name().equalsIgnoreCase(categoryStr))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("잘못된 카테고리 값입니다: " + categoryStr));
-
-        return datePlannerRepository.findByProject_ProjectIdAndDateAndCategory(projectId, date, category)
-                .stream()
-                .map(dp -> DatePlannerResponseDTO.builder()
-                        .calendarId(dp.getCalendarId())
-                        .date(dp.getDate())
-                        .category(dp.getCategory().name())
-                        .memo(dp.getMemo())
-                        .cost(dp.getCost())
-                        .address(dp.getAddress())
-                        .latitude(dp.getLatitude())
-                        .longitude(dp.getLongitude())
-                        .visitTime(dp.getVisitTime())
-                        .wishlistName(dp.getWishlist() != null ? dp.getWishlist().getName() : null)
-                        .build())
-                .toList();
-    }
-
     @Transactional
-    public void addItem(Long projectId, String categoryStr, DatePlannerRequestDTO dto) {
+    public void addDatePlannerItem(Long projectId, String categoryStr, DatePlannerRequestDTO dto) {
         // 1) 프로젝트 체크
         PlannerProject project = plannerProjectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 프로젝트입니다."));
@@ -118,7 +95,6 @@ public class DatePlannerService {
 
         datePlannerRepository.save(datePlanner);
     }
-
 
     @Transactional
     public List<DatePlannerResponseDTO> getDatePlannerItems(Long projectId, LocalDate date) {
