@@ -50,7 +50,7 @@ public class PlannerProjectService {
 
     @Transactional
     public List<ProjectParticipantRequestDTO> getParticipantList(Long projectId) {
-        return projectParticipantRepository.findAllByProjectId(projectId);
+        return projectParticipantRepository.findAllDtosByProjectId(projectId);
     }
 
     // 3. 친구 초대 - @PostMapping("/{projectId}/invite/{friendId}")
