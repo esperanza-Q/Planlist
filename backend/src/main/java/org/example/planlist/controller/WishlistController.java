@@ -2,7 +2,6 @@ package org.example.planlist.controller;
 
 import org.example.planlist.dto.WishlistDTO.WishlistRequestDTO;
 import org.example.planlist.dto.WishlistDTO.WishlistResponseDTO;
-import org.example.planlist.entity.Wishlist;
 import org.example.planlist.service.WishlistService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +19,7 @@ public class WishlistController {
 
     // 사용자가 카테고리 선택하면 url에 붙게 해주세요!!
 
-    // url 경로에서 projectId 가져옴
+    // 카테고리별 wishlist 항목 추가 (url 경로에서 projectId 가져옴)
     @PostMapping("/{category}")
     public ResponseEntity<String> addWishlistItem(@PathVariable Long projectId,
                                                   @PathVariable String category,
@@ -34,10 +33,9 @@ public class WishlistController {
             @PathVariable Long projectId,
             @PathVariable String category
     ) {
-        List<WishlistResponseDTO> items = wishlistService.getItems(projectId, category);
+        List<WishlistResponseDTO> items = wishlistService.getWishlistItems(projectId, category);
         return ResponseEntity.ok(items);
     }
-
 
     @DeleteMapping("/{category}/{wishlistId}")    public ResponseEntity<String> deleteWishlistItem(@PathVariable Long wishlistId) {
         wishlistService.deleteItem(wishlistId);
