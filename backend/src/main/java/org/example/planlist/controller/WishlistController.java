@@ -18,18 +18,21 @@ public class WishlistController {
         this.wishlistService = wishlistService;
     }
 
-    // 카테고리 선택, url 경로에서 projectId 가져옴
+    // 사용자가 카테고리 선택하면 url에 붙게 해주세요!!
+
+    // url 경로에서 projectId 가져옴
     @PostMapping("")
     public ResponseEntity<String> addWishlistItem(@PathVariable Long projectId,
+                                                  @PathVariable String category,
                                                   @RequestBody WishlistRequestDTO requestDTO) {
-        wishlistService.addItem(projectId, requestDTO.getCategory(), requestDTO);
+        wishlistService.addItem(projectId, category, requestDTO);
         return ResponseEntity.ok(" 카테고리에 항목이 추가되었습니다.");
     }
 
     @GetMapping("")
     public ResponseEntity<List<WishlistResponseDTO>> getWishlistByCategory(
             @PathVariable Long projectId,
-            @RequestParam String category
+            @PathVariable String category
     ) {
         List<WishlistResponseDTO> items = wishlistService.getItems(projectId, category);
         return ResponseEntity.ok(items);
