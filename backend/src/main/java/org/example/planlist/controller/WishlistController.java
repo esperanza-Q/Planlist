@@ -37,7 +37,8 @@ public class WishlistController {
         return ResponseEntity.ok(items);
     }
 
-    @DeleteMapping("/{category}/{wishlistId}")    public ResponseEntity<String> deleteWishlistItem(@PathVariable Long wishlistId) {
+    @DeleteMapping("/{category}/{wishlistId}")
+    public ResponseEntity<String> deleteWishlistItem(@PathVariable Long wishlistId) {
         wishlistService.deleteItem(wishlistId);
         return ResponseEntity.ok("위시리스트 항목이 삭제되었습니다.");
     }
