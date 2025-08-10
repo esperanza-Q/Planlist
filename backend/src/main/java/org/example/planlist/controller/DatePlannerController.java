@@ -24,6 +24,7 @@ public class DatePlannerController {
         this.wishlistRepository = wishlistRepository;
     }
 
+    // add place -> 카테고리별 wishlist 내역을 확인할 수 있는 팝업창
     @GetMapping("/wishlist/{category}")
     public ResponseEntity<List<DatePlannerResponseDTO>> getWishlistItems(
             @PathVariable Long projectId,
@@ -55,7 +56,9 @@ public class DatePlannerController {
         return ResponseEntity.ok(items);
     }
 
-    @PostMapping("")
+    // 사용자가 선택한 카테고리를 url에 붙임으로써 현재 어느 카테고리에 항목을 추가할 건지 나타냅니다.
+    // add place -> 팝업창에서 항목 추가 버튼 눌렀을 때 실행
+    @PostMapping("/{category}")
     public ResponseEntity<String> addDatePlannerItem(@PathVariable Long projectId,
                                                      @PathVariable String category,
                                                      @RequestBody DatePlannerRequestDTO requestDTO) {
@@ -73,7 +76,7 @@ public class DatePlannerController {
         return ResponseEntity.ok(items);
     }
 
-    // DatePlanner 페이지 안에서
+    // DatePlanner 페이지 안에서 생성된 DatePlanner 개별 항목 ID를 기반으로 삭제를 진행합니다.
     @DeleteMapping("/{datePlannerId}")
     public ResponseEntity<String> deleteDatePlannerItem(@PathVariable Long datePlannerId) {
         datePlannerService.deleteItem(datePlannerId);
