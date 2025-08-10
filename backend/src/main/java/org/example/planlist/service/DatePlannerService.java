@@ -60,11 +60,11 @@ public class DatePlannerService {
 
     @Transactional
     public void addItem(Long projectId, String categoryStr, DatePlannerRequestDTO dto) {
-        // 1) 프로젝트 존재 체크
+        // 1) 프로젝트 체크
         PlannerProject project = plannerProjectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 프로젝트입니다."));
 
-        // 2) 참여자 조회
+        // 2) 참여자 체크
         ProjectParticipant participant = projectParticipantRepository
                 .findByIdAndProject_ProjectId(dto.getInviteeId(), projectId)
                 .orElseThrow(() -> new EntityNotFoundException("프로젝트 참여자가 아닙니다."));
@@ -80,13 +80,24 @@ public class DatePlannerService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("잘못된 카테고리 값입니다: " + categoryStr));
 
-        // 5) Wishlist 조회
-        Wishlist wishlist = wishlistRepository.findById(dto.getWishlistId())
-                .orElseThrow(() -> new EntityNotFoundException("해당 위시리스트 항목이 없습니다."));
+        // 5) Wishlist 조회 (null 허용)
+        Wishlist wishlist = null;
+        if (dto.getWishlistId() != null) {
+            wishlist = wishlistRepository.findById(dto.getWishlistId())
+                    .orElseThrow(() -> new EntityNotFoundException("해당 위시리스트 항목이 없습니다."));
+        } else {
+            // wishlist 필수인 카테고리 검증
+            if (category == DatePlanner.Category.PLACE ||
+                    category == DatePlanner.Category.RESTAURANT ||
+                    category == DatePlanner.Category.ACCOMMODATION) {
+                throw new IllegalArgumentException("이 카테고리는 wishlistId가 필요합니다.");
+            }
+        }
 
-        // 6) 중복 검사: 프로젝트 + 카테고리 + 위시리스트 ID
-        if (datePlannerRepository.existsByProject_ProjectIdAndCategoryAndWishlist_WishlistId(
-                projectId, category, wishlist.getWishlistId())) {
+        // 6) 중복 검사 (wishlist 있을 때만)
+        if (wishlist != null &&
+                datePlannerRepository.existsByProject_ProjectIdAndCategoryAndWishlist_WishlistId(
+                        projectId, category, wishlist.getWishlistId())) {
             throw new IllegalStateException("이미 존재하는 항목입니다.");
         }
 
@@ -102,11 +113,12 @@ public class DatePlannerService {
                 .visitTime(dto.getVisitTime())
                 .project(project)
                 .participant(participant)
-                .wishlist(wishlist)
+                .wishlist(wishlist) // null 가능
                 .build();
 
         datePlannerRepository.save(datePlanner);
     }
+
 
     @Transactional
     public List<DatePlannerResponseDTO> getDatePlannerItems(Long projectId, LocalDate date) {
