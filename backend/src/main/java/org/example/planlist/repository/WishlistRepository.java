@@ -11,5 +11,5 @@ public interface WishlistRepository extends JpaRepository<Wishlist, Long> {
                                                  Wishlist.Category category,
                                                  String name);
     List<Wishlist> findByProject_ProjectIdAndCategory(Long projectId, Wishlist.Category category);
-
+    List<Wishlist> findByProject_ProjectId(Long projectId);
 }
