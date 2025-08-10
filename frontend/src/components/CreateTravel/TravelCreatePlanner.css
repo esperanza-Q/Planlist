@@ -1,0 +1,277 @@
+.map-section {
+  flex: 2;
+  height: 380px;
+  border-radius: 15px;
+  overflow: hidden;
+  border: 1px solid #dcdfe4;
+  margin-bottom: 20px;
+}
+
+.planner-home-container{
+  display: flex;
+  flex-direction: row;  
+ 
+  width: 1920px;
+  height: 1080px;
+  gap:60px;
+}
+
+.planner-home-container-div{
+
+  margin-top: 130px;
+  margin-left:270px;
+}
+
+.planner-section-div{
+  margin-top:190px;
+}
+
+li{
+    list-style-type: none;
+    margin-left:0px;
+}
+
+
+/*--planner-card--*/
+
+.choose-title{
+      font-family: 'Montserrat', sans-serif;
+}
+
+.date-tabs{
+    top:0px;
+    left: 0px;
+}
+
+.date-tabs button{
+    background-color: white;
+
+}
+
+.itinerary-list{
+  padding-left:0px;
+  margin-left:0px;
+}
+
+.planner-containerdiv{
+  display:flex;
+  flex-direction: row;
+}
+
+.planner-place-item{
+  position:relative;
+  width: 504px;
+  height: 70px;
+  padding: 20px;
+  border-radius: 20px;
+  background-color: #EEF1F6;
+  display:flex;
+  flex-direction: row;
+  border: 1px solid #EEF1F6;
+  margin-right:20px;
+}
+
+.place-remove-button {
+    position: absolute;
+    border: none;
+    background: transparent;
+    left: 480px;
+    top: 45px;
+}
+
+
+.planner-place-content{
+  margin-left: 10px;
+}
+
+.planner-containerdiv input{
+  margin-top: 20px; 
+  font-size: 14px;
+  font-family: 'Inter', Helvetica, sans-serif;
+  border: 1px solid #D9D9D9;
+}
+
+.move-item{
+  margin:20px;
+  position:relative;
+  display:flex;
+  flex-direction: row;
+}
+
+.move-item-data{
+  margin-top:17px;
+  margin-left:10px;
+}
+
+
+.move-item select{
+  box-sizing:border-box;
+  height: 40px;
+  
+  padding:10px;
+  width:160px;
+  border-radius:20px;
+
+  border: 1px solid #081F5C;
+  margin-right: 10px;
+}
+
+input.move-item-input{
+    box-sizing: border-box;
+  height: 40px;
+  width: 150px;
+  padding: 10px;
+    border-radius:20px;
+    margin:0px;
+    font-size:14px;
+    margin-right: 10px;
+
+}
+
+.traffic-remove-button {
+    position: absolute;
+    border: none;
+    background: transparent;
+    left: 480px;
+    top: 25px;
+}
+
+
+.planner-add-place-button{
+    background-color: #334EAC;
+    color:white;
+    font-size: 15px;
+    border-radius:30px;
+    width:546px;
+    height: 50px;
+    margin-top: 20px;
+}
+
+
+
+.planner-add-traffic-button{
+  background-color: white;
+  width:125px;
+  height:30px;
+  border-radius:15px;
+  border: 1px solid #081F5C;
+  color:#081F5C;
+  margin-top: 20px;
+  margin-bottom:10px;
+  margin-left: 60px;
+}
+
+
+.arrow{
+    margin: 5px 20px 5px 45px;
+}
+
+/*--popup--*/
+
+
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+
+.popup-place-list{
+    margin-left:0px;
+    padding-left:0px;
+    width: 700px;
+    height: 434px;
+    overflow-y: auto;
+}
+
+.planner-popup-box{
+    position:relative;
+    background-color:#EEF1F6;
+    border-radius:20px;
+    border:1px solid #081F5C;
+    padding: 40px;
+    display:flex;
+    flex-direction: column;
+    gap:10px;
+    color:#181D27;
+    width: 480px;
+    height: 570px;
+}
+
+.place-list {
+  list-style: none; 
+  padding: 0;       
+  margin: 0;
+  overflow-y: auto;
+  max-height: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.place-category-tabs{
+    margin-bottom: 0px;
+}
+
+.popup-place-item {
+  width: 435px; 
+  height: 70px;
+  padding: 20px;
+  border-radius: 20px;
+
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  display: flex;
+  flex-direction: row;
+  background: white;
+  color:#081F5C;
+  margin-bottom: 20px;
+}
+
+.popup-place-item-content{
+  margin-left: 10px;
+}
+
+.place-item.selected {
+  border: 1px solid var(--Galaxy);
+}
+
+.place-item.not-selected {
+  background-color: var(--EEF1F6); 
+}
+
+.place-title {
+  font-weight: bold;
+  margin-bottom: 0.3rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.place-address,
+.place-desc {
+  font-size: 12px;
+  color: #555;
+}
+
+
+.close-button{
+    top: 560px;
+    position:absolute;
+    background-color: #334EAC;
+    color:white;
+    font-size: 15px;
+    border-radius:30px;
+    width:475px;
+    height: 50px;
+    border: 1px solid #334EAC;
+
+}
