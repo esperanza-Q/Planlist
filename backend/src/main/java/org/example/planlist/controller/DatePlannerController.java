@@ -24,10 +24,10 @@ public class DatePlannerController {
         this.wishlistRepository = wishlistRepository;
     }
 
-    @GetMapping("/wishlist")
+    @GetMapping("/wishlist/{category}")
     public ResponseEntity<List<DatePlannerResponseDTO>> getWishlistItems(
             @PathVariable Long projectId,
-            @RequestParam String category) {
+            @PathVariable String category) {
 
         // String → Enum 변환 (대소문자 무시)
         Wishlist.Category categoryEnum = Arrays.stream(Wishlist.Category.values())
@@ -57,21 +57,23 @@ public class DatePlannerController {
 
     @PostMapping("")
     public ResponseEntity<String> addDatePlannerItem(@PathVariable Long projectId,
+                                                     @PathVariable String category,
                                                      @RequestBody DatePlannerRequestDTO requestDTO) {
-        datePlannerService.addItem(projectId, requestDTO.getCategory(), requestDTO);
+        datePlannerService.addItem(projectId, category, requestDTO);
         return ResponseEntity.ok("해당 날짜의 플래너에 항목이 추가되었습니다.");
     }
 
-    @GetMapping("")
+    // 사용자가 선택한 날짜를 기반으로 조회할 수 있게끔 선택한 날짜를 url에 붙입니다.
+    @GetMapping("/{date}")
     public ResponseEntity<List<DatePlannerResponseDTO>> getDatePlannerItems(
             @PathVariable Long projectId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
 
         List<DatePlannerResponseDTO> items = datePlannerService.getDatePlannerItems(projectId, date);
         return ResponseEntity.ok(items);
     }
 
-
+    // DatePlanner 페이지 안에서
     @DeleteMapping("/{datePlannerId}")
     public ResponseEntity<String> deleteDatePlannerItem(@PathVariable Long datePlannerId) {
         datePlannerService.deleteItem(datePlannerId);
