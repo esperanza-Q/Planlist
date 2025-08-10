@@ -4,11 +4,11 @@ import { ReactComponent as ArrowLeft } from "../../assets/arrow_down_left.svg";
 import { ReactComponent as ArrowRight } from "../../assets/arrow_down_right.svg";
 import { format } from "date-fns";
 
+import { api } from "../../api/client";
 
 
 
-
-const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const hours = Array.from({ length: 24 }, (_, i) =>
   `${i === 0 ? 12 : i > 12 ? i - 12 : i}${i < 12 ? "am" : "pm"}`
 );
@@ -19,25 +19,40 @@ const WeeklyCalendar = () => {
   const [currentWeekStart, setCurrentWeekStart] = useState(getStartOfWeek(new Date()));
   const isDragging = useRef(false);
 
-  useEffect(() => {
+  // 1) 주간 가용시간 조회 useEffect
+    useEffect(() => {
   const fetchFreeTime = async () => {
     const startDate = format(currentWeekStart, "yyyy-MM-dd");
     const endDate = format(new Date(currentWeekStart.getTime() + 6 * 24 * 60 * 60 * 1000), "yyyy-MM-dd");
 
     try {
-      const response = await fetch(`/api/home/getFreeTime?startDate=${startDate}&endDate=${endDate}`);
-      const data = await response.json();
+      const { freeTimeCalendar = [] } = await api.get(
+        `/api/home/freeTimeCalendar/getFreeTime?startDate=${startDate}&endDate=${endDate}`
+      );
 
       const newSet = new Set();
-      data.forEach(({ hour, day }) => {
-        newSet.add(`${hour}-${day}`);
+      const dayMs = 24 * 60 * 60 * 1000;
+      const weekStart = new Date(currentWeekStart); weekStart.setHours(0,0,0,0);
+
+      const toHour = (hhmm) => Number(String(hhmm || "00:00").split(":")[0]);
+
+      freeTimeCalendar.forEach((item) => {
+        const dateObj = new Date(item.date);
+        dateObj.setHours(0,0,0,0);
+        const col = Math.floor((dateObj.getTime() - weekStart.getTime()) / dayMs); // 0~6
+        if (col < 0 || col > 6) return; // 이번 주가 아니면 스킵
+
+        if (item.allDay) {
+          for (let h = 0; h < 24; h++) newSet.add(`${h}-${col}`);
+        } else {
+          const s = toHour(item.start);
+          const e = toHour(item.end); // end는 보통 exclusive
+          for (let h = s; h < e; h++) newSet.add(`${h}-${col}`);
+        }
       });
 
       const key = getWeekKey(currentWeekStart);
-      setSelectedMap((prev) => ({
-        ...prev,
-        [key]: newSet
-      }));
+      setSelectedMap((prev) => ({ ...prev, [key]: newSet }));
     } catch (err) {
       console.error("Failed to fetch free time", err);
     }
@@ -46,12 +61,15 @@ const WeeklyCalendar = () => {
   fetchFreeTime();
 }, [currentWeekStart]);
 
+
+
   function getStartOfWeek(date) {
-    const newDate = new Date(date);
-    const day = newDate.getDay();
-    const diff = newDate.getDate() - day;
-    return new Date(newDate.setDate(diff));
-  }
+    const d = new Date(date);
+    const day = (d.getDay() + 6) % 7; // Mon=0 … Sun=6
+    d.setDate(d.getDate() - day);
+    d.setHours(0, 0, 0, 0);
+    return d;
+}
 
   function getDateOfWeek(index) {
     const date = new Date(currentWeekStart);
@@ -158,77 +176,67 @@ const WeeklyCalendar = () => {
     return true;
   };
 
-  const handleSave = () => {
-  const selectedCells = Array.from(getSelectedCells());
+  const handleSave = async () => {
+  try {
+    const selectedCells = Array.from(getSelectedCells()); // ["hour-day", ...]
+    const dayHourMap = {}; // dayIndex -> Set(hours)
 
-  // 날짜별 그룹핑: day index -> 시간 배열
-  const dayHourMap = {};
-  selectedCells.forEach((key) => {
-    const [hourStr, dayStr] = key.split("-");
-    const hour = Number(hourStr);
-    const day = Number(dayStr);
-
-    if (!dayHourMap[day]) {
-      dayHourMap[day] = [];
-    }
-    dayHourMap[day].push(hour);
-  });
-
-  const freeTimeCalendar = Object.entries(dayHourMap).map(([dayStr, hours]) => {
-    const day = Number(dayStr);
-    const date = new Date(currentWeekStart);
-    date.setDate(date.getDate() + day);
-    const dateStr = format(date, "yyyy-MM-dd");
-
-    if (hours.length === 24) {
-      return {
-        date: dateStr,
-        allDay: true
-      };
-    }
-
-    const sorted = hours.sort((a, b) => a - b);
-
-    // start ~ end time (연속 시간으로 보냄)
-    const startHour = sorted[0];
-    const endHour = sorted[sorted.length - 1] + 1;
-
-    const formatTime = (h) => `${h.toString().padStart(2, "0")}:00`;
-
-    return {
-      date: dateStr,
-      start: formatTime(startHour),
-      end: formatTime(endHour)
-    };
-  });
-
-  // week 범위 문자열 만들기
-  const week = `${format(currentWeekStart, "yyyy-MM-dd")} ~ ${format(
-    new Date(currentWeekStart.getTime() + 6 * 24 * 60 * 60 * 1000),
-    "yyyy-MM-dd"
-  )}`;
-
-  const payload = {
-    week,
-    freeTimeCalendar
-  };
-
-  console.log("📦 Save Payload:", payload); // 확인용 로그
-
-  fetch("/api/home/updateFreeTime", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  })
-    .then((res) => {
-      if (!res.ok) throw new Error("Failed to update free time");
-      alert("Free time saved!");
-    })
-    .catch((err) => {
-      console.error("🔥 Save error:", err);
-      alert(err.message);
+    selectedCells.forEach((key) => {
+      const [hourStr, dayStr] = key.split("-");
+      const hour = Number(hourStr);
+      const day = Number(dayStr);
+      if (!dayHourMap[day]) dayHourMap[day] = new Set();
+      dayHourMap[day].add(hour);
     });
+
+    const fmt = (h) => `${String(h).padStart(2, "0")}:00`;
+
+    // 하루에 여러 구간 지원 + allDay 처리
+    const freeTimeCalendar = Object.entries(dayHourMap).flatMap(([dayStr, hourSet]) => {
+      const day = Number(dayStr);
+      const date = new Date(currentWeekStart);
+      date.setDate(date.getDate() + day);
+      const dateStr = format(date, "yyyy-MM-dd");
+
+      const hours = Array.from(hourSet).sort((a, b) => a - b);
+
+      if (hours.length === 24) {
+        return [{ date: dateStr, allDay: true }];
+      }
+
+      const ranges = [];
+      let start = hours[0], prev = hours[0];
+      for (let i = 1; i < hours.length; i++) {
+        if (hours[i] === prev + 1) {
+          prev = hours[i];
+        } else {
+          ranges.push([start, prev + 1]); // end exclusive
+          start = hours[i];
+          prev = hours[i];
+        }
+      }
+      ranges.push([start, prev + 1]);
+
+      return ranges.map(([s, e]) => ({ date: dateStr, start: fmt(s), end: fmt(e) }));
+    });
+
+    const week = `${format(currentWeekStart, "yyyy-MM-dd")} ~ ${format(
+      new Date(currentWeekStart.getTime() + 6 * 24 * 60 * 60 * 1000),
+      "yyyy-MM-dd"
+    )}`;
+
+    const payload = { week, freeTimeCalendar };
+    console.log("📦 Save Payload:", payload);
+
+    await api.post("/api/home/freeTimeCalendar/updateFreeTime", payload);
+    alert("Free time saved!");
+  } catch (err) {
+    console.error("🔥 Save error:", err);
+    alert(err.message || "Failed to save");
+  }
 };
+
+
 
   return (
     <div className="calendar-wrapper" onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
