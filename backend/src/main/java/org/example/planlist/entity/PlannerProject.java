@@ -34,7 +34,7 @@ public class PlannerProject {
     private Category category;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private Status status;
 
     @Column(name = "created_at", nullable = false)
@@ -61,7 +61,7 @@ public class PlannerProject {
     }
 
     public enum Status {
-        UPCOMMING,
+        UPCOMING,
         INPROGRESS,
         FINISHED
     }
