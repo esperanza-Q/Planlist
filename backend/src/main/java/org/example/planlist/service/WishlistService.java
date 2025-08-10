@@ -66,7 +66,7 @@ public class WishlistService {
     }
 
     @Transactional
-    public List<WishlistResponseDTO> getItems(Long projectId, String categoryStr) {
+    public List<WishlistResponseDTO> getWishlistItems(Long projectId, String categoryStr) {
         // 1) 프로젝트 존재 체크
         plannerProjectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 프로젝트입니다."));
@@ -93,8 +93,6 @@ public class WishlistService {
                         .build())
                 .toList();
     }
-
-
 
     @Transactional
     public void deleteItem(Long wishlistId) {
