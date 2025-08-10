@@ -13,14 +13,14 @@ public interface DatePlannerRepository extends JpaRepository<DatePlanner, Long> 
             Long projectId, DatePlanner.Category category, Long wishlistId
     );
 
-    List<DatePlanner> findByProject_ProjectIdAndDateAndCategory(
-            Long projectId,
-            LocalDate date,
-            DatePlanner.Category category
-    );
+//    List<DatePlanner> findByProject_ProjectIdAndDateAndCategory(
+//            Long projectId,
+//            LocalDate date,
+//            DatePlanner.Category category
+//    );
 
     List<DatePlanner> findByProject_ProjectIdAndDate(Long projectId, LocalDate date);
-
+    List<DatePlanner> findByProject_ProjectId(Long projectId);
 
 //    // 🔹 로그인 유저 포함 + 상태 필터 + 날짜 조건 + category = TRAVEL
 //    @Query("SELECT dp FROM DatePlanner dp " +

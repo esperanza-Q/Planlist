@@ -98,6 +98,33 @@ public class DatePlannerService {
 
     @Transactional
     public List<DatePlannerResponseDTO> getDatePlannerItems(Long projectId, LocalDate date) {
+        // 1) 프로젝트 존재 여부 확인
+        plannerProjectRepository.findById(projectId)
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 프로젝트입니다."));
+
+        // 2) 전체 조회 (date가 null이면 모든 날짜 조회)
+        if (date == null) {
+            return datePlannerRepository.findByProject_ProjectId(projectId)
+                    .stream()
+                    .map(dp -> DatePlannerResponseDTO.builder()
+                            .calendarId(dp.getCalendarId())
+                            .date(dp.getDate())
+                            .category(dp.getCategory().name())
+                            .memo(dp.getMemo())
+                            .cost(dp.getCost())
+                            .address(dp.getAddress())
+                            .latitude(dp.getLatitude())
+                            .longitude(dp.getLongitude())
+                            .visitTime(dp.getVisitTime())
+                            .createdAt(dp.getCreatedAt())
+                            .projectId(projectId)
+                            .wishlistId(dp.getWishlist() != null ? dp.getWishlist().getWishlistId() : null)
+                            .wishlistName(dp.getWishlist() != null ? dp.getWishlist().getName() : null)
+                            .build())
+                    .toList();
+        }
+
+        // 3) 특정 날짜 조회
         return datePlannerRepository.findByProject_ProjectIdAndDate(projectId, date)
                 .stream()
                 .map(dp -> DatePlannerResponseDTO.builder()
@@ -117,6 +144,7 @@ public class DatePlannerService {
                         .build())
                 .toList();
     }
+
 
     @Transactional
     public void deleteItem(Long calendarId) {
