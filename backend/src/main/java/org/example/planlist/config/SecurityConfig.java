@@ -131,7 +131,9 @@ public class SecurityConfig {
                                 "/auth/google",
                                 "/auth/kakao",
                                 "/auth/naver",
-                                "/login"
+                                "/login",
+                                "/calendar/events",  // ✅ 추가
+                                "/oauth2/authorization/google" // ✅ 구글 로그인 진입점 허용
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
