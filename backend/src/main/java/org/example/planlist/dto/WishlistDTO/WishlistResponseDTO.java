@@ -9,6 +9,7 @@ import lombok.*;
 @Builder
 public class WishlistResponseDTO {
 
+    private Long wishlistId;
     private String name;
     private String address;
     private Float latitude;
