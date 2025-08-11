@@ -14,7 +14,7 @@ import java.util.Optional;
 public interface ProjectParticipantRepository extends JpaRepository<ProjectParticipant, Long> {
     List<ProjectParticipant> findByUser(User user);
 
-    Optional<ProjectParticipant> findById(Long id);
+    ProjectParticipant findByProject_ProjectIdAndUserId(Long ProjectId, Long UserId);
 
 //    Optional<ProjectParticipant> findByUserId(Long userId);
 
@@ -31,6 +31,7 @@ public interface ProjectParticipantRepository extends JpaRepository<ProjectParti
 
     Optional<ProjectParticipant> findByIdAndProject_ProjectId(Long participantId, Long projectId);
 
+//    boolean existsByProjectIdAndUser(Long projectId, User user);
 
 //import org.example.planlist.dto.ProjectParticipantDTO.ProjectParticipantRequestDTO;
 //import org.example.planlist.entity.PlannerProject;
