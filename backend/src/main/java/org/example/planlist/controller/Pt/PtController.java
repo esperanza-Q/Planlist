@@ -1,22 +1,18 @@
 package org.example.planlist.controller.Pt;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.example.planlist.dto.PT.request.PtProjectCreateRequestDTO;
-import org.example.planlist.dto.PT.request.PtProjectInviteRequestDTO;
-import org.example.planlist.dto.PT.request.AddSessionRequestDTO;
-import org.example.planlist.dto.PT.request.SelectTimeRequestDTO;
-import org.example.planlist.dto.PT.response.*;
+import org.example.planlist.dto.PtDTO.request.PtProjectCreateRequestDTO;
+import org.example.planlist.dto.PtDTO.request.PtProjectInviteRequestDTO;
+import org.example.planlist.dto.PtDTO.request.AddSessionRequestDTO;
+import org.example.planlist.dto.PtDTO.request.SelectTimeRequestDTO;
+import org.example.planlist.dto.PtDTO.response.*;
 import org.example.planlist.entity.PtSession;
 import org.example.planlist.repository.PlannerSessionRepository;
 import org.example.planlist.service.PT.PtProjectService;
 import org.example.planlist.service.PT.PtService;
 import org.example.planlist.service.PT.SharePlannerService;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDate;
 
 @RestController
 @RequiredArgsConstructor

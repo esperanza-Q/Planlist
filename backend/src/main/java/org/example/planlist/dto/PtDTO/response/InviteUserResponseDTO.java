@@ -1,10 +1,8 @@
-package org.example.planlist.dto.PT.response;
+package org.example.planlist.dto.PtDTO.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.example.planlist.entity.PlannerProject;
 import org.example.planlist.entity.ProjectParticipant;
-import org.example.planlist.entity.User;
 
 import java.util.List;
 
