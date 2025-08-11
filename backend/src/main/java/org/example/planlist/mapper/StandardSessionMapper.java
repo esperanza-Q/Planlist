@@ -11,7 +11,8 @@ public class StandardSessionMapper {
         return StandardSession.builder()
                 .project(project)
                 .title(dto.getTitle())
-                .week(dto.getWeek())
+                //‼️여기 수정하세요‼️
+//                .week(dto.getWeek())
                 .date(dto.getDate())
                 //‼️여기 수정하세요‼️
 //                .time(dto.getTime())
@@ -23,7 +24,8 @@ public class StandardSessionMapper {
     public static StandardSessionResponseDTO toResponseDTO(StandardSession entity) {
         return StandardSessionResponseDTO.builder()
                 .title(entity.getTitle())
-                .week(entity.getWeek())
+                //‼️여기 수정하세요‼️
+//                .week(entity.getWeek())
                 .date(entity.getDate())
                 //‼️여기 수정하세요‼️
 //                .time(entity.getTime())
