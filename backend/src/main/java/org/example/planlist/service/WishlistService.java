@@ -32,24 +32,23 @@ public class WishlistService {
         PlannerProject project = plannerProjectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 프로젝트입니다."));
 
-        // 2) 참여자 조회 (inviteeId = ProjectParticipant PK)
+        // 2) 참여자 조회
         ProjectParticipant participant = projectParticipantRepository
                 .findByIdAndProject_ProjectId(dto.getInviteeId(), projectId)
                 .orElseThrow(() -> new EntityNotFoundException("프로젝트 참여자가 아닙니다."));
 
-
-        // 3) 카테고리 변환 (대소문자 무시)
+        // 3) 카테고리 변환
         Wishlist.Category category = java.util.Arrays.stream(Wishlist.Category.values())
                 .filter(c -> c.name().equalsIgnoreCase(categoryStr))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("잘못된 카테고리 값입니다: " + categoryStr));
 
-        // 4) 중복 검사: 프로젝트 + 카테고리 + 이름
+        // 4) 중복 검사
         if (wishlistRepository.existsByProject_ProjectIdAndCategoryAndName(projectId, category, dto.getName())) {
             throw new IllegalStateException("이미 존재하는 항목입니다.");
         }
 
-        // 5) 저장 (Builder)
+        // 5) 저장
         Wishlist wishlist = Wishlist.builder()
                 .name(dto.getName())
                 .address(dto.getAddress())
@@ -66,18 +65,36 @@ public class WishlistService {
     }
 
     @Transactional
-    public List<WishlistResponseDTO> getItems(Long projectId, String categoryStr) {
+    public List<WishlistResponseDTO> getWishlistItems(Long projectId, String categoryStr) {
         // 1) 프로젝트 존재 체크
         plannerProjectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 프로젝트입니다."));
 
-        // 2) 카테고리 변환
+        // 2) "ALL"이면 전체 조회
+        if (categoryStr.equalsIgnoreCase("ALL")) {
+            return wishlistRepository.findByProject_ProjectId(projectId)
+                    .stream()
+                    .map(w -> WishlistResponseDTO.builder()
+                            .name(w.getName())
+                            .address(w.getAddress())
+                            .latitude(w.getLatitude())
+                            .longitude(w.getLongitude())
+                            .category(w.getCategory().name())
+                            .memo(w.getMemo())
+                            .cost(w.getCost())
+                            .projectId(w.getProject().getProjectId())
+                            .inviteeId(w.getParticipant().getId())
+                            .build())
+                    .toList();
+        }
+
+        // 3) 카테고리 변환
         Wishlist.Category category = java.util.Arrays.stream(Wishlist.Category.values())
                 .filter(c -> c.name().equalsIgnoreCase(categoryStr))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("잘못된 카테고리 값입니다: " + categoryStr));
 
-        // 3) 조회 + DTO 변환
+        // 4) 카테고리별 조회
         return wishlistRepository.findByProject_ProjectIdAndCategory(projectId, category)
                 .stream()
                 .map(w -> WishlistResponseDTO.builder()
@@ -94,8 +111,6 @@ public class WishlistService {
                 .toList();
     }
 
-
-
     @Transactional
     public void deleteItem(Long wishlistId) {
         if (!wishlistRepository.existsById(wishlistId)) {
@@ -103,8 +118,8 @@ public class WishlistService {
         }
         wishlistRepository.deleteById(wishlistId);
     }
-
 }
+
 
 
 

@@ -32,6 +32,12 @@ public class User {
     @Column(nullable = false)
     private String name;
 
+    @Column(name = "google_access_token")
+    private String googleAccessToken;
+
+    @Column(name = "google_refresh_token")
+    private String googleRefreshToken;
+
     @OneToMany(mappedBy = "creator", fetch = FetchType.LAZY) // 필드 지연 로딩 -> 성능 저하 방지
     private List<PlannerProject> createdProjects;
 
@@ -65,5 +71,6 @@ public class User {
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JsonManagedReference
     private List<PtComment> PtComments;
+
 
 }
