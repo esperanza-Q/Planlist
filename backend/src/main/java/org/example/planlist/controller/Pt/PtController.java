@@ -5,7 +5,9 @@ import org.example.planlist.dto.PT.request.PtProjectCreateRequestDTO;
 import org.example.planlist.dto.PT.request.PtProjectInviteRequestDTO;
 import org.example.planlist.dto.PT.response.InviteUserResponseDTO;
 import org.example.planlist.dto.PT.response.PtProjectCreateResponseDTO;
+import org.example.planlist.dto.PT.response.PtProjectDetailResponseDTO;
 import org.example.planlist.security.CustomUserDetails;
+import org.example.planlist.service.PT.PtProjectService;
 import org.example.planlist.service.PT.PtService;
 import org.example.planlist.service.PlanlistCalendar.PlanlistCalendarService;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class PtController {
 
     private final PtService ptService;
+    private final PtProjectService ptProjectService;
 
     @PostMapping("/createProject")
     public ResponseEntity<PtProjectCreateResponseDTO> createProject(
@@ -57,6 +60,13 @@ public class PtController {
 
         return ResponseEntity.ok("프로젝트 요청 삭제 성공!");
 
+    }
+
+
+    @GetMapping("/project")
+    public ResponseEntity<PtProjectDetailResponseDTO> getPtProjectDetail(
+            @RequestParam Long projectId) {
+        return ResponseEntity.ok(ptProjectService.getPtProjectDetail(projectId));
     }
 
 
