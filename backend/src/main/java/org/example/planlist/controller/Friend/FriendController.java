@@ -23,7 +23,7 @@ public class FriendController {
         this.friendService = friendService;
     }
 
-    @GetMapping("/")
+    @GetMapping
     public ResponseEntity<FriendListResponseDTO> getAllFriends() {
         FriendListResponseDTO response = friendService.getAllFriendsForCurrentUser();
         return ResponseEntity.ok(response);

@@ -36,11 +36,16 @@ public class ProfileController {
         return ResponseEntity.ok("프로젝트 요청이 거절되었습니다.");
     }
 
-    @PutMapping("/updateProfile")
+    @PutMapping(
+    value = "/updateProfile",
+    consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE
+    )
     public ResponseEntity<Void> updateProfile(
-            @RequestPart(required = false) MultipartFile profileImage,
-            @RequestPart(required = false) String name) throws IOException {
-        profileService.updateProfile(profileImage, name);
-        return ResponseEntity.ok().build();
+        @RequestPart(required = false) MultipartFile profileImage,
+        @RequestPart(required = false) String name
+    ) throws IOException {
+    profileService.updateProfile(profileImage, name);
+    return ResponseEntity.ok().build();
     }
+    
 }

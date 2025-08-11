@@ -3,7 +3,9 @@ package org.example.planlist.handler;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 import org.example.planlist.security.JwtTokenProvider;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -18,22 +20,33 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
     public OAuth2LoginSuccessHandler(JwtTokenProvider jwtTokenProvider) {
         this.jwtTokenProvider = jwtTokenProvider;
+        // Optional: not used since we manually redirect below, but fine to keep
         setDefaultTargetUrl("http://localhost:3000/setting");
-        // setDefaultTargetUrl("http://localhost:8080/calendar/events");
     }
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
-            HttpServletResponse response,
-            Authentication authentication) throws IOException, ServletException {
+                                        HttpServletResponse response,
+                                        Authentication authentication)
+            throws IOException, ServletException {
 
         OAuth2User oauthUser = (OAuth2User) authentication.getPrincipal();
         String email = oauthUser.getAttribute("email");
 
         String token = jwtTokenProvider.createToken(email);
 
-        response.setHeader("Authorization", "Bearer " + token);
+        // Issue HttpOnly cookie with the JWT
+        ResponseCookie cookie = ResponseCookie.from("ACCESS_TOKEN", token)
+                .httpOnly(true)
+                .secure(false)      // set true when using HTTPS
+                .path("/")
+                .sameSite("Lax")    // survives top-level OAuth redirects
+                .maxAge(7 * 24 * 60 * 60)
+                .build();
 
-        super.onAuthenticationSuccess(request, response, authentication);
+        response.addHeader("Set-Cookie", cookie.toString());
+
+        // Redirect back to the SPA
+        getRedirectStrategy().sendRedirect(request, response, "http://localhost:3000/setting");
     }
 }
