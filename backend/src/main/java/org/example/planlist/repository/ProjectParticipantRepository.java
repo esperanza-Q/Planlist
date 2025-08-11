@@ -19,6 +19,7 @@ public interface ProjectParticipantRepository extends JpaRepository<ProjectParti
     List<ProjectParticipant> findByProject_ProjectId(Long projectId);
 
 
+
     ProjectParticipant findByProject_ProjectIdAndUserId(Long ProjectId, Long UserId);
 
 //    Optional<ProjectParticipant> findByUserId(Long userId);
