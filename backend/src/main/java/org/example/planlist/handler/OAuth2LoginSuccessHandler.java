@@ -18,14 +18,14 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
     public OAuth2LoginSuccessHandler(JwtTokenProvider jwtTokenProvider) {
         this.jwtTokenProvider = jwtTokenProvider;
-//        setDefaultTargetUrl("http://localhost:3000");
-        setDefaultTargetUrl("http://localhost:8080/calendar/events");
+        setDefaultTargetUrl("http://localhost:3000/setting");
+        // setDefaultTargetUrl("http://localhost:8080/calendar/events");
     }
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
-                                        HttpServletResponse response,
-                                        Authentication authentication) throws IOException, ServletException {
+            HttpServletResponse response,
+            Authentication authentication) throws IOException, ServletException {
 
         OAuth2User oauthUser = (OAuth2User) authentication.getPrincipal();
         String email = oauthUser.getAttribute("email");
