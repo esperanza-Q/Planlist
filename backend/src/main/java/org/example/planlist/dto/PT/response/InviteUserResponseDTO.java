@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.example.planlist.entity.PlannerProject;
 import org.example.planlist.entity.ProjectParticipant;
+import org.example.planlist.entity.User;
 
 import java.util.List;
 
@@ -25,6 +26,7 @@ public class InviteUserResponseDTO {
     @Data
     @AllArgsConstructor
     public static class ParticipantDTO {
+        private Long userId;
         private String name;
         private ProjectParticipant.Role role;      // TRAINER / TRAINEE
         private String profileImage;
