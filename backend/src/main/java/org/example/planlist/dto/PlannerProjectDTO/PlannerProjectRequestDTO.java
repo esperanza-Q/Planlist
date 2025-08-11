@@ -27,9 +27,7 @@ public class PlannerProjectRequestDTO {
     @NotNull
     private LocalDateTime createdAt;
 
-    @NotNull
     private LocalDateTime confirmedAt;
-
     private LocalDate startDate;
     private LocalDate endDate;
 }

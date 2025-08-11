@@ -46,6 +46,20 @@ public class S3Service {
         return s3Client.utilities().getUrl(request).toString(); // 업로드된 파일 주소 리턴
     }
 
+    // 바이트 배열 업로드 (구글 프로필 사진 다운로드용)
+    public String upload(byte[] data, String fileName, String contentType) {
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                .bucket(bucket)
+                .key(fileName)
+                .contentType(contentType)
+                .build();
+
+        s3Client.putObject(putObjectRequest, RequestBody.fromBytes(data));
+
+        GetUrlRequest request = GetUrlRequest.builder().bucket(bucket).key(fileName).build();
+        return s3Client.utilities().getUrl(request).toString();
+    }
+
     public String getFileUrl(String fileName) {
         GetUrlRequest request = GetUrlRequest.builder()
                 .bucket(bucket)
@@ -93,6 +107,19 @@ public class S3Service {
 //
 //        s3Client.deleteObject(deleteObjectRequest);
 //    }
+
+    public void delete(String imageUrl) {
+        if (imageUrl == null || imageUrl.isBlank()) return;
+
+        String key = getKeyUrl(imageUrl); // 올바르게 key 추출
+
+        DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .build();
+
+        s3Client.deleteObject(deleteRequest); // SDK v2 방식
+    }
 
     public void deleteFile(String key) {
         DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()

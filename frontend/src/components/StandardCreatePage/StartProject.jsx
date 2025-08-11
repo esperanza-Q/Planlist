@@ -6,62 +6,91 @@ import './StartProject.css';
 import CubeAltIcon from '../../icons/CubeAltIcon';
 import { ReactComponent as ProjectNextIcon } from "../../assets/Project_next_button.svg";
 
+import { api } from "../../api/client";
 
+function formatDateYYYYMMDD(date) {
+  // 로컬 기준으로 YYYY-MM-DD 문자열 만들기 (타임존 밀림 방지)
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
 
 const StartProject = ({ formData, updateFormData, nextStep }) => {
   const [title, setTitle] = useState(formData.title || '');
   const [startDate, setStartDate] = useState(formData.startDate || new Date());
-  const [endDate, setEndDate] = useState(formData.endDate || new Date());
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleNext = () => {
-    // formData에 값 저장 후 다음 스텝으로 이동
-    updateFormData({ title, startDate, endDate });
-    nextStep();
+  const handleNext = async () => {
+    if (!title.trim()) {
+      setError('프로젝트 제목을 입력해주세요.');
+      return;
+    }
+    if (!startDate) {
+      setError('시작 주에 포함될 날짜를 선택해주세요.');
+      return;
+    }
+    setError('');
+    setLoading(true);
+
+    try {
+      const payload = {
+        title: title.trim(),
+        start_week_date: formatDateYYYYMMDD(startDate),
+      };
+      
+      const data = await api.post('/api/standard', payload);
+      updateFormData({
+        title: data.title,
+        startDate: startDate,                      // 사용자가 고른 기준일
+        weekRange: data.start_week_date,           // { start: 'YYYY-MM-DD', end: 'YYYY-MM-DD' }
+        plannerId: data.planner_id,
+        serverMessage: data.message,
+      });
+
+      nextStep();
+    } catch (e) {
+      setError(e.message || '서버 통신 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="form-container">
       <div className="form-box">
-        <div className="form-icon"> <CubeAltIcon className="start-project-icon" /> </div>
+        <div className="form-icon"><CubeAltIcon className="start-project-icon" /></div>
 
         <h2>Start Standard Project</h2>
-        <p className="form-description">
-          Welcome Project! Please enter your details.
-        </p>
+        <p className="form-description">Welcome Project! Please enter your details.</p>
 
         <div className="underSection">
-            <label>Project Title</label>
-            <input
+          <label>Project Title</label>
+          <input
             type="text"
-            className='title-box'
+            className="title-box"
             placeholder="Enter your title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            />
-       
-        <label>Select the week</label>
-            <div className="date-picker-wrapper">
+          />
+
+          <label>Choose a date to start the schedule</label>
+          <div className="date-picker-wrapper">
             <DatePicker
-                selected={startDate}
-                onChange={(date) => setStartDate(date)}
-                selectsStart
-                startDate={startDate}
-                endDate={endDate}
+              selected={startDate}
+              onChange={(date) => setStartDate(date)}
+              dateFormat="yyyy-MM-dd"
             />
-            <span> ~ </span>
-            <DatePicker
-                selected={endDate}
-                onChange={(date) => setEndDate(date)}
-                selectsEnd
-                startDate={startDate}
-                endDate={endDate}
-                minDate={startDate}
-            />
-            </div>
+          </div>
+
+          {error && <div className="error-text">{error}</div>}
         </div>
       </div>
-      {/* ✅ 다음 버튼 */}
-        <button className="project-next-button" onClick={handleNext}><ProjectNextIcon/></button>
+
+      <button className="project-next-button" onClick={handleNext} disabled={loading}>
+        <ProjectNextIcon />
+      </button>
     </div>
   );
 };
