@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from "react";
 import edit_icon from "../../../assets/edit_icon.svg";
 import { getProfile, updateProfile } from "../../../api/profile";
+import DefaultProfilePic from "../../../assets/ProfilePic.png"
 
-const ProfileCard = ({ profilePic = "", name: initialName = "", email: initialEmail = "" }) => {
+
+const ProfileCard = ({ profilePic: initialProfilePic="", name: initialName = "", email: initialEmail = "" }) => {
   const [isEditing, setIsEditing] = useState(false);
 
   // Values shown in the UI
   const [name, setName] = useState(initialName);
   const [email, setEmail] = useState(initialEmail);
-  const [image, setImage] = useState(profilePic);
+  const [image, setImage] = useState(initialProfilePic);
 
   // For image upload + preview
   const [selectedFile, setSelectedFile] = useState(null);
@@ -18,48 +20,86 @@ const ProfileCard = ({ profilePic = "", name: initialName = "", email: initialEm
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
+  const [saving, setSaving] = useState(false);
+
+  const ALLOWED_TYPES = ['image/jpeg','image/png','image/webp','image/gif'];
+  const MAX_MB = 5;
+
+  const bust = (url) => url ? `${url}${url.includes('?') ? '&' : '?'}t=${Date.now()}` : url;
+
+
+  const normalize = (v) => (typeof v === 'string' ? v.trim() : '');
+  const toImgSrc = (val) => {
+    const s = normalize(val);
+    return s ? s : null;
+  };
+
   // Load profile from backend once
   useEffect(() => {
     (async () => {
       try {
         const data = await getProfile();
-        console.log("Profile API Response:", data); // 👈 see backend data in console
+        console.log("Profile API Response:", data); //  see backend data in console
 
-        // Your service returns ProjectRequestWrapperDTO:
-        // { profile: { name, email, profileImage }, projectRequest: [...] }
+
         const p = data?.profile || {};
         setName(p.name ?? initialName);
         setEmail(p.email ?? initialEmail);
-        setImage(p.profileImage ?? profilePic);
+        setImage(p.profileImage ?? initialProfilePic);
       } catch (err) {
         console.error("Error fetching profile:", err);
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+ 
   }, []); // run once on mount
 
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file); // keep the actual file for upload
-      const preview = URL.createObjectURL(file);
-      setImage(preview); // preview in UI
+    if (!file) return;
+
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      alert('Please select a JPG, PNG, WEBP, or GIF image.');
+      return;
     }
+    if (file.size > MAX_MB * 1024 * 1024) {
+      alert(`Image must be ≤ ${MAX_MB} MB.`);
+      return;
+    }
+
+    setSelectedFile(file);
+    const preview = URL.createObjectURL(file);
+    setImage(preview);
+
+    // optional: revoke old blob when a new one is set
+    // (safe enough to skip; add if you frequently change images)
   };
 
-  const handleSave = async () => {
-    try {
-      await updateProfile(selectedFile, name); // your api expects (file, name)
-      console.log("Update Profile: sent", { hasFile: !!selectedFile, name });
-      alert("Profile updated!");
-      setIsEditing(false);
-      // (optional) re-fetch profile here if you want to refresh from server
-      // const data = await getProfile(); ...
-    } catch (err) {
-      console.error("Error updating profile:", err);
-      alert("Failed to update profile.");
-    }
-  };
+
+
+    const handleSave = async () => {
+      try {
+        setSaving(true);
+        await updateProfile(selectedFile, name.trim());
+
+        // Re-fetch to get the real S3/Google URL from the server
+        const fresh = await getProfile();
+        const p = fresh?.profile || {};
+        // cache-bust if the same URL key is reused
+        const nextImg = p.profileImage ? `${p.profileImage}${p.profileImage.includes('?') ? '&' : '?'}t=${Date.now()}` : null;
+
+        setName(p.name ?? name);
+        setEmail(p.email ?? email);
+        setImage(nextImg);
+
+        setSelectedFile(null);
+        setIsEditing(false);
+      } catch (err) {
+        console.error('Error updating profile:', err);
+        alert('Failed to update profile.');
+      } finally {
+        setSaving(false);
+      }
+    };
 
   const handleCancel = () => {
     // Revert to last loaded values by re-fetching
@@ -69,7 +109,7 @@ const ProfileCard = ({ profilePic = "", name: initialName = "", email: initialEm
         const p = data?.profile || {};
         setName(p.name ?? initialName);
         setEmail(p.email ?? initialEmail);
-        setImage(p.profileImage ?? profilePic);
+        setImage(p.profileImage ?? initialProfilePic);
         setSelectedFile(null);
       } catch (err) {
         console.error("Error reloading profile:", err);
@@ -103,11 +143,12 @@ const ProfileCard = ({ profilePic = "", name: initialName = "", email: initialEm
             <div className="profile-info-container">
               <label htmlFor="profile-upload">
                 <img
-                  src={image}
+                  src={normalize(image) || DefaultProfilePic}
                   alt="Profile"
                   className="profile-pic"
-                  style={{ cursor: "pointer" }}
-                  title="Click to change profile picture"
+                  referrerPolicy="no-referrer"
+                  onError={(e) => { console.warn('img error', image); e.currentTarget.src = DefaultProfilePic; }}
+                  style={{ width: 96, height: 96, objectFit: 'cover', borderRadius: '50%' }}
                 />
               </label>
 
@@ -137,7 +178,9 @@ const ProfileCard = ({ profilePic = "", name: initialName = "", email: initialEm
               </div>
 
               <div className="profile-button">
-                <button className="save-button" onClick={handleSave}>Save</button>
+                <button className="save-button" onClick={handleSave} disabled={saving}>
+                  {saving ? 'Saving...' : 'Save'}
+                </button>
                 <button className="cancel-button" onClick={handleCancel}>Cancel</button>
               </div>
             </div>
@@ -171,7 +214,14 @@ const ProfileCard = ({ profilePic = "", name: initialName = "", email: initialEm
         ) : (
           <>
             <div className="profile-info-container">
-              <img src={image} alt="Profile" className="profile-pic" />
+              <img
+                src={normalize(image) || DefaultProfilePic}
+                alt="Profile"
+                className="profile-pic"
+                referrerPolicy="no-referrer"
+                onError={(e) => { console.warn('img error', image); e.currentTarget.src = DefaultProfilePic; }}
+                style={{ width: 96, height: 96, objectFit: 'cover', borderRadius: '50%' }}
+              />
               <div className="profile-info">
                 <div className="profile-name">{name}</div>
                 <p className="profile-email">{email}</p>

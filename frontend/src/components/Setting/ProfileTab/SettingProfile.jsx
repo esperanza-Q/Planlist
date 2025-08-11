@@ -28,11 +28,7 @@ const ProjectRequests=[
 ]
 
 const MypageProfile = ({setView}) => {
-  const profileInfo = {
-    name: "name",
-    email: "ex@example.com",
-    profilePic: ProfilePic
-  };
+
 
   return (
     <div className="screen">
@@ -47,7 +43,7 @@ const MypageProfile = ({setView}) => {
         </button>
       </div>
       <div className="main-content">
-        <ProfileCard {...profileInfo}/>
+        <ProfileCard/>
         <ProjectCard projectRequests={ProjectRequests}/>
 
       </div>
