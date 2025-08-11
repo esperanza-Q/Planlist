@@ -1,4 +1,4 @@
-package org.example.planlist.dto.PT.request;
+package org.example.planlist.dto.PtDTO.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

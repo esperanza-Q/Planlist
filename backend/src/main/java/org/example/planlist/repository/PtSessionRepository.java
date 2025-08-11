@@ -13,13 +13,8 @@ public interface PtSessionRepository extends JpaRepository<PtSession, Long> {
 
     List<PtSession> findByProject_ProjectId(Long projectId);
 
-    @Query("""
-    SELECT ps FROM PtSession ps
-    LEFT JOIN FETCH ps.ExercisePlans ep
-    LEFT JOIN FETCH ep.exercise e
-    LEFT JOIN FETCH ps.PtComments pc
-    LEFT JOIN FETCH pc.user u
-    WHERE ps.id = :sessionId
-""")
-    Optional<PtSession> findWithDetailsById(@Param("sessionId") Long sessionId);
+
+
+
+
 }

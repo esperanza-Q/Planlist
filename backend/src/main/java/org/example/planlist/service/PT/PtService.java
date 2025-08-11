@@ -2,18 +2,15 @@ package org.example.planlist.service.PT;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.example.planlist.dto.FriendDTO.request.RequestSendRequestDTO;
-import org.example.planlist.dto.PT.request.AddSessionRequestDTO;
-import org.example.planlist.dto.PT.request.PtProjectCreateRequestDTO;
-import org.example.planlist.dto.PT.request.PtProjectInviteRequestDTO;
-import org.example.planlist.dto.PT.response.AddSessionResponseDTO;
-import org.example.planlist.dto.PT.response.InviteUserResponseDTO;
-import org.example.planlist.dto.PT.response.PtProjectCreateResponseDTO;
-import org.example.planlist.dto.ProjectParticipantDTO.ProjectParticipantRequestDTO;
+import org.example.planlist.dto.PtDTO.request.AddSessionRequestDTO;
+import org.example.planlist.dto.PtDTO.request.PtProjectCreateRequestDTO;
+import org.example.planlist.dto.PtDTO.request.PtProjectInviteRequestDTO;
+import org.example.planlist.dto.PtDTO.response.AddSessionResponseDTO;
+import org.example.planlist.dto.PtDTO.response.InviteUserResponseDTO;
+import org.example.planlist.dto.PtDTO.response.PtProjectCreateResponseDTO;
 import org.example.planlist.entity.*;
 import org.example.planlist.repository.*;
 import org.example.planlist.security.SecurityUtil;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
