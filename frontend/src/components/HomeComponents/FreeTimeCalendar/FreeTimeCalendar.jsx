@@ -1,17 +1,11 @@
-// src/components/.../FreeTimeCalendar.jsx
 import React, { useState, useEffect, useMemo } from "react";
 import Calendar from "react-calendar";
 import "./FreeTimeCalendar.css";
 import Cat_ver01 from "../../../assets/Cat_ver01.png";
 import { api } from "../../../api/client";
-import {
-  startOfMonth,
-  endOfMonth,
-  addDays,
-  format,
-} from "date-fns";
+import { startOfMonth, endOfMonth, addDays, format } from "date-fns";
 
-// 월요일 시작 주의 유틸
+// 월요일 시작
 const mondayStart = (d) => {
   const x = new Date(d);
   const w = (x.getDay() + 6) % 7; // Mon=0 … Sun=6
@@ -20,7 +14,7 @@ const mondayStart = (d) => {
   return x;
 };
 
-// 현재 달의 캘린더 그리드(앞뒤 여분 주 포함) 범위 계산
+// 활성 월의 렌더 그리드 범위(앞뒤 여분 주 포함)
 const getGridRange = (activeStartDate) => {
   const monthStart = startOfMonth(activeStartDate);
   const monthEnd = endOfMonth(activeStartDate);
@@ -39,7 +33,6 @@ const CalendarSection = () => {
   const [fullDates, setFullDates] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // activeStartDate가 바뀔 때(월 이동 등) 해당 월 그리드 전체의 가용 시간 로드
   useEffect(() => {
     let isCancelled = false;
 
@@ -48,28 +41,30 @@ const CalendarSection = () => {
       try {
         const { gridStart, gridEnd } = getGridRange(activeStartDate);
 
-        // grid 범위를 주 단위(월~일)로 쪼개서 여러 번 호출
+        // 월 그리드를 주 단위로 쪼개서 병렬 호출
         const weeks = [];
         for (let d = new Date(gridStart); d <= gridEnd; d = addDays(d, 7)) {
           weeks.push(new Date(d));
         }
 
-        const results = await Promise.all(
-          weeks.map((ws) => {
-            const startDate = toISODate(ws);
-            const endDate = toISODate(addDays(ws, 6));
-            return api.get(
-              `/api/home/freeTimeCalendar/getFreeTime?startDate=${startDate}&endDate=${endDate}`
-            );
+        const requests = weeks.map((ws) =>
+          api.get("/api/home/freeTimeCalendar/getFreeTime", {
+            params: {
+              startDate: toISODate(ws),
+              endDate: toISODate(addDays(ws, 6)),
+            },
+            timeout: 10000,
           })
         );
 
-        // freeTimeCalendar 합치기
+        const results = await Promise.all(requests);
+
+        // 각 응답에서 freeTimeCalendar를 수집
         const items = results
-          .map((r) => r?.freeTimeCalendar || [])
+          .map((r) => r?.data?.freeTimeCalendar ?? [])
           .flat();
 
-        // 날짜별 집계: allDay 있으면 full, 아니면 partial
+        // 날짜별로 full/partial 집계
         const map = new Map(); // date -> { full: boolean, partial: boolean }
         items.forEach((entry) => {
           const d = entry.date;
@@ -91,7 +86,11 @@ const CalendarSection = () => {
           setPartialDates(partial);
         }
       } catch (e) {
-        console.error("Failed to fetch freeTimeCalendar:", e);
+        console.error("Failed to fetch freeTimeCalendar:", {
+          status: e?.response?.status,
+          data: e?.response?.data,
+          message: e?.message,
+        });
         if (!isCancelled) {
           setFullDates([]);
           setPartialDates([]);
@@ -107,7 +106,6 @@ const CalendarSection = () => {
     };
   }, [activeStartDate]);
 
-  // 타일 클래스 결정 (타임존 이슈 피하려고 date-fns format 사용)
   const tileClassName = useMemo(() => {
     return ({ date }) => {
       const d = toISODate(date);
@@ -132,12 +130,10 @@ const CalendarSection = () => {
           }
           tileClassName={tileClassName}
         />
-        <img src={Cat_ver01} alt="Cat_ver01" className="calendar-cat" />
+        <img src={Cat_ver01} alt="Cat" className="calendar-cat" />
       </div>
 
-      {loading && (
-        <div className="calendar-loading">Loading availability…</div>
-      )}
+      {loading && <div className="calendar-loading">Loading availability…</div>}
       <div className="calendar-legend">
         <span className="legend-box tile-full" /> Full day available
         <span className="legend-box tile-partial" /> Partially available

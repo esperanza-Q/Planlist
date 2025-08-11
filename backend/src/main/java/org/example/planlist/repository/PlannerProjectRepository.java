@@ -15,7 +15,7 @@ import java.util.Optional;
 @Repository
 public interface PlannerProjectRepository extends JpaRepository<PlannerProject, Long> {
 
-    Optional<PlannerProject> findById(Long projectId);
+    PlannerProject findByProjectId(Long projectId);
 
     List<PlannerProject> findByCreatorAndStatus(User user, PlannerProject.Status status);
 
