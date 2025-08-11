@@ -86,9 +86,15 @@ function App() {
         <main style={{ flex: 1, padding: '20px' }}>
           <Routes>
             {/* 로그인/회원가입 */}
-            <Route path="/" element={<LandingPage />} />
+            <Route
+              path="/"
+              element={
+                isAuthenticated ? <Navigate to="/home" replace /> : <LandingPage />
+              }
+            />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
+
 
             {/* 보호된 페이지들 */}
             {isAuthenticated ? (

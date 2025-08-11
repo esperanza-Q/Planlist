@@ -17,9 +17,18 @@ import org.example.planlist.repository.UserRepository;
 import org.example.planlist.security.SecurityUtil;
 import org.example.planlist.service.S3Service;
 import org.example.planlist.service.user.UserService;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
+
+
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -39,38 +48,103 @@ public class ProfileService {
     private final UserRepository userRepository;
     private final S3Service s3Service;
 
+
     @Transactional(readOnly = true)
     public ProjectRequestWrapperDTO getProfile() {
-        User user = SecurityUtil.getCurrentUser();
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Object principal = (auth != null ? auth.getPrincipal() : null);
 
-        // 유저 프로필 DTO 생성
+        String email = extractEmail(principal);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + email));
+
+        // ---- your existing code below unchanged ----
         ProfileDTO profileDTO = new ProfileDTO();
         profileDTO.setName(user.getName());
         profileDTO.setEmail(user.getEmail());
         profileDTO.setProfileImage(user.getProfileImage());
 
-        // 유저가 참가한 프로젝트 리스트 조회
         List<ProjectParticipant> projectParticipants = projectParticipantRepository.findByUser(user);
 
-        // 프로젝트 요청 DTO 변환
         List<ProjectRequestDTO> projectRequestDTOs = projectParticipants.stream()
                 .filter(pp -> pp.getResponse() == ProjectParticipant.Response.WAITING)
                 .map(pp -> {
                     ProjectRequestDTO dto = new ProjectRequestDTO();
                     dto.setInviteeId(pp.getId());
-                    dto.setProjectTitle(pp.getProject().getProjectTitle());
-                    dto.setCreator(pp.getProject().getCreator().getName());
+                    // dto.setProjectTitle(pp.getProject().getProjectTitle());
+                    // dto.setCreator(pp.getProject().getCreator().getName());
                     return dto;
                 })
                 .collect(Collectors.toList());
 
-        // Wrapper DTO에 담기
         ProjectRequestWrapperDTO wrapperDTO = new ProjectRequestWrapperDTO();
         wrapperDTO.setProfile(profileDTO);
         wrapperDTO.setProjectRequest(projectRequestDTOs);
-
         return wrapperDTO;
     }
+
+    // helper inside ProfileService
+    private String extractEmail(Object principal) {
+        if (principal == null) throw new IllegalStateException("Not authenticated");
+
+        // Your own principal
+        if (principal instanceof org.example.planlist.security.CustomUserDetails u) {
+            return (u.getUsername() != null && !u.getUsername().isBlank()) ? u.getUsername() : u.getUsername();
+        }
+
+        // Google OIDC
+        if (principal instanceof OidcUser oidc) {
+            String email = oidc.getEmail();
+            return (email != null && !email.isBlank()) ? email : oidc.getName();
+        }
+
+        // Generic OAuth2
+        if (principal instanceof DefaultOAuth2User oauth) {
+            Object emailAttr = oauth.getAttributes().get("email");
+            if (emailAttr instanceof String s && !s.isBlank()) return s;
+            // fallbacks if ever needed
+            Object sub = oauth.getAttributes().get("sub");
+            if (sub instanceof String s && !s.isBlank()) return s;
+            return oauth.getName();
+        }
+
+        if (principal instanceof java.security.Principal p) return p.getName();
+
+        throw new IllegalStateException("Unsupported principal: " + principal.getClass().getName());
+    }
+
+    // @Transactional(readOnly = true)
+    // public ProjectRequestWrapperDTO getProfile() {
+    //     User user = SecurityUtil.getCurrentUser();
+
+    //     // 유저 프로필 DTO 생성
+    //     ProfileDTO profileDTO = new ProfileDTO();
+    //     profileDTO.setName(user.getName());
+    //     profileDTO.setEmail(user.getEmail());
+    //     profileDTO.setProfileImage(user.getProfileImage());
+
+    //     // 유저가 참가한 프로젝트 리스트 조회
+    //     List<ProjectParticipant> projectParticipants = projectParticipantRepository.findByUser(user);
+
+    //     // 프로젝트 요청 DTO 변환
+    //     List<ProjectRequestDTO> projectRequestDTOs = projectParticipants.stream()
+    //             .filter(pp -> pp.getResponse() == ProjectParticipant.Response.WAITING)
+    //             .map(pp -> {
+    //                 ProjectRequestDTO dto = new ProjectRequestDTO();
+    //                 dto.setInviteeId(pp.getId());
+    //                 dto.setProjectTitle(pp.getProject().getProjectTitle());
+    //                 dto.setCreator(pp.getProject().getCreator().getName());
+    //                 return dto;
+    //             })
+    //             .collect(Collectors.toList());
+
+    //     // Wrapper DTO에 담기
+    //     ProjectRequestWrapperDTO wrapperDTO = new ProjectRequestWrapperDTO();
+    //     wrapperDTO.setProfile(profileDTO);
+    //     wrapperDTO.setProjectRequest(projectRequestDTOs);
+
+    //     return wrapperDTO;
+    // }
 
     @Transactional
     public void acceptProjectRequest(ProjectRequestIdDTO projectRequestIdDTO) {
@@ -122,28 +196,33 @@ public class ProfileService {
     }
 
     public void updateProfile(MultipartFile profileImage, String name) throws IOException {
-        User user = SecurityUtil.getCurrentUser();
+        // --- get principal safely (works for OAuth2 + form-login) ---
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Object principal = (auth != null ? auth.getPrincipal() : null);
+        String email = extractEmail(principal);
 
-        // 이름 수정
+        // --- load user by email (or change to your identifier) ---
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new IllegalArgumentException("User not found: " + email));
+
+        // --- name update ---
         if (name != null && !name.isBlank()) {
-            user.setName(name);
+            user.setName(name.trim());
         }
 
-        // 프로필 이미지 수정
+        // --- image update ---
         if (profileImage != null && !profileImage.isEmpty()) {
-            // 기존 이미지 삭제
             String existingUrl = user.getProfileImage();
             if (existingUrl != null) {
-                s3Service.delete(existingUrl);
+                try { s3Service.delete(existingUrl); } catch (Exception ignore) {}
             }
-
-            // 새 이미지 업로드
-            String uploadedUrl = s3Service.upload(profileImage);
+            String uploadedUrl = s3Service.upload(profileImage); // should return a public HTTPS URL
             user.setProfileImage(uploadedUrl);
         }
 
-        userRepository.save(user); // 명시적으로 저장
+        userRepository.save(user);
     }
+
 
 
 }

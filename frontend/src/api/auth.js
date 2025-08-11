@@ -1,4 +1,4 @@
-import client, { authMode } from "./client";
+import { api as client } from './client';
 
 // 로그인
 export async function login({ email, password }) {
@@ -34,3 +34,4 @@ export function logoutLocal() {
 }
 
 
+export const authMode = { current: 'cookie' };

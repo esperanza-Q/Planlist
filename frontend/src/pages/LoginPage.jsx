@@ -5,6 +5,8 @@ import calendarImage from '../assets/Signup_Calendar_3d.svg';
 import google_logo from "../assets/google_logo.svg";
 import { ReactComponent as PlanlistLogo } from '../assets/Planlist_logo_white.svg';
 import { useNavigate } from 'react-router-dom';
+const API_BASE_URL =
+  import.meta?.env?.VITE_API_BASE_URL || process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -53,11 +55,9 @@ const LoginPage = () => {
     }
   };
 
-  const onGoogleLogin = () => {
-    // 프록시 사용 시 절대경로 대신 상대경로가 편함
-    window.location.href = '/oauth2/authorization/google';
-  };
-
+const onGoogleLogin = () => {
+  window.location.href = 'http://localhost:8080/oauth2/authorization/google';
+};
   return (
     <div className="signup-container">
       <div className="signup-left">

@@ -18,7 +18,7 @@ public class ProfileController {
 
     private final ProfileService profileService;
 
-    @GetMapping(" ")
+    @GetMapping
     public ResponseEntity<ProjectRequestWrapperDTO> getProfile() {
         ProjectRequestWrapperDTO response = profileService.getProfile();
         return ResponseEntity.ok(response);
@@ -36,12 +36,16 @@ public class ProfileController {
         return ResponseEntity.ok("프로젝트 요청이 거절되었습니다.");
     }
 
-    @PutMapping("/updateProfile")
+    @PutMapping(
+    value = "/updateProfile",
+    consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE
+    )
     public ResponseEntity<Void> updateProfile(
-            @RequestPart(required = false) MultipartFile profileImage,
-            @RequestPart(required = false) String name
+        @RequestPart(required = false) MultipartFile profileImage,
+        @RequestPart(required = false) String name
     ) throws IOException {
-        profileService.updateProfile(profileImage, name);
-        return ResponseEntity.ok().build();
+    profileService.updateProfile(profileImage, name);
+    return ResponseEntity.ok().build();
     }
+    
 }
