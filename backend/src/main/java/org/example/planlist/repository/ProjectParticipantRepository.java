@@ -14,6 +14,8 @@ import java.util.Optional;
 public interface ProjectParticipantRepository extends JpaRepository<ProjectParticipant, Long> {
     List<ProjectParticipant> findByUser(User user);
 
+    List<ProjectParticipant> findByProject_ProjectIdAndResponse(Long projectId, ProjectParticipant.Response response);
+
     List<ProjectParticipant> findByProject_ProjectId(Long projectId);
 
 

@@ -1,9 +1,12 @@
 package org.example.planlist.service.PT;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.example.planlist.dto.FriendDTO.request.RequestSendRequestDTO;
+import org.example.planlist.dto.PT.request.AddSessionRequestDTO;
 import org.example.planlist.dto.PT.request.PtProjectCreateRequestDTO;
 import org.example.planlist.dto.PT.request.PtProjectInviteRequestDTO;
+import org.example.planlist.dto.PT.response.AddSessionResponseDTO;
 import org.example.planlist.dto.PT.response.InviteUserResponseDTO;
 import org.example.planlist.dto.PT.response.PtProjectCreateResponseDTO;
 import org.example.planlist.dto.ProjectParticipantDTO.ProjectParticipantRequestDTO;
@@ -29,6 +32,7 @@ public class PtService {
     private final ProjectParticipantRepository participantRepository;
     private final PtSessionRepository ptSessionRepository;
     private final FriendRepository friendRepository; // 친구 관계 조회용
+    private final PlannerProjectRepository projectRepo;
 
     public Optional<User> findByEmail(String email) {return userRepository.findByEmail(email);}
 
@@ -149,6 +153,41 @@ public class PtService {
         ProjectParticipant participant = participantRepository.findByProject_ProjectIdAndUserId(projectId, participantId);
 
         participantRepository.delete(participant);
+    }
+
+    @Transactional
+    public String projectConfirm(Long projectId) {
+        PlannerProject project = projectRepo.findById(projectId)
+                .orElseThrow(() -> new EntityNotFoundException("프로젝트를 찾을 수 없습니다."));
+
+        project.setStatus(PlannerProject.Status.INPROGRESS);
+
+        // 변경된 상태는 트랜잭션 커밋 시점에 자동으로 DB에 반영됩니다.
+
+        return "프로젝트 상태가 INPROGRESS로 변경되었습니다.";
+    }
+
+    @Transactional
+    public AddSessionResponseDTO addPtSession(AddSessionRequestDTO addSessionRequestDTO) {
+        Long projectId = addSessionRequestDTO.getProjectId();
+
+        PlannerProject project = projectRepo.findById(projectId)
+                .orElseThrow(() -> new EntityNotFoundException("프로젝트를 찾을 수 없습니다."));
+
+
+        PtSession session = PtSession.builder()
+                .project(project)
+                .title(addSessionRequestDTO.getTitle())
+                .isFinalized(false) // 초기값
+                .startWeekDay(addSessionRequestDTO.getStartDate())
+                .endWeekDay(addSessionRequestDTO.getEndDate())
+                .build();
+
+        ptSessionRepository.save(session);
+
+        AddSessionResponseDTO  addSessionResponseDTO = new AddSessionResponseDTO(session.getId(), session.getStartWeekDay(), session.getEndWeekDay());
+
+        return addSessionResponseDTO;
     }
 
 
