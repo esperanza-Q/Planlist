@@ -13,12 +13,19 @@ import java.util.Optional;
 
 public interface ProjectParticipantRepository extends JpaRepository<ProjectParticipant, Long> {
     List<ProjectParticipant> findByUser(User user);
+
     Optional<ProjectParticipant> findById(Long id);
+
+//    Optional<ProjectParticipant> findByUserId(Long userId);
+
+    @Query("SELECT p FROM ProjectParticipant p WHERE p.project.id = :projectId")
+    List<ProjectParticipant> findAllEntitiesByProjectId(@Param("projectId") Long projectId);
+
 
     @Query("SELECT new org.example.planlist.dto.ProjectParticipantDTO.ProjectParticipantRequestDTO(" +
             "p.project.id, p.user.id, p.response, p.responseAt, p.role) " +
             "FROM ProjectParticipant p WHERE p.project.id = :projectId")
-    List<ProjectParticipantRequestDTO> findAllByProjectId(@Param("projectId") Long projectId);
+    List<ProjectParticipantRequestDTO> findAllDtosByProjectId(@Param("projectId") Long projectId);
 
     boolean existsByProjectAndUser(PlannerProject project, User friend);
 
