@@ -5,63 +5,59 @@ import './MemoDetailPage.css';
 import PlusIcon from '../icons/PlusIcon';
 import SaveIcon from '../icons/SaveIcon';
 import PrinterIcon from '../icons/PrinterIcon';
-
-/* 임시 mock 데이터
-const mockMemos = [
-  { id: 1, title: 'Project 01', description: '내용 1', category: 'Travel' },
-  { id: 2, title: 'Project 02', description: '내용 2', category: 'Meeting' },
-  { id: 3, title: 'Customization', description: '내용 3', category: 'Standard' },
-];
-*/
-
+import { api } from '../api/client'; // axios 인스턴스
 
 const MemoDetailPage = () => {
-  const { id } = useParams(); // URL에서 id 가져옴
-  const memoId = parseInt(id, 10); // 숫자 변환
-  const [memo, setMemo] = useState(null);
-  const [imageUrl, setImageUrl] = useState(null); // 업로드 미리보기용
-  const [imageFile, setImageFile] = useState(null); // 실제 업로드용 파일 객체
+  const { id } = useParams();
+  const memoId = parseInt(id, 10);
 
+  const [memo, setMemo] = useState(null);
+  const [imageUrl, setImageUrl] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+
+  // 메모 불러오기
   useEffect(() => {
+    let cancelled = false;
+
     const fetchMemo = async () => {
       try {
-        const response = await fetch(`/api/note/getNote?noteId=${memoId}`);
-        if (!response.ok) throw new Error('메모 불러오기 실패');
-        const data = await response.json();
-        setMemo(data);
+        const { data } = await api.get(`/api/note/getNote`, {
+          params: { noteId: memoId },
+          timeout: 10000,
+        });
+        if (!cancelled) setMemo(data);
       } catch (err) {
-        console.error(err);
-        setMemo(null);
+        if (!cancelled) {
+          console.error('메모 불러오기 실패:', err);
+          setMemo(null);
+        }
       }
     };
 
-  fetchMemo();
-}, [memoId]);
+    fetchMemo();
+    return () => {
+      cancelled = true;
+    };
+  }, [memoId]);
 
-
-
+  // 메모 저장
   const handleSave = async () => {
+    if (!memo) return;
+
     const formData = new FormData();
-    formData.append('noteId', memo.id); // 필수
+    formData.append('noteId', memo.id);
     formData.append('title', memo.title);
     formData.append('content', memo.description);
-    formData.append('share', 'GROUP'); // 실제 선택값으로 바꿔도 됨
+    formData.append('share', 'GROUP');
 
     if (imageFile) {
-      formData.append('images', imageFile); // 여러 개면 반복문
+      formData.append('images', imageFile);
     }
 
-    // 예: 기존 이미지 중 삭제할 이미지가 있다면
-    // formData.append('deleteImages', 'old_image_url.jpg');
-
     try {
-      const response = await fetch('/api/note/updateNote', {
-        method: 'POST', // 또는 'PUT' (백엔드에 따라 다름)
-        body: formData,
+      await api.post('/api/note/updateNote', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
-
-      if (!response.ok) throw new Error('메모 수정 실패');
-
       alert('✅ 메모가 성공적으로 수정되었습니다!');
     } catch (err) {
       console.error('수정 실패:', err);
@@ -73,22 +69,22 @@ const MemoDetailPage = () => {
     window.print();
   };
 
- const handleImageUpload = (e) => {
-  const file = e.target.files[0];
-  if (file) {
-    setImageFile(file);
-    setImageUrl(URL.createObjectURL(file)); // 미리보기용
-  }
-};
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      setImageUrl(URL.createObjectURL(file));
+    }
+  };
 
-  if (!memo) return <div style={{ padding: '40px' }}> 해당 메모를 찾을 수 없습니다. </div>;
+  if (!memo) return <div style={{ padding: '40px' }}>해당 메모를 찾을 수 없습니다.</div>;
 
   return (
     <div className="memo-detail-page">
       <div className="memo-detail-header">
         <span className="memo-detail-project">Project {memo.id} /</span>
         <div className="memo-detail-buttons">
-          <button onClick={handleSave}> <SaveIcon /> Save</button>
+          <button onClick={handleSave}><SaveIcon /> Save</button>
           <button onClick={handlePrint}><PrinterIcon /> Print</button>
         </div>
       </div>
