@@ -1,8 +1,7 @@
-package org.example.planlist.dto.PT.response;
+package org.example.planlist.dto.PtDTO.response;
 
 import lombok.*;
 import org.example.planlist.entity.ExercisePlan;
-import org.example.planlist.entity.ProjectParticipant;
 
 @Getter
 @Setter

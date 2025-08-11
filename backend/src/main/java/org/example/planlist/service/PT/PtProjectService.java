@@ -2,7 +2,7 @@ package org.example.planlist.service.PT;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.example.planlist.dto.PT.response.*;
+import org.example.planlist.dto.PtDTO.response.*;
 import org.example.planlist.entity.PlannerProject;
 import org.example.planlist.repository.NoteRepository;
 import org.example.planlist.repository.PlannerProjectRepository;

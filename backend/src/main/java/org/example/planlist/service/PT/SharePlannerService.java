@@ -2,12 +2,10 @@ package org.example.planlist.service.PT;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.example.planlist.dto.PT.request.SelectTimeRequestDTO;
-import org.example.planlist.dto.PT.response.FreeTimeIntervalDTO;
-import org.example.planlist.dto.PT.response.PtSessionDTO;
-import org.example.planlist.dto.PT.response.SharedPlannerResponseDTO;
+import org.example.planlist.dto.PtDTO.request.SelectTimeRequestDTO;
+import org.example.planlist.dto.PtDTO.response.FreeTimeIntervalDTO;
+import org.example.planlist.dto.PtDTO.response.SharedPlannerResponseDTO;
 import org.example.planlist.entity.FreeTimeCalendar;
-import org.example.planlist.entity.PlannerProject;
 import org.example.planlist.entity.ProjectParticipant;
 import org.example.planlist.entity.PtSession;
 import org.example.planlist.repository.*;

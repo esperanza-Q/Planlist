@@ -1,9 +1,8 @@
-package org.example.planlist.dto.PT.response;
+package org.example.planlist.dto.PtDTO.response;
 
 import lombok.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
