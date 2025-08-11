@@ -39,9 +39,11 @@ public class User {
     private String googleRefreshToken;
 
     @OneToMany(mappedBy = "creator", fetch = FetchType.LAZY) // 필드 지연 로딩 -> 성능 저하 방지
+    @JsonManagedReference
     private List<PlannerProject> createdProjects;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @JsonManagedReference
     private List<ProjectParticipant> projectParticipants;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
