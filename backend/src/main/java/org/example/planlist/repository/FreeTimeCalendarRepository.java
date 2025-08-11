@@ -14,4 +14,6 @@ public interface FreeTimeCalendarRepository extends JpaRepository<FreeTimeCalend
     void deleteAllByUser(User user);
     List<FreeTimeCalendar> findAllByUserAndAvailableDateBetween(User user, LocalDate start, LocalDate end);
 
+    List<FreeTimeCalendar> findByUserIdInAndAvailableDateBetween(List<Long> userIds, LocalDate startDate, LocalDate endDate);
+
 }

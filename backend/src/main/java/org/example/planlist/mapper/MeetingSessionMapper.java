@@ -11,7 +11,8 @@ public class MeetingSessionMapper {
         return MeetingSession.builder()
                 .project(project)
                 .title(dto.getTitle())
-                .week(dto.getWeek())
+                //‼️여기 수정하세요‼️
+//                .week(dto.getWeek())
                 .date(dto.getDate())
 
                 //‼️여기 수정하세요‼️
@@ -28,7 +29,8 @@ public class MeetingSessionMapper {
     public static MeetingSessionResponseDTO toResponseDTO(MeetingSession entity) {
         return MeetingSessionResponseDTO.builder()
                 .title(entity.getTitle())
-                .week(entity.getWeek())
+                //‼️여기 수정하세요‼️
+//                .week(entity.getWeek())
                 .date(entity.getDate())
 
                 //‼️여기도 수정하세요‼️
