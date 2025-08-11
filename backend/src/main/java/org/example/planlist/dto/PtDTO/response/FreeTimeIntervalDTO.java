@@ -1,4 +1,4 @@
-package org.example.planlist.dto.PT.response;
+package org.example.planlist.dto.PtDTO.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @NoArgsConstructor
@@ -22,6 +23,8 @@ public class ExercisePlan {
     @Column(name="exercisePlan_id", unique = true, nullable = false)
     private Long exercisePlanId;
 
+    private String exercisePlanName;
+
     private Integer time;
 
     private Integer sets;
@@ -30,7 +33,7 @@ public class ExercisePlan {
     private TYPE role;
 
     public enum TYPE {
-        TRANNER_P,
+        TRAINER_P,
         DONE
     }
 
@@ -38,10 +41,6 @@ public class ExercisePlan {
     @JoinColumn(name = "planner_id")
     @JsonBackReference
     private PtSession planner;
-
-    @OneToMany(mappedBy = "exercisePlan", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
-    @JsonManagedReference
-    private List<Exercise> exercise;
 
 
 }

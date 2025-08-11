@@ -1,9 +1,8 @@
-package org.example.planlist.dto.PT.response;
+package org.example.planlist.dto.PtDTO.response;
 
 import lombok.Data;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Data
 public class AddSessionResponseDTO {

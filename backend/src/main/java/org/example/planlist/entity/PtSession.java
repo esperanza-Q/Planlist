@@ -22,11 +22,11 @@ public class PtSession extends PlannerSession {
 
     @OneToMany(mappedBy = "planner", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JsonManagedReference
-    private List<PtComment> PtComments;
+    private List<PtComment> ptComments;
 
     @OneToMany(mappedBy = "planner", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JsonManagedReference
-    private List<ExercisePlan> ExercisePlans;
+    private List<ExercisePlan> exercisePlans;
 
 
 }
