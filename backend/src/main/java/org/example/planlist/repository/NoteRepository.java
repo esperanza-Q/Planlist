@@ -16,4 +16,6 @@ public interface NoteRepository extends JpaRepository<Note,Long> {
     List<Note> noteId(Long noteId);
 
     List<Note> findAllByUserId(Long userId);
+
+    List<Note> findByProject_ProjectId(Long projectId);
 }
