@@ -2,39 +2,90 @@ import React, { useEffect, useState } from 'react';
 import './NextEventCard.css';
 import google_meet_logo from '../../assets/google_meet_logo.svg';
 import bell from '../../assets/bell.svg';
-
+import { api } from '../../api/client'; // axios 인스턴스
 
 const NextEventCard = () => {
   const [event, setEvent] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // 추후 실제 API 연동
-    fetch('/api/next-event') 
-      .then(res => res.json())
-      .then(data => setEvent(data))
-      .catch(err => console.error('Failed to fetch event:', err));
+    let cancelled = false;
+
+    const fetchNextEvent = async () => {
+      setLoading(true);
+      try {
+        const { data } = await api.get('/api/sidebar', { timeout: 10000 });
+        if (!cancelled) {
+          setEvent(data && Object.keys(data).length > 0 ? data : null);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error('Failed to fetch event:', err);
+          setEvent(null);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    fetchNextEvent();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  if (!event) return (
-    <div className="event-card">
-      <div className="event-header">
-        <img src={bell} alt="bell-icon" className="bell-icon" />
-        <div className="event-title">
-          <p className="event-label">Next Event</p>
-          <p className="event-name">
-            <span className="event-dot" />No events to import
-          </p>
+  // 시간 포맷 변환 (17:00:00 → { time: '5:00', ampm: 'PM' })
+  const formatTime = (timeStr) => {
+    if (!timeStr) return { time: '--:--', ampm: '' };
+    const [h, m] = timeStr.split(':');
+    let hour = parseInt(h, 10);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    if (hour === 0) hour = 12;
+    else if (hour > 12) hour -= 12;
+    return { time: `${hour}:${m}`, ampm };
+  };
+
+  if (loading) {
+    return (
+      <div className="event-card">
+        <div className="event-header">
+          <img src={bell} alt="bell-icon" className="bell-icon" />
+          <div className="event-title">
+            <p className="event-label">Next Event</p>
+            <p className="event-name">
+              <span className="event-dot" /> Loading...
+            </p>
+          </div>
         </div>
       </div>
-    </div>
-  ) ; // 로딩 중일 때 처리
+    );
+  }
+
+  if (!event) {
+    return (
+      <div className="event-card">
+        <div className="event-header">
+          <img src={bell} alt="bell-icon" className="bell-icon" />
+          <div className="event-title">
+            <p className="event-label">Next Event</p>
+            <p className="event-name">
+              <span className="event-dot" /> No events to import
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const start = formatTime(event.startTime);
+  const end = formatTime(event.endTime);
 
   return (
     <div className="event-card">
       <div className="event-header">
         <img src={bell} alt="bell-icon" className="bell-icon" />
         <div className="event-title">
-          <p className="event-label">Next Event</p>
+          <p className="event-label">Today's Next Event</p>
           <p className="event-name">
             <span className="event-dot" /> {event.title}
           </p>
@@ -45,20 +96,15 @@ const NextEventCard = () => {
 
       <div className="event-time">
         <div className="time-block">
-          <p className="time">{event.startTime}</p>
-          <p className="ampm">AM</p>
+          <p className="time">{start.time}</p>
+          <p className="ampm">{start.ampm}</p>
         </div>
         <div className="time-arrow">⇄</div>
         <div className="time-block">
-          <p className="time">{event.endTime}</p>
-          <p className="ampm">AM</p>
+          <p className="time">{end.time}</p>
+          <p className="ampm">{end.ampm}</p>
         </div>
       </div>
-
-      <a href={event.link} className="meet-link" target="_blank" rel="noreferrer">
-        <img src={google_meet_logo} alt="Meeticon" className="meet-icon" />
-        Go to meet link
-      </a>
     </div>
   );
 };
