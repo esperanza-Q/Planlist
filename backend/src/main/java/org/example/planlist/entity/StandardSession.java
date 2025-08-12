@@ -12,6 +12,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @PrimaryKeyJoinColumn(name = "planner_id")
 @DiscriminatorValue("STANDARD")
+@Inheritance(strategy = InheritanceType.JOINED)
 public class StandardSession extends PlannerSession {
 
     @Column(nullable = false)
