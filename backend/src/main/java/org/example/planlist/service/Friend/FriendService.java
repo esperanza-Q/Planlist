@@ -20,8 +20,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
-@Transactional(readOnly = true)
+@Transactional
 public class FriendService {
 
     private final FriendRepository friendRepository;

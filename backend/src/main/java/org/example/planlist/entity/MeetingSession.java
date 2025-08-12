@@ -1,5 +1,6 @@
 package org.example.planlist.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -13,8 +14,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
-@PrimaryKeyJoinColumn(name = "planner_id")
 @DiscriminatorValue("MEETING")
+@Inheritance(strategy = InheritanceType.JOINED)
 public class MeetingSession extends PlannerSession {
 
     @Column(name = "is_recurring", nullable = false)
@@ -35,4 +36,5 @@ public class MeetingSession extends PlannerSession {
         DAILY,
         WEEKLY
     }
+
 }
