@@ -17,4 +17,3 @@ public class FriendListResponseDTO {
         this.friendRequest = friendRequest;
     }
 }
-
