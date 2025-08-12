@@ -1,7 +1,6 @@
 package org.example.planlist.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.example.planlist.dto.FriendDTO.response.FriendListResponseDTO;
 import org.example.planlist.dto.InvitePageResponseDTO;
 import org.example.planlist.dto.PlannerProjectDTO.PlannerProjectRequestDTO;
 import org.example.planlist.dto.PlannerProjectDTO.PlannerProjectResponseDTO;
@@ -35,7 +34,7 @@ public class PlannerProjectController {
     // 2. 친구 목록 & 참여자 목록 조회
     @GetMapping("/{projectId}/invitePage")
     public ResponseEntity<InvitePageResponseDTO> getInvitePageData(@PathVariable Long projectId, Long userId) {
-        FriendListResponseDTO friends = plannerProjectService.getFriendList();
+        List<User> friends = plannerProjectService.getFriendList(userId);
         List<ProjectParticipantRequestDTO> participants = plannerProjectService.getParticipantList(projectId);
 
         InvitePageResponseDTO response = new InvitePageResponseDTO(friends, participants);
