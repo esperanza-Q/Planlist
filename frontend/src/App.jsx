@@ -18,10 +18,14 @@ import MeetingPage from './pages/CreateCategory/MeetingCreatePage';
 import TravelPage from './pages/CreateCategory/TravelCreatePage';
 import PTPage from './pages/CreateCategory/PTCreatePage';
 
-import ProjectViewMeeting from "./components/ProjectViewMeeting/ProjectViewMeeting"
-import ProjectViewMeetingDetails from "./components/ProjectViewMeeting/ProjectViewMeetingDetails"
+import ProjectViewMeeting from "./components/ProjectViewMeeting/ProjectViewMeeting";
+import ProjectViewMeetingDetails from "./components/ProjectViewMeeting/ProjectViewMeetingDetails";
 
-import ProjectViewStandard from "./components/ProjectViewStandard/ProjectViewStandard"
+import ProjectViewStandard from "./components/ProjectViewStandard/ProjectViewStandard";
+import ProjectViewPT from "./components/ProjectViewPT/ProjectViewPT";
+import ProjectViewPTDetails from "./components/ProjectViewPT/ProjectViewPTDetails";
+import ProjectViewTravel from "./components/ProjectViewTravel/ProjectViewTravel";
+
 import NotePage from './pages/Note';
 import MemoDetailPage from './pages/MemoDetailPage';
 import ProjectPage from "./components/ProjectCreate/ProjectPage";
@@ -95,6 +99,11 @@ function App() {
                 <Route path="/project/meeting" element={<ProjectViewMeeting />} />
                 <Route path="/project/meeting/details" element={<ProjectViewMeetingDetails />} />
                 <Route path="/project/standard" element={<ProjectViewStandard />} />
+                <Route path="/project/pt" element={<ProjectViewPT/>}/>
+                <Route path="/project/pt/details" element={<ProjectViewPTDetails />}/>
+                <Route path="/project/travel" element={<ProjectViewTravel/>}/>
+                <Route path="/project/create/pt" element={<PTPage />} />
+
               </>
             ) : (
               // 인증 안 된 사용자가 보호된 경로로 접근하면 로그인 페이지로 보냄
