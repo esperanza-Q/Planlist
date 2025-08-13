@@ -14,5 +14,6 @@ public class MyExerciseDTO {
     private Integer time;
     private Integer sets;
     private ExercisePlan.TYPE type; // TRAINER_P / DONE
+    private String name;
 
 }

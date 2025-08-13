@@ -129,8 +129,31 @@ public class PtService {
         PlannerProject project = projectRepository.findByProjectId(projectId);
 
         // 🔒 이미 요청이 존재하는지 확인
-        if (participantRepository.existsByProjectAndUser(project, receiver)) {
-            throw new IllegalStateException("이미 해당 사용자에게 초대 요청을 보냈습니다.");
+//        if (participantRepository.existsByProjectAndUser(project, receiver)) {
+//            throw new IllegalStateException("이미 해당 사용자에게 초대 요청을 보냈습니다.");
+//        }
+//        ProjectParticipant f = participantRepository.findByProjectAndUser(project, receiver).orElseThrow();
+//
+//        if (participantRepository.existsByProjectAndUser(project, receiver)) {
+//            if(f.getResponse() != ProjectParticipant.Response.REJECTED) {
+//                throw new IllegalStateException("이미 해당 사용자에게 초대 요청을 보냈습니다.");
+//            }
+//        }
+
+        Optional<ProjectParticipant> existingParticipantOpt = participantRepository.findByProjectAndUser(project, receiver);
+
+        if (existingParticipantOpt.isPresent()) {
+            ProjectParticipant existingParticipant = existingParticipantOpt.get();
+
+            if (existingParticipant.getResponse() == ProjectParticipant.Response.REJECTED) {
+                // REJECTED 상태면 다시 WAITING으로 변경
+                existingParticipant.setResponse(ProjectParticipant.Response.WAITING);
+                existingParticipant.setRole(role); // 필요 시 역할도 업데이트
+                participantRepository.save(existingParticipant);
+                return; // 이미 저장했으니 끝
+            } else {
+                throw new IllegalStateException("이미 해당 사용자에게 초대 요청을 보냈습니다.");
+            }
         }
 
 
@@ -158,6 +181,7 @@ public class PtService {
                 .orElseThrow(() -> new EntityNotFoundException("프로젝트를 찾을 수 없습니다."));
 
         project.setStatus(PlannerProject.Status.INPROGRESS);
+        project.setConfirmedAt(LocalDateTime.now());
 
         // 변경된 상태는 트랜잭션 커밋 시점에 자동으로 DB에 반영됩니다.
 

@@ -55,26 +55,26 @@ public class HomeService {
                     LocalDate startDate = p.getStartDate();
                     LocalDate endDate = p.getEndDate();
 
-                    String duration;
-                    int days;
-
-                    if (startDate != null && endDate != null) {
-                        duration = String.format("%02d/%02d~%02d/%02d",
-                                startDate.getMonthValue(), startDate.getDayOfMonth(),
-                                endDate.getMonthValue(), endDate.getDayOfMonth());
-
-                        days = (int) ChronoUnit.DAYS.between(startDate, endDate) + 1;
-                    } else {
-                        duration = "기간 정보 없음";
-                        days = 0;
-                    }
+//                    String duration;
+//                    int days;
+//
+//                    if (startDate != null && endDate != null) {
+//                        duration = String.format("%02d/%02d~%02d/%02d",
+//                                startDate.getMonthValue(), startDate.getDayOfMonth(),
+//                                endDate.getMonthValue(), endDate.getDayOfMonth());
+//
+//                        days = (int) ChronoUnit.DAYS.between(startDate, endDate) + 1;
+//                    } else {
+//                        duration = "기간 정보 없음";
+//                        days = 0;
+//                    }
 
                     return ProjectOverviewDTO.builder()
                             .projectTitle(p.getProjectTitle())
                             .category(p.getCategory().name())
                             .status(p.getStatus().name())
-                            .duration(duration)
-                            .days(days)
+                            .startDate(p.getStartDate())
+                            .endDate(p.getEndDate())
                             .build();
                 }).toList();
 

@@ -32,6 +32,12 @@ public class ExercisePlan {
     @Enumerated(EnumType.STRING)
     private TYPE role;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    @JsonBackReference
+    private User user;
+
+
     public enum TYPE {
         TRAINER_P,
         DONE

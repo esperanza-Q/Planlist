@@ -5,6 +5,10 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+**/node_modules/
+**/.cache/
+**/.parcel-cache/
+NUL
 ### STS ###
 .apt_generated
 .classpath

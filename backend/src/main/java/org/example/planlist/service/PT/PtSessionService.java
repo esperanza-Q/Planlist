@@ -66,7 +66,8 @@ public class PtSessionService {
                         plan.getExercisePlanName(), // 이 필드가 엔티티에 있는지 확인 필요
                         plan.getTime(),
                         plan.getSets(),
-                        plan.getRole()
+                        plan.getRole(),
+                        plan.getUser().getName()
                 ))
                 .toList();
 
@@ -137,6 +138,8 @@ public class PtSessionService {
         PtSession ptSession = ptSessionRepository.findById(sessionId)
                 .orElseThrow(() -> new RuntimeException("PtSession not found with id: " + sessionId));
 
+        User user = SecurityUtil.getCurrentUser();
+
         Exercise exercise = exerciseRepository.findById(dto.getExerciseId())
                 .orElseThrow(() -> new RuntimeException("Exercise not found with id: " + dto.getExerciseId()));
         String name = exercise.getName();
@@ -147,6 +150,7 @@ public class PtSessionService {
                 .sets(dto.getSets())
                 .role(type)
                 .planner(ptSession)
+                .user(user)
                 .build();
 
         return exercisePlanRepository.save(exercisePlan);
