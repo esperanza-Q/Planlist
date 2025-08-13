@@ -4,6 +4,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 
+import java.time.LocalDate;
+
 @Getter
 @Builder
 @Data
@@ -11,6 +13,6 @@ public class ProjectOverviewDTO {
     private String projectTitle;
     private String category;
     private String status;
-    private String duration; // "MM/dd~MM/dd"
-    private int days;
+    private LocalDate startDate; // "MM/dd~MM/dd"
+    private LocalDate endDate; // "MM/dd~MM/dd"
 }

@@ -74,5 +74,8 @@ public class User {
     @JsonManagedReference
     private List<PtComment> PtComments;
 
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @JsonManagedReference
+    private List<ExercisePlan> exercisePlans;
 
 }
