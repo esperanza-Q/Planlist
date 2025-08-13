@@ -1,4 +1,4 @@
-package org.example.planlist.dto.MeetingDTO.request;
+package org.example.planlist.dto.SharePlannerDTO.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
