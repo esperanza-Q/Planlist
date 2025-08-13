@@ -47,3 +47,6 @@ credentials.json
 
 ### VS Code ###
 .vscode/
+**/node_modules/
+**/.cache/
+**/.parcel-cache/
