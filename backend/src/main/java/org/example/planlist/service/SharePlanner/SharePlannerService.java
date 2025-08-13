@@ -1,11 +1,12 @@
-package org.example.planlist.service.PT;
+package org.example.planlist.service.SharePlanner;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.example.planlist.dto.PtDTO.request.SelectTimeRequestDTO;
+import org.example.planlist.dto.SharePlannerDTO.request.SelectTimeRequestDTO;
 import org.example.planlist.dto.PtDTO.response.FreeTimeIntervalDTO;
-import org.example.planlist.dto.PtDTO.response.SharedPlannerResponseDTO;
+import org.example.planlist.dto.SharePlannerDTO.response.SharedPlannerResponseDTO;
 import org.example.planlist.entity.FreeTimeCalendar;
+import org.example.planlist.entity.PlannerSession;
 import org.example.planlist.entity.ProjectParticipant;
 import org.example.planlist.entity.PtSession;
 import org.example.planlist.repository.*;
@@ -214,7 +215,7 @@ public class SharePlannerService {
     }
 
     @Transactional
-    public PtSession updateSelectTime(Long plannerId, SelectTimeRequestDTO dto) {
+    public PlannerSession updateSelectTime(Long plannerId, SelectTimeRequestDTO dto) {
         // 기존 세션 찾기
         PtSession session = ptSessionRepository.findById(plannerId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid plannerId: " + plannerId));
