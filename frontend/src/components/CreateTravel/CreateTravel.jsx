@@ -6,17 +6,34 @@ import '../StandardCreatePage/StartProject.css';
 import travel_icon from '../../assets/travel_icon.svg';
 import { ReactComponent as ProjectNextIcon } from "../../assets/Project_next_button.svg";
 
+import { api } from "../../api/client";
 
 
 const CreateTravel = ({ formData, updateFormData, nextStep }) => {
-  const [title, setTitle] = useState(formData.title || '');
+  const [TravelTitle, setTitle] = useState(formData.title || '');
   const [startDate, setStartDate] = useState(formData.startDate || new Date());
   const [endDate, setEndDate] = useState(formData.endDate || new Date());
 
-  const handleNext = () => {
+  const handleNext = async(e) => {
     // formData에 값 저장 후 다음 스텝으로 이동
-    updateFormData({ title, startDate, endDate });
-    nextStep();
+    if(!TravelTitle){
+      alert("Please enter a title for your travel project.");
+      return;
+    }
+    try{
+      await api.postSession("api/travel/CreateProject", {
+        title: TravelTitle,
+      });
+      updateFormData({ TravelTitle, startDate, endDate });
+      nextStep();
+
+    }
+    catch(e){
+      console.error("Failed to send travel creation request:", e);
+      alert("Failed to create travel project. Please try again.");
+      return;
+    }
+
   };
 
   return (
@@ -35,7 +52,7 @@ const CreateTravel = ({ formData, updateFormData, nextStep }) => {
             type="text"
             className='title-box'
             placeholder="Enter your title"
-            value={title}
+            value={TravelTitle}
             onChange={(e) => setTitle(e.target.value)}
             />
        

@@ -12,73 +12,62 @@ const recommendedDates = [
   { start: new Date (2025, 7, 1), end: new Date(2025, 7, 1)}
 ];
 
-
 const PTCreatePage = () => {
-    const [step, setStep] = useState(1);
-        const [formData, setFormData] = useState({
-        title: '',
-        startDate: null,
-        endDate: null,
-        // 다른 스텝에서 입력될 데이터들도 미리 여기에 포함
-      });
-    
-      const nextStep = () => setStep((prev) => prev + 1);
-      const prevStep = () => setStep((prev) => prev - 1);
-    
-      const updateFormData = (newData) => {
-        setFormData((prev) => ({ ...prev, ...newData }));
-        console.log(newData);
-        
-      };
-    
-      return (
-        <div>
-            
-          {step === 1 && (
-            <Step1StartProject
-                formData={formData}
-                updateFormData={updateFormData}
-                nextStep={nextStep}
-                />
-            )}
-        {step === 2 && (
-            <div>
-            <Step2AddParticipants 
-            formData={formData}
-            updateFormData={updateFormData}
-            nextStep={nextStep}
-            prevStep={prevStep}
-            />
-            
-            </div>
-        )}
-        {step === 3 && (
-            <div>
-            <Step3CreateDetailProject 
-            formData={formData}
-            updateFormData={updateFormData}
-            nextStep={nextStep}
-            prevStep={prevStep}
-            />
-            
-            </div>
-        )}
-        {step === 4 && (
-            <div>
-            <Step4SelectDate 
-            formData={formData}
-            updateFormData={updateFormData}
-            nextStep={nextStep}
-            prevStep={prevStep}
-            />
-            
-            </div>
-        )}
-        </div>
-          
+  const [step, setStep] = useState(1);
+  const [formData, setFormData] = useState({
+    title: '',
+    startDate: null,
+    endDate: null,
+    isTrainer: false, // ✅ keep role through the flow
+  });
+
+  const nextStep = () => setStep((prev) => prev + 1);
+  const prevStep = () => setStep((prev) => prev - 1);
+
+  const updateFormData = (newData) => {
+    setFormData((prev) => ({ ...prev, ...newData }));
+    console.log(newData);
+  };
+
+  return (
+    <div>
+      {step === 1 && (
+        <Step1StartProject
+          formData={formData}
+          updateFormData={updateFormData}
+          nextStep={nextStep}
+        />
+      )}
+
+      {step === 2 && (
+        <Step2AddParticipants
+          formData={formData}
+          updateFormData={updateFormData}
+          nextStep={nextStep}
+          prevStep={prevStep}
+        />
+      )}
+
+      {step === 3 && (
+        <Step3CreateDetailProject
+          formData={formData}
+          updateFormData={updateFormData}
+          nextStep={nextStep}
+          prevStep={prevStep}
+        />
+      )}
+
+      {step === 4 && (
+        <Step4SelectDate
+          formData={formData}
+          updateFormData={updateFormData}
+          nextStep={nextStep}
+          prevStep={prevStep}
+        />
+      )}
+    </div>
+  );
+};
 
 
-    );
-}
-
-export default PTCreatePage
+export default PTCreatePage;

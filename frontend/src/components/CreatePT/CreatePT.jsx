@@ -6,27 +6,42 @@ import './StartProject.css';
 import PT_icon from '../../assets/dumbbell_icon.svg';
 import { ReactComponent as ProjectNextIcon } from "../../assets/Project_next_button.svg";
 
+import { api } from "../../api/client";
 
 
 const CreatePT = ({ formData, updateFormData, nextStep }) => {
-  const [title, setTitle] = useState(formData.title || '');
+  const [PTtitle, setTitle] = useState(formData.title || '');
   const [startDate, setStartDate] = useState(formData.startDate || new Date());
   const [endDate, setEndDate] = useState(formData.endDate || new Date());
     const [isTrainer, setIsTrainer] = useState(!!formData.isTrainer);
 
 
-  const handleNext = () => {
+  const handleNext = async (e) => {
     
-    updateFormData({ title, startDate, endDate });
+    if (!PTtitle) {
+      alert("Please enter a title for your PT project.");
+      return;
+    }
+    try{
+      await api.postSession("/api/pt/createProject", {
+        title: PTtitle,
+        role: isTrainer ? "TRAINER" : "TRAINEE",
+      });
+      updateFormData({ PTtitle, startDate, endDate });
+
+      nextStep();
+    }
+    catch(e){
+      console.error("Failed to send PT creation request:", e);
+      alert("Failed to create PT project. Please try again.");
+      return;
+    }
 
     
-
-
-    nextStep();
   };
 
   return (
-    <form className="form-container">
+    <div className="form-container">
       <div className="form-box" style={{height:"525px"}}>
         <div className="form-icon"> <img src={PT_icon}/></div>
 
@@ -41,7 +56,7 @@ const CreatePT = ({ formData, updateFormData, nextStep }) => {
             type="text"
             className='title-box'
             placeholder="Enter your title"
-            value={title}
+            value={PTtitle}
             onChange={(e) => setTitle(e.target.value)}
             />
             <div className="underSection" style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -60,8 +75,8 @@ const CreatePT = ({ formData, updateFormData, nextStep }) => {
         </div>
       </div>
       {/* ✅ 다음 버튼 */}
-        <button className="project-next-button" type="submit" onClick={handleNext}><ProjectNextIcon/></button>
-    </form>
+        <button className="project-next-button" onClick={handleNext}><ProjectNextIcon/></button>
+    </div>
   );
 };
 
