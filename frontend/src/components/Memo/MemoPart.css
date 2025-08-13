@@ -1,0 +1,50 @@
+.note-memo-card {
+  background-color: white;
+  border-radius: 4px;
+  padding: 20px;
+  width: 328px;
+  height: 198px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border: 1px solid var(--EEF1F6);
+}
+
+/* 내 메모 */
+.note-memo-card.mine {
+  background-color: var(--EEF1F6); 
+}
+
+.note-memo-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.note-memo-title {
+  font-size: 16px;
+  color: var(--Planetary);
+}
+
+.note-trash-icon {
+  width: 15px;
+  height: 15px;
+  color: gray;
+  cursor: pointer;
+}
+
+.note-memo-desc {
+  font-size: 12px;
+  color: #6A6A6A;
+  margin-top: 8px;
+  flex-grow: 1;
+}
+
+.note-memo-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  margin-top: 12px;
+  color: #4D5A66;
+}
