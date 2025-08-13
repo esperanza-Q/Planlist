@@ -3,6 +3,7 @@ package org.example.planlist.service;
 import org.example.planlist.entity.ProjectCount;
 import org.example.planlist.entity.User;
 import org.example.planlist.repository.UserRepository;
+import org.example.planlist.security.CustomOAuth2User;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -272,7 +273,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
         final String accessToken = (authorizedClient != null && authorizedClient.getAccessToken() != null)
                 ? authorizedClient.getAccessToken().getTokenValue()
-                : null;
+                : userRequest.getAccessToken().getTokenValue();
 
         final String refreshToken = (authorizedClient != null && authorizedClient.getRefreshToken() != null)
                 ? authorizedClient.getRefreshToken().getTokenValue()
@@ -291,18 +292,53 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         String profileImageToUse = finalProfileImage != null ? finalProfileImage : pictureUrl;
 
         // DB에 유저 저장/갱신
+//        User user = userRepository.findByEmail(email)
+//                .map(u -> {
+//                    u.setName(name);
+//                    if (accessToken != null) {
+//                        u.setGoogleAccessToken(accessToken);
+//                    }
+//                    if (refreshToken != null) {
+//                        u.setGoogleRefreshToken(refreshToken);
+//                    }
+//                    if (u.getProfileImage() == null || u.getProfileImage().isBlank()) {
+//                        String uploaded = uploadIfNeeded(pictureUrl, email);
+//                        u.setProfileImage(uploaded != null ? uploaded : pictureUrl);
+//                    }
+//                    return u;
+//                })
+//                .orElseGet(() -> {
+//                    User newUser = new User();
+//                    newUser.setEmail(email);
+//                    newUser.setName(name);
+//                    newUser.setProfileImage(profileImageToUse);
+//                    newUser.setGoogleAccessToken(accessToken);
+//                    newUser.setGoogleRefreshToken(refreshToken);
+//
+//                    ProjectCount projectCount = ProjectCount.builder()
+//                            .upComing(0)
+//                            .inProgress(0)
+//                            .finished(0)
+//                            .user(newUser)
+//                            .build();
+//                    newUser.setProjectCount(projectCount);
+//
+//                    return newUser;
+//                });
+//
+//        userRepository.save(user);
+//
+//        return oauth2User;
+//    }
+
+        // DB 저장/갱신
         User user = userRepository.findByEmail(email)
                 .map(u -> {
                     u.setName(name);
-                    if (accessToken != null) {
-                        u.setGoogleAccessToken(accessToken);
-                    }
-                    if (refreshToken != null) {
-                        u.setGoogleRefreshToken(refreshToken);
-                    }
+                    u.setGoogleAccessToken(accessToken); // !수정! 첫 로그인에도 저장
+                    if (refreshToken != null) u.setGoogleRefreshToken(refreshToken);
                     if (u.getProfileImage() == null || u.getProfileImage().isBlank()) {
-                        String uploaded = uploadIfNeeded(pictureUrl, email);
-                        u.setProfileImage(uploaded != null ? uploaded : pictureUrl);
+                        u.setProfileImage(profileImageToUse); // !수정! S3 업로드된 이미지 반영
                     }
                     return u;
                 })
@@ -310,8 +346,8 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                     User newUser = new User();
                     newUser.setEmail(email);
                     newUser.setName(name);
-                    newUser.setProfileImage(profileImageToUse);
-                    newUser.setGoogleAccessToken(accessToken);
+                    newUser.setProfileImage(profileImageToUse); // !수정!
+                    newUser.setGoogleAccessToken(accessToken); // !수정!
                     newUser.setGoogleRefreshToken(refreshToken);
 
                     ProjectCount projectCount = ProjectCount.builder()
@@ -327,7 +363,9 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
         userRepository.save(user);
 
-        return oauth2User;
+        // CustomOAuth2User 반환
+        return new CustomOAuth2User(user, oauth2User.getAttributes()); // !수정!
+
     }
 
     private String uploadImageFromUrlToS3(String imageUrl, String email) throws IOException {
