@@ -21,8 +21,4 @@ public class Exercise {
 
     private String name;
 
-    @ManyToOne
-    @JoinColumn(name="exercisePlan_id")
-    @JsonBackReference
-    private ExercisePlan exercisePlan;
 }

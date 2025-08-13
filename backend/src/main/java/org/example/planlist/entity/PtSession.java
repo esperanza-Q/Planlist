@@ -2,17 +2,17 @@ package org.example.planlist.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.util.List;
 
 @Getter
 @NoArgsConstructor
 @Entity
-@Builder
+//@Builder
+@Setter
+@SuperBuilder
 @AllArgsConstructor
 @Table(name="pt_session")
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -22,11 +22,11 @@ public class PtSession extends PlannerSession {
 
     @OneToMany(mappedBy = "planner", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JsonManagedReference
-    private List<PtComment> PtComments;
+    private List<PtComment> ptComments;
 
     @OneToMany(mappedBy = "planner", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JsonManagedReference
-    private List<ExercisePlan> ExercisePlans;
+    private List<ExercisePlan> exercisePlans;
 
 
 }

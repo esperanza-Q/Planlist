@@ -54,10 +54,10 @@ public class PlannerProject {
 
     // Enum
     public enum Category {
-        Meeting,
+        MEETING,
         Travel,
         PT,
-        Standard
+        STANDARD
     }
 
     public enum Status {
