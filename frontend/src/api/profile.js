@@ -1,13 +1,20 @@
 // src/api/profile.js
 import { api } from "./client";
 
-// GET profile
-export const getProfile = () => api.get("/api/settings/profile");
+export const getProfile = () => api.getSession("/api/settings/profile");
 
-// PUT profile update (multipart)
-export const updateProfile = (file, name) => {
+export const updateProfileMultipart = ({ name, file }) => {
   const fd = new FormData();
-  if (file) fd.append("profileImage", file); // matches @RequestPart("profileImage")
-  if (name) fd.append("name", name);
-  return api.put("/api/settings/profile/updateProfile", fd);
+  if (name != null) fd.append("name", name);
+  if (file) fd.append("profileImage", file);
+  return api.putSession("/api/settings/profile/updateProfile", fd);
 };
+
+export async function changePassword({ currentPassword, newPassword, confirmPassword }) {
+  // /api/settings/profile/changePassword
+  return api.postSession("/api/settings/profile/changePassword", {
+    currentPassword,
+    newPassword,
+    confirmPassword,
+  });
+}

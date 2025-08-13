@@ -1,60 +1,73 @@
-import React, { useState } from "react";
-import ProfileCard from "./ProfileCard.jsx"
-
-import {Link} from "react-router-dom";
-import ProfilePic from "../../../assets/ProfilePic.png"
+// src/components/Setting/ProfileTab/SettingProfile.jsx
+import React, { useEffect, useState } from "react";
+import ProfileCard from "./ProfileCard.jsx";
 import ProjectCard from "./ProjectCard.jsx";
-import './SettingProfile.css'
+import DefaultProfilePic from "../../../assets/ProfilePic.png";
+import "./SettingProfile.css";
+import { api } from "../../../api/client";
 
-
-const ProjectRequests=[
-  
-    {
-      "projectTitle": "Project 1",
-      "creator": "name 1",
-      "profile_image": ProfilePic
+const normalize = (raw) => {
+  const user = raw?.user ?? {};
+  const projectRequest = Array.isArray(raw?.projectRequest) ? raw.projectRequest : [];
+  return {
+    user: {
+      name: user?.name ?? "name",
+      email: user?.email ?? "ex@example.com",
+      profilePic: user?.profile_image ?? DefaultProfilePic,
     },
-    {
-      "projectTitle":  "Project 2",
-      "creator": "name 2",
-      "profile_image": ProfilePic
-    },
-    {
-      "projectTitle":  "Project 3",
-      "creator": "name 3",
-      "profile_image": ProfilePic
-    }
- 
-]
-
-const MypageProfile = ({setView}) => {
-  const profileInfo = {
-    name: "name",
-    email: "ex@example.com",
-    profilePic: ProfilePic
+    projectRequests: projectRequest.map((p, i) => ({
+      invitee_id: p?.invitee_id ?? `unknown-${i}`,
+      projectTitle: p?.projectTitle ?? "Project title",
+      creator: p?.creator ?? "creator",
+      profile_image: user?.profile_image ?? DefaultProfilePic,
+    })),
   };
+};
+
+const MypageProfile = ({ setView }) => {
+  const [profileData, setProfileData] = useState({
+    user: { name: "name", email: "ex@example.com", profilePic: DefaultProfilePic },
+    projectRequests: [],
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const json = await api.getSession("/api/settings/profile");
+        const normalized = normalize(json);
+        if (alive) setProfileData(normalized);
+      } catch (e) {
+        console.error("Error fetching profile:", e);
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+    return () => { alive = false; };
+  }, []);
+
+  const { user, projectRequests } = profileData;
 
   return (
     <div className="screen">
-
       <div className="tab">
-        <button onClick={() => setView('profile')} disabled>
-          profile
-        </button>
-
-        <button onClick={() => setView('friends')}>
-          friends
-        </button>
+        <button onClick={() => setView("profile")} disabled>profile</button>
+        <button onClick={() => setView("friends")}>friends</button>
       </div>
+
       <div className="main-content">
-        <ProfileCard {...profileInfo}/>
-        <ProjectCard projectRequests={ProjectRequests}/>
-
+        <ProfileCard
+          name={user?.name ?? "name"}
+          email={user?.email ?? "ex@example.com"}
+          profilePic={user?.profilePic ?? DefaultProfilePic}
+        />
+        <ProjectCard projectRequests={projectRequests} />
       </div>
-    </div> 
-    
+
+      {loading && <div className="profile-loading">Loading…</div>}
+    </div>
   );
 };
-
 
 export default MypageProfile;

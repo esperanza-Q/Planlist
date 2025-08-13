@@ -22,6 +22,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+
 
 @Configuration
 @EnableWebSecurity
@@ -50,7 +52,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
+                //세션
+                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+
                 .cors(Customizer.withDefaults()) // WebMvcConfigurer에서 CORS 설정을 사용
                 .authorizeHttpRequests(auth -> auth
                         // Preflight OPTIONS 요청은 인증 없이 통과 허용
@@ -93,7 +98,7 @@ public class SecurityConfig {
                 )
                 // JWT 필터를 UsernamePasswordAuthenticationFilter 앞에 추가
                 .addFilterBefore(jwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
-
+                  
         return http.build();
     }
 
@@ -113,9 +118,9 @@ public class SecurityConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**")  // 모든 경로에 대해 허용
+                registry.addMapping("/api/**")  // 모든 경로에 대해 허용
                         .allowedOrigins("http://localhost:3000") // 프론트 도메인
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                        .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                         .allowedHeaders("*") // 모든 헤더 허용
                         .allowCredentials(true);
             }

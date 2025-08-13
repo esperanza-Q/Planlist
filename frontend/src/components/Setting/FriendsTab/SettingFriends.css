@@ -95,7 +95,7 @@
 .friend-email{
     position:absolute;
     top:52px;
-    left:121px;
+    left:110px;
     color:#354FAE;
     font-size:18px;
 }
@@ -183,4 +183,16 @@
     background-color: #354FAE;
     border:1px solid #354FAE;
 }
-
+.action-button[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.spinner {
+  display: inline-block;
+  width: 16px; height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin .6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
