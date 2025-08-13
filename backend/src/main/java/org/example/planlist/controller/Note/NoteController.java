@@ -58,14 +58,16 @@ public class NoteController {
 
     @PutMapping(value = "/updateNote", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateNote(
-            @RequestPart("noteUpdateDTO") NoteUpdateDTO noteUpdateDTO,
-            @RequestPart(value = "images", required = false) List<MultipartFile> images) throws IOException {
+            @ModelAttribute NoteUpdateDTO noteUpdateDTO) throws IOException
+//            @RequestPart("noteUpdateDTO") NoteUpdateDTO noteUpdateDTO,
+//            @RequestPart(value = "images", required = false) List<MultipartFile> images) throws IOException
+            {
 
         // 현재 로그인한 유저 정보가 필요하면 여기서 세팅
         // 예: User currentUser = SecurityUtil.getCurrentUser();
         // noteUpdateDTO.setUserId(currentUser.getId());  -> DTO에 userId 없으므로 생략
 
-        noteUpdateDTO.setImages(images);
+
 
         noteService.putNote(noteUpdateDTO);
 

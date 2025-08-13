@@ -3,11 +3,14 @@ package org.example.planlist.service.PT;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.example.planlist.dto.PtDTO.response.*;
+import org.example.planlist.entity.Note;
 import org.example.planlist.entity.PlannerProject;
+import org.example.planlist.entity.User;
 import org.example.planlist.repository.NoteRepository;
 import org.example.planlist.repository.PlannerProjectRepository;
 import org.example.planlist.repository.ProjectParticipantRepository;
 import org.example.planlist.repository.PtSessionRepository;
+import org.example.planlist.security.SecurityUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,8 +58,14 @@ public class PtProjectService {
                 .toList();
 
         // Memo
+        User user = SecurityUtil.getCurrentUser();
+
         List<MemoDTO> memos = noteRepo.findByProject_ProjectId(projectId)
                 .stream()
+                .filter(n ->
+                        n.getUser().getId().equals(user.getId()) // 내가 작성한 노트
+                                || n.getShare() == Note.Share.GROUP     // 남이 작성했지만 GROUP인 노트
+                )
                 .map(n -> MemoDTO.builder()
                         .noteId(n.getNoteId())
                         .title(n.getTitle())
