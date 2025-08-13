@@ -7,12 +7,14 @@ import org.example.planlist.dto.FriendDTO.response.FriendListResponseDTO;
 import org.example.planlist.dto.PlannerProjectDTO.PlannerProjectRequestDTO;
 import org.example.planlist.dto.PlannerProjectDTO.PlannerProjectResponseDTO;
 import org.example.planlist.dto.ProjectParticipantDTO.ProjectParticipantRequestDTO;
+import org.example.planlist.dto.PtDTO.response.InviteUserResponseDTO;
 import org.example.planlist.dto.PtDTO.response.ParticipantDTO;
 import org.example.planlist.entity.PlannerProject;
 import org.example.planlist.entity.ProjectParticipant;
 import org.example.planlist.entity.User;
 import org.example.planlist.mapper.PlannerProjectMapper;
 import org.example.planlist.mapper.ProjectParticipantMapper;
+import org.example.planlist.repository.FriendRepository;
 import org.example.planlist.repository.PlannerProjectRepository;
 import org.example.planlist.repository.ProjectParticipantRepository;
 import org.example.planlist.repository.UserRepository;
@@ -36,6 +38,8 @@ public class PlannerProjectService {
     private final UserRepository userRepository;
     private final ProjectParticipantRepository projectParticipantRepository;
     private final FriendService friendService;
+    private final FriendRepository friendRepository;
+//    private final ProjectParticipantRepository participantRepository;
 
     // 1. 프로젝트 생성 - @PostMapping("/create")
     @Transactional
@@ -52,11 +56,89 @@ public class PlannerProjectService {
     public List<User> getFriendList(Long userId) {
         return (List<User>) friendService.getAllFriendsForCurrentUser();
     }
+//
+//    @Transactional
+//    public List<ProjectParticipantRequestDTO> getParticipantList(Long projectId) {
+//        return projectParticipantRepository.findAllDtosByProjectId(projectId);
+//    }
 
+//    @Transactional
+//    public InviteUserResponseDTO getInviteUsers(Long projectId) {
+//
+//        Long currentUserId = SecurityUtil.getCurrentUser().getId();
+//
+//        // 1) 현재 로그인 유저 친구 목록 조회 (FriendRepository에서 제대로 조회)
+//        List<Long> friendIds = friendRepository.findFriendIdsByUserId(currentUserId);
+//        List<User> friends = userRepository.findAllById(friendIds);
+//
+//        List<InviteUserResponseDTO.MyFriendDTO> myFriendsDto = friends.stream()
+//                .map(f -> new InviteUserResponseDTO.MyFriendDTO(
+//                        f.getId(),
+//                        f.getName(),
+//                        f.getEmail(),
+//                        f.getProfileImage()))
+//                .collect(Collectors.toList());
+//
+//        // 2) 프로젝트 참가자 전체 조회 (role, status 포함)
+//        List<ProjectParticipant> participants = participantRepository.findAllEntitiesByProjectId(projectId);
+//
+//        List<InviteUserResponseDTO.ParticipantDTO> participantsDto = participants.stream()
+//                .map(p -> new InviteUserResponseDTO.ParticipantDTO(
+//                        p.getUser().getId(),
+//                        p.getUser().getName(),
+//                        p.getRole(),
+//                        p.getUser().getProfileImage(),
+//                        p.getResponse()
+//                ))
+//                .collect(Collectors.toList());
+//
+//        // 3) 응답 조립
+//        InviteUserResponseDTO response = new InviteUserResponseDTO();
+//        response.setMyFriend(myFriendsDto);
+//        response.setParticipants(participantsDto);
+//
+//        return response;
+//    }
     @Transactional
-    public List<ProjectParticipantRequestDTO> getParticipantList(Long projectId) {
-        return projectParticipantRepository.findAllDtosByProjectId(projectId);
+    public InviteUserResponseDTO getInviteUsers(Long projectId) {
+
+        Long currentUserId = SecurityUtil.getCurrentUser().getId();
+
+        // 1) 현재 로그인 유저 친구 목록 조회 (FriendRepository에서 제대로 조회)
+        List<Long> friendIds = friendRepository.findFriendIdsByUserId(currentUserId);
+        List<User> friends = userRepository.findAllById(friendIds);
+
+        List<InviteUserResponseDTO.MyFriendDTO> myFriendsDto = friends.stream()
+                .map(f -> new InviteUserResponseDTO.MyFriendDTO(
+                        f.getId(),
+                        f.getName(),
+                        f.getEmail(),
+                        f.getProfileImage()))
+                .collect(Collectors.toList());
+
+        // 2) 프로젝트 참가자 전체 조회 (role, status 포함)
+        List<ProjectParticipant> participants = projectParticipantRepository.findAllEntitiesByProjectId(projectId);
+
+        List<InviteUserResponseDTO.ParticipantDTO> participantsDto = participants.stream()
+                .map(p -> new InviteUserResponseDTO.ParticipantDTO(
+                        p.getUser().getId(),
+                        p.getUser().getName(),
+                        p.getRole(),
+                        p.getUser().getProfileImage(),
+                        p.getResponse()
+                ))
+                .collect(Collectors.toList());
+
+        // 3) 응답 조립
+        InviteUserResponseDTO response = new InviteUserResponseDTO();
+        response.setMyFriend(myFriendsDto);
+        response.setParticipants(participantsDto);
+
+        return response;
     }
+
+
+
 
     // 3. 친구 초대 - @PostMapping("/{projectId}/invite/{friendId}")
     @Transactional
@@ -146,4 +228,6 @@ public class PlannerProjectService {
                 .status(project.getStatus())
                 .build();
     }
+
+
 }

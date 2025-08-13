@@ -1,10 +1,12 @@
 package org.example.planlist.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.example.planlist.dto.InvitePageResponseDTO;
+import org.example.planlist.dto.FriendDTO.response.FriendListResponseDTO;
+//import org.example.planlist.dto.InvitePageResponseDTO;
 import org.example.planlist.dto.PlannerProjectDTO.PlannerProjectRequestDTO;
 import org.example.planlist.dto.PlannerProjectDTO.PlannerProjectResponseDTO;
 import org.example.planlist.dto.ProjectParticipantDTO.ProjectParticipantRequestDTO;
+import org.example.planlist.dto.PtDTO.response.InviteUserResponseDTO;
 import org.example.planlist.entity.User;
 import org.example.planlist.security.SecurityUtil;
 import org.example.planlist.service.PlannerProjectService;
@@ -33,11 +35,14 @@ public class PlannerProjectController {
 
     // 2. 친구 목록 & 참여자 목록 조회
     @GetMapping("/{projectId}/invitePage")
-    public ResponseEntity<InvitePageResponseDTO> getInvitePageData(@PathVariable Long projectId, Long userId) {
-        List<User> friends = plannerProjectService.getFriendList(userId);
-        List<ProjectParticipantRequestDTO> participants = plannerProjectService.getParticipantList(projectId);
+    public ResponseEntity<InviteUserResponseDTO> getInvitePageData(@PathVariable Long projectId) {
+//        List<User> friends = plannerProjectService.getFriendList(userId);
+//        List<ProjectParticipantRequestDTO> participants = plannerProjectService.getParticipantList(projectId);
 
-        InvitePageResponseDTO response = new InvitePageResponseDTO(friends, participants);
+//        FriendListResponseDTO friendListResponseDTO = new FriendListResponseDTO(friends, )
+
+
+        InviteUserResponseDTO response = plannerProjectService.getInviteUsers(projectId);
         return ResponseEntity.ok(response);
     }
 
