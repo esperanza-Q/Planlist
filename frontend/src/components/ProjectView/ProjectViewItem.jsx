@@ -2,10 +2,15 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import "./ProjectView.css";
 import ProfileOverflow from '../../assets/profile_overflow.svg';
-
+import DefaultProfilePic from "../../assets/ProfilePic.png";
 
 
 const ProjectViewItem = ({project}) => {
+    const imgFallback = (e) => {
+      e.currentTarget.onerror = null; // prevent loop
+      e.currentTarget.src = DefaultProfilePic;
+    };
+  
     const navigate = useNavigate();
     const handleClick = () => {
       let path = "/project/";
@@ -58,9 +63,10 @@ const ProjectViewItem = ({project}) => {
                   <img
                     key={index}
                     src={user.avatar}
-                    alt={user.name}
+                    alt={user.name || DefaultProfilePic}
                     className="user-avatar"
                     title={user.name}
+                    onError={imgFallback}
                   />
                 );
               })}

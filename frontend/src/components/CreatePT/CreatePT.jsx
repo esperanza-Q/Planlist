@@ -12,16 +12,22 @@ const CreatePT = ({ formData, updateFormData, nextStep }) => {
   const [title, setTitle] = useState(formData.title || '');
   const [startDate, setStartDate] = useState(formData.startDate || new Date());
   const [endDate, setEndDate] = useState(formData.endDate || new Date());
+    const [isTrainer, setIsTrainer] = useState(!!formData.isTrainer);
+
 
   const handleNext = () => {
-    // formData에 값 저장 후 다음 스텝으로 이동
+    
     updateFormData({ title, startDate, endDate });
+
+    
+
+
     nextStep();
   };
 
   return (
-    <div className="form-container">
-      <div className="form-box" style={{height:"459px"}}>
+    <form className="form-container">
+      <div className="form-box" style={{height:"525px"}}>
         <div className="form-icon"> <img src={PT_icon}/></div>
 
         <h2>Start PT Project</h2>
@@ -38,12 +44,24 @@ const CreatePT = ({ formData, updateFormData, nextStep }) => {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             />
+            <div className="underSection" style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div className="checkbox">
+                <input
+                  id="is-trainer"
+                  type="checkbox"
+                  checked={isTrainer}
+                  onChange={(e) => setIsTrainer(e.target.checked)}
+                />
+                <label htmlFor="is-trainer">I’m the trainer</label>
+              </div>
+              
+            </div>
        
         </div>
       </div>
       {/* ✅ 다음 버튼 */}
-        <button className="project-next-button" onClick={handleNext}><ProjectNextIcon/></button>
-    </div>
+        <button className="project-next-button" type="submit" onClick={handleNext}><ProjectNextIcon/></button>
+    </form>
   );
 };
 

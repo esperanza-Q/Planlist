@@ -180,6 +180,7 @@ a {
     width:25px;
     height:25px;
     margin-left: 5px;
+    border-radius: 50%;;
 }
 
 .dates{
@@ -202,3 +203,6 @@ a {
 }
 
 
+.project-empty{
+    margin-left:500px;
+}

@@ -9,6 +9,9 @@ frontend/node_modules/
 # Dependencies
 **/node_modules/
 
+NUL
+**/NUL
+
 # Tool caches (webpack/terser/esbuild/parcel, etc.)
 **/.cache/
 **/.parcel-cache/

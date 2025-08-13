@@ -40,6 +40,12 @@
     margin: 34px 130px;
 }
 
+.checkbox input{
+  height:20px;
+  width:20px;
+  margin-right: 10px;
+  margin-top:5px;
+}
 
 .form-box h2{
     margin-bottom: 0px;
