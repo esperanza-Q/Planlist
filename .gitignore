@@ -6,7 +6,12 @@ build/
 !**/src/test/**/build/
 node_modules/
 frontend/node_modules/
+# Dependencies
+**/node_modules/
 
+# Tool caches (webpack/terser/esbuild/parcel, etc.)
+**/.cache/
+**/.parcel-cache/
 ### STS ###
 .apt_generated
 .classpath
