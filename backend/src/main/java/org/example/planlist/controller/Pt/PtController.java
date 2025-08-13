@@ -4,13 +4,14 @@ import lombok.RequiredArgsConstructor;
 import org.example.planlist.dto.PtDTO.request.PtProjectCreateRequestDTO;
 import org.example.planlist.dto.PtDTO.request.PtProjectInviteRequestDTO;
 import org.example.planlist.dto.PtDTO.request.AddSessionRequestDTO;
-import org.example.planlist.dto.PtDTO.request.SelectTimeRequestDTO;
+import org.example.planlist.dto.SharePlannerDTO.request.SelectTimeRequestDTO;
 import org.example.planlist.dto.PtDTO.response.*;
-import org.example.planlist.entity.PtSession;
+import org.example.planlist.dto.SharePlannerDTO.response.SharedPlannerResponseDTO;
+import org.example.planlist.entity.PlannerSession;
 import org.example.planlist.repository.PlannerSessionRepository;
 import org.example.planlist.service.PT.PtProjectService;
 import org.example.planlist.service.PT.PtService;
-import org.example.planlist.service.PT.SharePlannerService;
+import org.example.planlist.service.SharePlanner.SharePlannerService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -104,7 +105,7 @@ public class PtController {
             @RequestParam Long plannerId,
             @RequestBody SelectTimeRequestDTO dto) {
 
-        PtSession updated = sharePlannerService.updateSelectTime(plannerId, dto);
+        PlannerSession updated = sharePlannerService.updateSelectTime(plannerId, dto);
         return ResponseEntity.ok("일정을 선택 완료하였습니다!");
     }
 
