@@ -1,18 +1,19 @@
 package org.example.planlist.controller.Standard;
 
 import lombok.RequiredArgsConstructor;
+import org.example.planlist.dto.SharePlannerDTO.response.SharedPlannerResponseDTO;
 import org.example.planlist.dto.StandardDTO.request.AddSessionRequestDTO;
 import org.example.planlist.dto.StandardDTO.request.StandardProjectCreateRequestDTO;
 import org.example.planlist.dto.StandardDTO.request.StandardProjectInviteRequestDTO;
-import org.example.planlist.dto.StandardDTO.request.SelectTimeRequestDTO;
+import org.example.planlist.dto.SharePlannerDTO.request.SelectTimeRequestDTO;
 import org.example.planlist.dto.StandardDTO.response.*;
 import org.example.planlist.dto.StandardDTO.response.StandardProjectCreateResponseDTO;
 import org.example.planlist.dto.StandardDTO.response.StandardProjectDetailResponseDTO;
-import org.example.planlist.entity.StandardSession;
+import org.example.planlist.entity.PlannerSession;
 import org.example.planlist.repository.PlannerSessionRepository;
 import org.example.planlist.service.Standard.StandardProjectService;
 import org.example.planlist.service.Standard.StandardService;
-import org.example.planlist.service.Standard.SharePlannerService;
+import org.example.planlist.service.SharePlanner.SharePlannerService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -106,7 +107,7 @@ public class StandardController {
             @RequestParam Long plannerId,
             @RequestBody SelectTimeRequestDTO dto) {
 
-        StandardSession updated = sharePlannerService.updateSelectTime(plannerId, dto);
+        PlannerSession updated = sharePlannerService.updateSelectTime(plannerId, dto);
         return ResponseEntity.ok("일정을 선택 완료하였습니다!");
     }
 
