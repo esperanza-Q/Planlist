@@ -23,81 +23,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-/*
-@Configuration
-@EnableWebSecurity
-public class SecurityConfig {
-
-    private final JwtTokenProvider jwtTokenProvider;
-    private final UserDetailsService userDetailsService;
-    private final CustomOAuth2UserService customOAuth2UserService;
-
-    public SecurityConfig(JwtTokenProvider jwtTokenProvider, @Lazy UserDetailsService userDetailsService,
-                          CustomOAuth2UserService customOAuth2UserService) { // Lazy 적용
-        this.jwtTokenProvider = jwtTokenProvider;
-        this.userDetailsService = userDetailsService;
-        this.customOAuth2UserService = customOAuth2UserService;
-    }
-
-    //JWT 인증 필터 등록
-    @Bean
-    public JwtTokenFilter jwtTokenFilter() {
-        return new JwtTokenFilter(jwtTokenProvider, userDetailsService);
-    }
-
-    //로컬+소셜로그인
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/test/**",
-                                "/api/users/**",
-                                "/api/auth/**",
-                                "/api/calculator/**",
-                                "/api/board/**",
-                                "/auth/google",
-                                "/auth/kakao",
-                                "/auth/naver",
-                                "/login"
-                        ).permitAll()
-                        .anyRequest().authenticated()
-                )
-                // 기존 form 로그인(로컬 로그인) 설정
-                .formLogin(form -> form
-                        .loginPage("/login")      // 커스텀 로그인 페이지 URL
-                        .permitAll()
-                )
-                // OAuth2 로그인 설정 (구글 등 소셜 로그인)
-                .oauth2Login(oauth2 -> oauth2
-                                // loginPage() 미지정 => 스프링이 기본 OAuth2 로그인 흐름만 처리
-                                .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                                .defaultSuccessUrl("http://localhost:3000", true)
-                        // 필요시 커스텀 OAuth2UserService 지정 가능
-                        //.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                )
-                // JWT 필터는 UsernamePasswordAuthenticationFilter 앞에 둡니다.
-                .addFilterBefore(new JwtTokenFilter(jwtTokenProvider, userDetailsService),
-                        UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
-    }
-
-    //비밀번호 암호화
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    //인증 매니저
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
-    }
-
-
-}*/
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -126,9 +51,11 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .cors(Customizer.withDefaults())
+                .cors(Customizer.withDefaults()) // WebMvcConfigurer에서 CORS 설정을 사용
                 .authorizeHttpRequests(auth -> auth
+                        // Preflight OPTIONS 요청은 인증 없이 통과 허용
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // 인증 없이 접근 가능한 경로들
                         .requestMatchers(
                                 "/test/**",
                                 "/api/users/**",
@@ -139,20 +66,24 @@ public class SecurityConfig {
                                 "/auth/kakao",
                                 "/auth/naver",
                                 "/login",
-                                "/calendar/events",  // ✅ 추가
-                                "/oauth2/authorization/google" // ✅ 구글 로그인 진입점 허용
+                                "/calendar/events",
+                                "/oauth2/authorization/google"
                         ).permitAll()
+                        // 그 외 모든 요청은 인증 필요
                         .anyRequest().authenticated()
                 )
+                // form login은 사용하되, 로그인 페이지 접근은 허용
                 .formLogin(form -> form
                         .loginPage("/login")
+                        .defaultSuccessUrl("/home")
                         .permitAll()
                 )
+                // OAuth2 로그인 설정 및 성공 핸들러 지정
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
                         .successHandler(oAuth2LoginSuccessHandler)
                 )
-                // ✅ 로그인 페이지로 Redirect 대신 401 응답
+                // 인증 실패 시 로그인 페이지 Redirect 대신 401 JSON 응답 반환
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -160,6 +91,7 @@ public class SecurityConfig {
                             response.getWriter().write("{\"error\":\"Unauthorized\"}");
                         })
                 )
+                // JWT 필터를 UsernamePasswordAuthenticationFilter 앞에 추가
                 .addFilterBefore(jwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -175,15 +107,16 @@ public class SecurityConfig {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
-    // ✅ 전역 CORS 설정
+    // 전역 CORS 설정 (WebMvcConfigurer 구현)
     @Bean
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/api/**")
-                        .allowedOrigins("http://localhost:3000")
+                registry.addMapping("/**")  // 모든 경로에 대해 허용
+                        .allowedOrigins("http://localhost:3000") // 프론트 도메인
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                        .allowedHeaders("*") // 모든 헤더 허용
                         .allowCredentials(true);
             }
         };
