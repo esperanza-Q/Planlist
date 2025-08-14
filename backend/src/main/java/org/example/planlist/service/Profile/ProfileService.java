@@ -51,6 +51,8 @@ public class ProfileService {
 
     @Transactional(readOnly = true)
     public ProjectRequestWrapperDTO getProfile() {
+
+        //ADDED BY SEOYOUNG-1
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         Object principal = (auth != null ? auth.getPrincipal() : null);
 
@@ -63,24 +65,35 @@ public class ProfileService {
         profileDTO.setName(user.getName());
         profileDTO.setEmail(user.getEmail());
         profileDTO.setProfileImage(user.getProfileImage());
+        ///before seoyoung change
+        // List<ProjectParticipant> projectParticipants = projectParticipantRepository.findByUser(user);
 
-        List<ProjectParticipant> projectParticipants = projectParticipantRepository.findByUser(user);
+        // List<ProjectRequestDTO> projectRequestDTOs = projectParticipants.stream()
+        //         .filter(pp -> pp.getResponse() == ProjectParticipant.Response.WAITING)
+        //         .map(pp -> {
+        //             ProjectRequestDTO dto = new ProjectRequestDTO();
+        //             dto.setInviteeId(pp.getId());
+        //             // dto.setProjectTitle(pp.getProject().getProjectTitle());
+        //             // dto.setCreator(pp.getProject().getCreator().getName());
+                    
 
-        List<ProjectRequestDTO> projectRequestDTOs = projectParticipants.stream()
-                .filter(pp -> pp.getResponse() == ProjectParticipant.Response.WAITING)
-                .map(pp -> {
-                    ProjectRequestDTO dto = new ProjectRequestDTO();
-                    dto.setInviteeId(pp.getId());
-                    // dto.setProjectTitle(pp.getProject().getProjectTitle());
-                    // dto.setCreator(pp.getProject().getCreator().getName());
-                    return dto;
-                })
-                .collect(Collectors.toList());
+        //             return dto;
+        //         })
+        //         .collect(Collectors.toList());
+
+        //after seoyoung change
+        // ✅ fetch pre-mapped DTOs via JPQL constructor projection
+      List<ProjectRequestDTO> projectRequestDTOs =
+        projectParticipantRepository.findPendingInviteDtosForUser(
+            user, ProjectParticipant.Response.WAITING // <-- make sure WAITING exists
+        );
+        //✅ 여기가 끝
 
         ProjectRequestWrapperDTO wrapperDTO = new ProjectRequestWrapperDTO();
         wrapperDTO.setProfile(profileDTO);
         wrapperDTO.setProjectRequest(projectRequestDTOs);
         return wrapperDTO;
+
     }
 
     // helper inside ProfileService

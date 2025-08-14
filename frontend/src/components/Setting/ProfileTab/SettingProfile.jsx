@@ -6,43 +6,91 @@ import DefaultProfilePic from "../../../assets/ProfilePic.png";
 import "./SettingProfile.css";
 import { api } from "../../../api/client";
 
-// Small helper to pick the first non-empty field
+// pick the first non-empty value
 const first = (...vals) => vals.find(v => v != null && String(v).trim() !== "") ?? null;
 
+// --- DROP-IN: ultra-resilient normalizer ---
 const normalize = (raw) => {
-  // Your API returns "profile" (per the sample), not "user"
-  const profile = raw?.profile ?? raw?.user ?? {};
-  const projectRequest = Array.isArray(raw?.projectRequest) ? raw.projectRequest : [];
+  const root = raw?.data ?? raw ?? {};
+
+  // "user" per spec; some older payloads had "profile"
+  const userOrProfile = root.user ?? root.profile ?? {};
+
+  // requests might be "projectRequest" (list) or "projectRequests"
+  const reqs = Array.isArray(root.projectRequest)
+    ? root.projectRequest
+    : Array.isArray(root.projectRequests)
+    ? root.projectRequests
+    : [];
 
   const profilePic =
     first(
-      profile?.profile_image,
-      profile?.profileImage,
-      profile?.avatarUrl
+      userOrProfile.profile_image,
+      userOrProfile.profileImage,
+      userOrProfile.avatarUrl
     ) || DefaultProfilePic;
 
-  return {
-    user: {
-      name: profile?.name ?? "name",
-      email: profile?.email ?? "ex@example.com",
-      profilePic,
-    },
-    projectRequests: projectRequest.map((p, i) => ({
-      // Your sample uses inviteeId
-      invitee_id: p?.inviteeId ?? p?.invitee_id ?? `unknown-${i}`,
-      projectTitle: p?.projectTitle ?? "Project title",
-      creator: p?.creator ?? "creator",
-      // use the user/profile image as the avatar for the request card
-      profile_image: profilePic,
-    })),
+  const user = {
+    name: first(
+      userOrProfile.name,
+      userOrProfile.username,
+      userOrProfile.displayName
+    ) ?? "name",
+    email: first(
+      userOrProfile.email,
+      userOrProfile.mail,
+      userOrProfile.userEmail
+    ) ?? "ex@example.com",
+    profilePic,
   };
+
+  const projectRequests = reqs.map((p, i) => {
+    // Try flat, snake_case, and nested variants for title:
+    const projectTitle = first(
+      p?.projectTitle,
+      p?.project_title,
+      p?.title,
+      p?.project?.title,
+      p?.project?.name,
+      p?.project?.projectTitle,
+      p?.projectName
+    ) ?? "Project title";
+
+    // Try multiple sources for creator/owner:
+    const creator = first(
+      p?.creator,
+      p?.creatorName,
+      p?.creator_name,
+      p?.owner,
+      p?.ownerName,
+      p?.createdBy,
+      p?.createdByName,
+      p?.creatorEmail,                 // fallback to email if name missing
+      p?.project?.creator,
+      p?.project?.creatorName,
+      p?.project?.ownerName,
+      p?.project?.owner?.name,
+      p?.project?.creator?.name
+    ) ?? "creator";
+
+    return {
+      invitee_id: p?.invitee_id ?? p?.inviteeId ?? `unknown-${i}`,
+      projectTitle,
+      creator,
+      profile_image: profilePic, // reuse user's pic for now
+    };
+  });
+
+  return { user, projectRequests };
+};
+
+const DEFAULT_STATE = {
+  user: { name: "name", email: "ex@example.com", profilePic: DefaultProfilePic },
+  projectRequests: [],
 };
 
 const MypageProfile = ({ setView }) => {
-  const [profileData, setProfileData] = useState({
-    user: { name: "name", email: "ex@example.com", profilePic: DefaultProfilePic },
-    projectRequests: [],
-  });
+  const [profileData, setProfileData] = useState(DEFAULT_STATE);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -50,10 +98,14 @@ const MypageProfile = ({ setView }) => {
     (async () => {
       try {
         const json = await api.getSession("/api/settings/profile");
+        // Debug once to confirm actual payload shape
+        console.log("[/api/settings/profile] raw:", json);
         const normalized = normalize(json);
-        if (alive) setProfileData(normalized);
+        console.log("[/api/settings/profile] normalized:", normalized);
+        if (alive) setProfileData(normalized ?? DEFAULT_STATE);
       } catch (e) {
         console.error("Error fetching profile:", e);
+        if (alive) setProfileData(DEFAULT_STATE);
       } finally {
         if (alive) setLoading(false);
       }
@@ -61,7 +113,7 @@ const MypageProfile = ({ setView }) => {
     return () => { alive = false; };
   }, []);
 
-  const { user, projectRequests } = profileData;
+  const { user, projectRequests } = profileData ?? DEFAULT_STATE;
 
   return (
     <div className="screen">

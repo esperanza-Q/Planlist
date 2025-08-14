@@ -116,6 +116,21 @@ export const api = {
   putSession: (p, b, opts) =>
     apiFetch(p, { method: "PUT", body: b, ...(opts || {}), auth: "session" }),
 
+
+   getSessionJson: (p, opts) =>
+    apiFetch(p, {
+      ...(opts || {}),
+      auth: "session",
+      headers: {
+        "Content-Type": "application/json",
+        ...(opts?.headers || {})
+      },
+      body:
+        opts?.body && typeof opts.body === "object"
+          ? JSON.stringify(opts.body)
+          : opts?.body
+    }),
+
   // Bearer (auto) helpers
   post: (p, b, opts) => apiFetch(p, { method: "POST", body: b, ...(opts || {}) }),
   put: (p, b, opts) => apiFetch(p, { method: "PUT", body: b, ...(opts || {}) }),

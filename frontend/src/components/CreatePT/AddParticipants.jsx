@@ -31,19 +31,23 @@ const normalizeFromApi = (raw) => {
     const rs = lc(p?.response ?? p?.status ?? 'waiting');
     const status = rs === 'accepted' ? 'accepted' : 'waiting';
     return {
-      id: p?.userId ?? `participant-${i}`,
+      // IMPORTANT: id here is the USER ID (what the DELETE API expects)
+      id: p?.userId ?? p?.id ?? `participant-${i}`,
       name: p?.name ?? `User ${i}`,
       role: p?.role === 'TRAINER' ? 'TRAINER' : 'TRAINEE',
       isTrainer: p?.role === 'TRAINER',
       status,
       profileImage: p?.profileImage ?? p?.profile_image ?? ProfilePic,
+
+      // Some backends also send a projectParticipantId — keep it around just in case
       projectParticipantId:
         p?.projectParticipantId ??
         p?.participantId ??
         p?.projectParticipantID ??
         p?.ppid ??
         null,
-      email: p?.email ?? null, // often missing; ok
+
+      email: p?.email ?? null,
     };
   };
 
@@ -163,17 +167,21 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
     }
   };
 
+  // 🔧 FIXED: delete uses USER ID in the path (not projectParticipantId)
   const handleRemove = async (part) => {
     if (!formData?.projectId) { alert('Missing projectId.'); return; }
-    const participantId = part?.projectParticipantId;
-    if (!participantId) {
-      console.error('Missing projectParticipantId on participant:', part);
-      alert('Cannot delete: participantId is missing from server data.');
+
+    // Backend contract: /deleteRequest/{userId}
+    const userId = part?.id ?? part?.userId;
+    if (!userId) {
+      console.error('Missing userId on participant:', part);
+      alert('Cannot delete: userId is missing from server data.');
       return;
     }
+
     try {
       await api.deleteSession(
-        `/api/pt/inviteUser/${formData.projectId}/deleteRequest/${participantId}`
+        `/api/pt/inviteUser/${formData.projectId}/deleteRequest/${userId}`
       );
       await refetch(); // friends list will automatically show this person again
     } catch (e) {
@@ -290,23 +298,16 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
         className={`project2-next-button ${(!allAccepted || submitting) ? 'is-disabled' : ''}`}
         title={allAccepted ? "Next" : "Waiting for everyone to accept"}
         onClick={async () => {
-          // if (!allAccepted) {
-          //   alert(`Everyone needs to accept before continuing${pendingCount ? ` (${pendingCount} pending)` : ""}.`);
-          //   return;
-          // }
           if (submitting) return;
           setSubmitting(true);
           try {
-            // Try POST first; fall back to GET if your backend uses it
             try {
               await api.getSession(`/api/pt/inviteUser/${projectId}/inprogress`);
             } catch (err) {
-              
-                console.error('Failed to set in-progress:',  err);
-                alert('Failed to set project to in-progress. Please try again.');
-                setSubmitting(false);
-                return;
-              
+              console.error('Failed to set in-progress:', err);
+              alert('Failed to set project to in-progress. Please try again.');
+              setSubmitting(false);
+              return;
             }
             updateFormData({ participants });
             nextStep();
