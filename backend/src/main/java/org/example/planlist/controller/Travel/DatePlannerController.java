@@ -1,10 +1,8 @@
-package org.example.planlist.controller;
+package org.example.planlist.controller.Travel;
 
 import org.example.planlist.dto.DatePlannerDTO.DatePlannerRequestDTO;
 import org.example.planlist.dto.DatePlannerDTO.DatePlannerResponseDTO;
 import org.example.planlist.dto.WishlistDTO.WishlistResponseDTO;
-import org.example.planlist.entity.Wishlist;
-import org.example.planlist.repository.WishlistRepository;
 import org.example.planlist.service.DatePlannerService;
 import org.example.planlist.service.WishlistService;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -12,11 +10,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/planner/{projectId}/travel/dateplanner")
+@RequestMapping("/api/travel/{projectId}/dateplanner")
 public class DatePlannerController {
     private final DatePlannerService datePlannerService;
     private final WishlistService wishlistService;
