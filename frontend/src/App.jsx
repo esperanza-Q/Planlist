@@ -34,16 +34,28 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import LandingPage from "./pages/LandingPage";
 
+import { api } from "./api/client";
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(true); // 기본 false (로그인 안 한 상태) 테스트만 true로 쓸 것
+  const [isAuthenticated, setIsAuthenticated] = useState(false); // 기본 false (로그인 안 한 상태) 테스트만 true로 쓸 것
+  const [checkingAuth, setCheckingAuth] = useState(true); 
 
   const sidebarRef = useRef(null);
-
   const toggleSidebar = () => setSidebarOpen(prev => !prev);
 
   useEffect(() => {
+     (async () => {
+      try {
+        await api.get("/api/users/me");     // <- 실제 사용자 조회 엔드포인트로 변경
+        setIsAuthenticated(true);
+      } catch (e) {
+        setIsAuthenticated(false);
+      } finally {
+        setCheckingAuth(false);
+      }
+    })();
+
     const handleClickOutside = (event) => {
       if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
         setSidebarOpen(false);
@@ -57,6 +69,12 @@ function App() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isSidebarOpen]);
+
+  
+  if (checkingAuth) {
+    return <div>Loading...</div>; 
+  }
+
 
   return (
     <Router>
@@ -72,9 +90,15 @@ function App() {
         <main style={{ flex: 1, padding: '20px' }}>
           <Routes>
             {/* 로그인/회원가입 */}
-            <Route path="/" element={<LandingPage />} />
+            <Route
+              path="/"
+              element={
+                isAuthenticated ? <Navigate to="/home" replace /> : <LandingPage />
+              }
+            />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
+
 
             {/* 보호된 페이지들 */}
             {isAuthenticated ? (

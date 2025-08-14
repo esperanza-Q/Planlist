@@ -77,3 +77,4 @@ const ScheduledEvents = () => {
 };
 
 export default ScheduledEvents;
+

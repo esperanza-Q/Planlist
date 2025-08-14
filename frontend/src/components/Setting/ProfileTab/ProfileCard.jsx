@@ -5,7 +5,7 @@ import DefaultProfilePic from "../../../assets/ProfilePic.png";
 
 import { changePassword } from "../../../api/profile";
 
-const ProfileCard = ({ profilePic = "", name: initialName = "", email: initialEmail = "" }) => {
+const ProfileCard = ({ profilePic: initialProfilePic="", name: initialName = "", email: initialEmail = "" }) => {
   const [isEditing, setIsEditing] = useState(false);
 
   // Profile edit states (controlled)

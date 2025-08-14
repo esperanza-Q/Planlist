@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import {
   startOfMonth,
   endOfMonth,
@@ -11,30 +11,104 @@ import {
 } from 'date-fns';
 import './Month_Calendar.css';
 import { useNavigate } from 'react-router-dom';
+import { api } from '../../api/client';
 
-const MonthCalendar = ({ currentDate, events }) => {
+const CATEGORY_COLOR_MAP = {
+  PT: 'blue',
+  MEETING: 'green',
+  STUDY: 'purple',
+  DEFAULT: 'blue',
+};
+
+const MonthCalendar = ({ currentDate }) => {
   const navigate = useNavigate();
 
-  const start = startOfWeek(startOfMonth(currentDate), { weekStartsOn: 1 });
-  const end = endOfWeek(endOfMonth(currentDate), { weekStartsOn: 1 });
-  const days = eachDayOfInterval({ start, end });
+  // 달력 범위(월요일 시작)
+  const monthStart = useMemo(() => startOfMonth(currentDate), [currentDate]);
+  const monthEnd = useMemo(() => endOfMonth(currentDate), [currentDate]);
+  const start = useMemo(() => startOfWeek(monthStart, { weekStartsOn: 1 }), [monthStart]);
+  const end = useMemo(() => endOfWeek(monthEnd, { weekStartsOn: 1 }), [monthEnd]);
 
+  const days = useMemo(() => eachDayOfInterval({ start, end }), [start, end]);
   const weeks = useMemo(() => {
-    const result = [];
-    for (let i = 0; i < days.length; i += 7) {
-      result.push(days.slice(i, i + 7));
-    }
-    return result;
+    const out = [];
+    for (let i = 0; i < days.length; i += 7) out.push(days.slice(i, i + 7));
+    return out;
   }, [days]);
+
+  // API 상태
+  const [events, setEvents] = useState([]); // {id, title, date, startTime, endTime, color, ...}
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+
+  // mon 파라미터 (yyyy-MM)
+  const monStr = useMemo(() => format(currentDate, 'yyyy-MM'), [currentDate]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const fetchMonth = async () => {
+      setLoading(true);
+      setErrorMsg('');
+      try {
+        const { data } = await api.get('/api/planlistCalendar/month', {
+          params: { mon: monStr },
+          signal: controller.signal,
+          timeout: 10000,
+        });
+
+        // data: [{ date, planlistCalendar: [...] }]
+        const mapped = (Array.isArray(data) ? data : []).flatMap((dayBlock) => {
+          const date = dayBlock?.date;
+          const list = dayBlock?.planlistCalendar ?? [];
+          return list.map((it) => ({
+            id: it.sessionId,
+            projectId: it.projectId,
+            sessionId: it.sessionId,
+            title: it.title,
+            date,                       // 'YYYY-MM-DD'
+            startTime: it.start,        // 'HH:mm'
+            endTime: it.end,            // 'HH:mm'
+            color: CATEGORY_COLOR_MAP[it.category] || CATEGORY_COLOR_MAP.DEFAULT,
+            category: it.category,
+          }));
+        });
+
+        setEvents(mapped);
+      } catch (err) {
+        if (err.name === 'CanceledError' || err.code === 'ERR_CANCELED') return;
+        const status = err?.response?.status;
+        const body = err?.response?.data;
+        setErrorMsg(
+          status
+            ? `요청 실패 (HTTP ${status}) ${typeof body === 'string' ? body : body?.message || ''}`
+            : `네트워크 오류: ${err.message}`
+        );
+        console.error('Month API error:', {
+          url: '/api/planlistCalendar/month',
+          params: { mon: monStr },
+          status,
+          body,
+          message: err?.message,
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMonth();
+    return () => controller.abort();
+  }, [monStr]);
 
   return (
     <div className="month-calendar">
       <h2 className="week-calendar-title">{format(currentDate, 'MMMM yyyy')}</h2>
+
+      {loading && <div className="month-calendar-loading">로딩 중…</div>}
+      {errorMsg && <div className="month-calendar-error">{errorMsg}</div>}
+
       <div className="month-header">
-        {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map(day => (
-          <div className="month-cell header-cell" key={day}>
-            {day}
-          </div>
+        {['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'].map((day) => (
+          <div className="month-cell header-cell" key={day}>{day}</div>
         ))}
       </div>
 
@@ -43,12 +117,7 @@ const MonthCalendar = ({ currentDate, events }) => {
           {week.map((day) => {
             const dayStr = format(day, 'yyyy-MM-dd');
 
-            // 해당 날짜에 해당하는 이벤트 필터
-            const dayEvents = events.filter(event => {
-              const eventDate = event.date || event.startDate || event.start;
-              const eventDay = format(new Date(eventDate), 'yyyy-MM-dd');
-              return eventDay === dayStr;
-            });
+            const dayEvents = events.filter(ev => ev.date === dayStr);
 
             return (
               <div
@@ -57,11 +126,12 @@ const MonthCalendar = ({ currentDate, events }) => {
               >
                 <div className="month-date">{format(day, 'd')}</div>
 
-                {dayEvents.map((event, idx) => (
+                {dayEvents.map((event) => (
                   <div
-                    key={idx}
+                    key={event.id}
                     className={`month-event event-${event.color || 'blue'}`}
                     onClick={() => navigate(`/event/${event.id}`)}
+                    title={`${event.title} (${event.startTime}–${event.endTime})`}
                   >
                     • {event.title}
                   </div>
