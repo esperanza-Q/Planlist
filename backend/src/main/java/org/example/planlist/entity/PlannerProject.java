@@ -50,7 +50,8 @@ public class PlannerProject {
     private LocalDate endDate;
 
     @OneToMany(mappedBy = "project", fetch = FetchType.LAZY)
-    private List<ProjectParticipant> participants;
+    @Builder.Default
+    private List<ProjectParticipant> participants = new ArrayList<>();
 
     // Enum
     public enum Category {
@@ -81,11 +82,14 @@ public class PlannerProject {
     }
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<DatePlanner> datePlanners = new ArrayList<>();
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<Wishlist> wishlists = new ArrayList<>();
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<MoveBetweenPlaces> moveBetweenPlacesList = new ArrayList<>();
 }
