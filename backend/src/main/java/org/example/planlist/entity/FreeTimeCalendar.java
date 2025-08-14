@@ -33,7 +33,7 @@ public class FreeTimeCalendar {
     protected void onCreate() { this.createdAt = LocalDateTime.now(); }
 
     @Column(nullable = false)
-    private Boolean all_day;
+    private Boolean allDay;
 
     private Integer availableStartHour;
 
