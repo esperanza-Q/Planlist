@@ -50,9 +50,23 @@ public class ProfileService {
         profileDTO.setProfileImage(user.getProfileImage());
 
         // 유저가 참가한 프로젝트 리스트 조회
-        List<ProjectParticipant> projectParticipants = projectParticipantRepository.findByUser(user);
+//        List<ProjectParticipant> projectParticipants = projectParticipantRepository.findByUser(user);
+//
+//        // 프로젝트 요청 DTO 변환
+//        List<ProjectRequestDTO> projectRequestDTOs = projectParticipants.stream()
+//                .filter(pp -> pp.getResponse() == ProjectParticipant.Response.WAITING)
+//                .map(pp -> {
+//                    ProjectRequestDTO dto = new ProjectRequestDTO();
+//                    dto.setInviteeId(pp.getId());
+//                    dto.setProjectTitle(pp.getProject().getProjectTitle());
+//                    dto.setCreator(pp.getProject().getCreator().getName());
+//                    return dto;
+//                })
+//                .collect(Collectors.toList());
 
-        // 프로젝트 요청 DTO 변환
+        // fetch join 사용
+        List<ProjectParticipant> projectParticipants = projectParticipantRepository.findByUserWithProjectAndCreator(user);
+
         List<ProjectRequestDTO> projectRequestDTOs = projectParticipants.stream()
                 .filter(pp -> pp.getResponse() == ProjectParticipant.Response.WAITING)
                 .map(pp -> {

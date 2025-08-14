@@ -51,4 +51,10 @@ public interface ProjectParticipantRepository extends JpaRepository<ProjectParti
     List<ProjectParticipant> findWithUserByProject(@Param("project") PlannerProject project);
 
     Optional<ProjectParticipant> findByProjectAndUser(PlannerProject project, User user);
+
+    @Query("SELECT pp FROM ProjectParticipant pp " +
+            "JOIN FETCH pp.project p " +
+            "JOIN FETCH p.creator " +
+            "WHERE pp.user = :user")
+    List<ProjectParticipant> findByUserWithProjectAndCreator(@Param("user") User user);
 }
