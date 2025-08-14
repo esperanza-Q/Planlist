@@ -34,77 +34,41 @@ const CalendarSection = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    let isCancelled = false;
+  const fetchFreeTime = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get("/api/home"); // 전체 데이터 가져오기
+      const items = res?.freeTimeCalendar ?? [];
 
-    const fetchMonthAvailability = async () => {
-      setLoading(true);
-      try {
-        const { gridStart, gridEnd } = getGridRange(activeStartDate);
+      const map = new Map();
+      items.forEach((entry) => {
+        const d = entry.date;
+        if (!map.has(d)) map.set(d, { full: false, partial: false });
+        const rec = map.get(d);
+        if (entry.allDay) rec.full = true;
+        else rec.partial = true;
+      });
 
-        // 월 그리드를 주 단위로 쪼개서 병렬 호출
-        const weeks = [];
-        for (let d = new Date(gridStart); d <= gridEnd; d = addDays(d, 7)) {
-          weeks.push(new Date(d));
-        }
-
-        const requests = weeks.map((ws) =>
-          api.get("/api/home/freeTimeCalendar/getFreeTime", {
-            params: {
-              startDate: toISODate(ws),
-              endDate: toISODate(addDays(ws, 6)),
-            },
-            timeout: 10000,
-          })
-        );
-
-        const results = await Promise.all(requests);
-
-        // 각 응답에서 freeTimeCalendar를 수집
-        const items = results
-          .map((r) => r?.data?.freeTimeCalendar ?? [])
-          .flat();
-
-        // 날짜별로 full/partial 집계
-        const map = new Map(); // date -> { full: boolean, partial: boolean }
-        items.forEach((entry) => {
-          const d = entry.date;
-          if (!map.has(d)) map.set(d, { full: false, partial: false });
-          const rec = map.get(d);
-          if (entry.allDay) rec.full = true;
-          else rec.partial = true;
-        });
-
-        const full = [];
-        const partial = [];
-        for (const [d, { full: f, partial: p }] of map.entries()) {
-          if (f) full.push(d);
-          else if (p) partial.push(d);
-        }
-
-        if (!isCancelled) {
-          setFullDates(full);
-          setPartialDates(partial);
-        }
-      } catch (e) {
-        console.error("Failed to fetch freeTimeCalendar:", {
-          status: e?.response?.status,
-          data: e?.response?.data,
-          message: e?.message,
-        });
-        if (!isCancelled) {
-          setFullDates([]);
-          setPartialDates([]);
-        }
-      } finally {
-        if (!isCancelled) setLoading(false);
+      const full = [];
+      const partial = [];
+      for (const [d, { full: f, partial: p }] of map.entries()) {
+        if (f) full.push(d);
+        else if (p) partial.push(d);
       }
-    };
 
-    fetchMonthAvailability();
-    return () => {
-      isCancelled = true;
-    };
-  }, [activeStartDate]);
+      setFullDates(full);
+      setPartialDates(partial);
+    } catch (e) {
+      console.error("Failed to fetch freeTimeCalendar:", e);
+      setFullDates([]);
+      setPartialDates([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchFreeTime();
+}, []);
 
   const tileClassName = useMemo(() => {
     return ({ date }) => {
@@ -117,7 +81,7 @@ const CalendarSection = () => {
 
   return (
     <div className="calendar-section">
-      <h2 className="calendar-title">My Free Time Calendar</h2>
+      <h2 className="My-calendar-title">My Free Time Calendar</h2>
       <div className="calendar-container">
         <Calendar
           onChange={setDate}
@@ -134,10 +98,6 @@ const CalendarSection = () => {
       </div>
 
       {loading && <div className="calendar-loading">Loading availability…</div>}
-      <div className="calendar-legend">
-        <span className="legend-box tile-full" /> Full day available
-        <span className="legend-box tile-partial" /> Partially available
-      </div>
     </div>
   );
 };

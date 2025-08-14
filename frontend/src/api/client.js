@@ -1,5 +1,6 @@
-// src/api/client.js
-const API_BASE = process.env.REACT_APP_API_BASE_URL || ""; // use dev proxy
+
+const API_BASE = "http://localhost:8080"; 
+// const API_BASE = process.env.REACT_APP_API_BASE_URL || ""; // use dev proxy
 
 const getToken = () => localStorage.getItem("accessToken");
 
@@ -16,14 +17,22 @@ async function apiFetch(path, opts = {}) {
     body = undefined,
     headers = {},
     auth = "auto",
-    credentials = "include", // keep cookies for session endpoints
+    credentials = "include",
+    params, // 추가
   } = opts;
 
   const token = getToken();
-  const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
+
+  let url = path.startsWith("http") ? path : `${API_BASE}${path}`;
+
+  // GET 요청이면 params를 쿼리 문자열로 변환
+  if (method.toUpperCase() === "GET" && params) {
+    const query = new URLSearchParams(params).toString();
+    url += (url.includes("?") ? "&" : "?") + query;
+  }
+
   const isForm = typeof FormData !== "undefined" && body instanceof FormData;
 
-  // Auth header
   const authHeader =
     auth === "session"
       ? {}
@@ -31,23 +40,21 @@ async function apiFetch(path, opts = {}) {
       ? { Authorization: `Bearer ${token}` }
       : {};
 
-  // Base headers
   const baseHeaders = {
     Accept: "application/json, text/plain, */*",
     ...authHeader,
     ...headers,
   };
 
-  // Only set JSON content-type if we actually send a non-Form body
   if (!isForm && body != null && !baseHeaders["Content-Type"]) {
     baseHeaders["Content-Type"] = "application/json";
   }
 
   const fetchOpts = {
     method,
-    credentials, // "include" by default: needed for Spring Session/OAuth2 login
+    credentials,
     headers: baseHeaders,
-    body: isForm ? body : body != null ? JSON.stringify(body) : undefined,
+    body: method.toUpperCase() === "GET" ? undefined : isForm ? body : body != null ? JSON.stringify(body) : undefined,
   };
 
   let res;
