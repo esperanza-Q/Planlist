@@ -1,4 +1,4 @@
-package org.example.planlist.controller;
+package org.example.planlist.controller.Travel;
 
 import org.example.planlist.dto.WishlistDTO.WishlistRequestDTO;
 import org.example.planlist.dto.WishlistDTO.WishlistResponseDTO;
@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/planner/{projectId}/travel/wishlist")
+@RequestMapping("/api/travel/{projectId}/wishlist")
 public class WishlistController {
     private final WishlistService wishlistService;
 
