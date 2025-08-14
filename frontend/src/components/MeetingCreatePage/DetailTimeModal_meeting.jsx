@@ -1,34 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
 import '../StandardCreatePage/DetailTimeModal.css';
 import { format, parseISO } from 'date-fns';
+import axios from 'axios';
 
-const DetailTimeModal = ({ date, onClose, onSave }) => {
+const DetailTimeModal = ({ date, plannerId, onClose, onSave }) => {
   const [selectedTimes, setSelectedTimes] = useState([]);
   const [availabilityMap, setAvailabilityMap] = useState({});
   const isDragging = useRef(false);
   const startIndex = useRef(null);
 
-  const totalParticipants = 6; // 전체 친구 수 (mock 기준)
+  const totalParticipants = 6; // 필요시 부모에서 전달받도록 변경 가능
 
   const parsedDate = parseISO(date);
   const dayLabel = format(parsedDate, 'EEE');
   const dayNumber = format(parsedDate, 'd');
-
-  // ✅ mock 데이터로 고정된 가능 인원 수
-  useEffect(() => {
-    const mockAvailability = {
-      3: 6, 4: 6,
-      6: 3, 7: 3, 8: 3,
-      13: 6,
-      15: 5,
-      18: 6
-    };
-    const map = {};
-    for (let i = 0; i < 24; i++) {
-      map[i] = mockAvailability[i] || 0;
-    }
-    setAvailabilityMap(map);
-  }, []);
 
   const formatHourLabel = (h) => {
     if (h === 0 || h === 24) return '12am';
@@ -45,22 +30,32 @@ const DetailTimeModal = ({ date, onClose, onSave }) => {
 
   const handleMouseEnter = (index) => {
     if (!isDragging.current || startIndex.current === null) return;
-    const range = getRange(startIndex.current, index);
-    setSelectedTimes(range);
+    const [min, max] = [Math.min(startIndex.current, index), Math.max(startIndex.current, index)];
+    setSelectedTimes(Array.from({ length: max - min + 1 }, (_, i) => min + i));
   };
 
-  const handleMouseUp = () => {
+  const handleMouseUp = async () => {
     isDragging.current = false;
-    if (selectedTimes.length > 0) {
-      const times = selectedTimes.map(i => `${String(i).padStart(2, '0')}:00`);
-      const maxAvailable = Math.max(...selectedTimes.map(i => availabilityMap[i] || 0));
-      onSave({ date, time: times, availableCount: maxAvailable });
-    }
-  };
+    if (selectedTimes.length === 0) return;
 
-  const getRange = (start, end) => {
-    const [min, max] = [Math.min(start, end), Math.max(start, end)];
-    return Array.from({ length: max - min + 1 }, (_, i) => min + i);
+    const start = `${String(selectedTimes[0]).padStart(2, '0')}:00`;
+    const end = `${String(selectedTimes[selectedTimes.length - 1] + 1).padStart(2, '0')}:00`;
+
+    // 선택된 시간 POST 요청
+    try {
+      const payload = selectedTimes.length === 24
+        ? { date, allDay: true }
+        : { date, start, end };
+
+      const res = await axios.post('/api/meeting/project/selectTime', payload, {
+        params: { plannerId }
+      });
+
+      console.log(res.data); // "일정을 선택 완료하였습니다!"
+      onSave({ date, time: selectedTimes.map(i => `${String(i).padStart(2, '0')}:00`) });
+    } catch (err) {
+      console.error('시간 선택 전송 실패:', err);
+    }
   };
 
   return (
@@ -78,7 +73,7 @@ const DetailTimeModal = ({ date, onClose, onSave }) => {
 
         <div className="DetailTime-time-list">
           {Array.from({ length: 24 }, (_, i) => {
-            const availableCount = availabilityMap[i];
+            const availableCount = availabilityMap[i] || 0;
             const isFull = availableCount === totalParticipants;
             const isPartial = availableCount > 0 && availableCount < totalParticipants;
             const isSelected = selectedTimes.includes(i);

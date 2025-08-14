@@ -7,23 +7,30 @@ import DiscussionIcon from '../../icons/DiscussionIcon';
 import { ReactComponent as ProjectNextIcon } from "../../assets/Project_next_button.svg";
 
 const BigMeetingStartProject = ({ formData, updateFormData, nextStep }) => {
-  const [title, setTitle] = useState(formData.title || '');
-  const [loading, setLoading] = useState(false);
+  const [title, setTitle] = useState(formData.bigTitle || ''); // Big 프로젝트용
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  
   const handleNext = async () => {
+    if (!title.trim()) {
+      setError('Please enter the project title');
+      return;
+    }
+    setError('');
+
     try {
       setLoading(true);
 
-      // 서버에 프로젝트 생성 요청 (title만 전송)
       const res = await axios.post('/api/meeting/createProject', {
         title
       });
 
       console.log('프로젝트 생성 응답:', res.data);
 
-      // formData 업데이트 (응답 데이터 포함)
+      // Big title로 저장
       updateFormData({
-        title,
+        bigTitle: title,
         projectId: res.data.projectId,
         creatorId: res.data.creator_id,
         category: res.data.category,
@@ -61,10 +68,10 @@ const BigMeetingStartProject = ({ formData, updateFormData, nextStep }) => {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
+          {error && <div className="error-message">{error}</div>}
         </div>
       </div>
 
-      {/* 다음 버튼 */}
       <button
         className="project-next-button"
         onClick={handleNext}

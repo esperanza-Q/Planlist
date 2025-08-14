@@ -91,3 +91,10 @@ input {
   font-size: 1.2rem;
   cursor: pointer;
 }
+
+
+.error-text {
+  color: gray;
+  font-size: 0.9rem;
+  margin-top: 4px;
+}
