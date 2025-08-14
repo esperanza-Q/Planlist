@@ -2,7 +2,7 @@ import { Terminal } from "react";
 
 import { useState } from "react";
 import Step1StartProject from "../../components/CreateTravel/CreateTravel"
-import Step2AddParticipants from "../../components/StandardCreatePage/AddParticipants";
+import Step2AddParticipants from "../../components/CreateTravel/AddParticipant";
 import Step3SelectDate from "../../components/CreateTravel/TravelSelectDate"
 import Step4SelectPlace from "../../components/CreateTravel/TravelSelectPlace"
 import Step5CreatePlanner from "../../components/CreateTravel/TravelCreatePlanner"
@@ -22,11 +22,13 @@ const recommendedDates = [
 const TravelCreatePage = () =>{
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
-    title: '',
-    startDate: null,
-    endDate: null,
-    // 다른 스텝에서 입력될 데이터들도 미리 여기에 포함
-  });
+      title: '',
+      startDate: null,
+      endDate: null,
+      // new:
+      project: null,     // full server payload
+      projectId: null,   // convenience id
+    });
 
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);

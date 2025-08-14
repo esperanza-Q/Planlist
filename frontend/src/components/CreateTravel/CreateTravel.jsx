@@ -21,10 +21,11 @@ const CreateTravel = ({ formData, updateFormData, nextStep }) => {
       return;
     }
     try{
-      await api.postSession("/api/travel/create", {
+      const project=await api.postSession("/api/travel/createProject", {
         title: TravelTitle,
       });
-      updateFormData({ TravelTitle, startDate, endDate });
+      
+      updateFormData({ TravelTitle, startDate, endDate, project, project?.projectId});
       nextStep();
 
     }
