@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,8 +15,9 @@ import java.util.List;
 @Entity
 @Builder
 @AllArgsConstructor
-@Table(name="Wishlist")
+@Table(name = "Wishlist")
 public class Wishlist {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "wishlist_id", unique = true, nullable = false)
@@ -52,7 +54,7 @@ public class Wishlist {
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
-    
+
     @PrePersist // 객체가 처음 저장될 때 자동으로 시간 기록
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
@@ -67,7 +69,6 @@ public class Wishlist {
     private PlannerProject project;
 
     @OneToMany(mappedBy = "wishlist", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<DatePlanner> datePlanners = new ArrayList<>();
 }
-
-
