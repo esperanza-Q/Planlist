@@ -32,7 +32,6 @@ public class SharePlannerService {
     private final PtSessionRepository ptSessionRepository;
     private final PlannerSessionRepository plannerSessionRepository;
     private final PlannerProjectRepository plannerProjectRepository;
-    private final TravelRepository travelRepository;
 
     // ------------------------
     // 기존 PT 전용 메서드
