@@ -1,5 +1,3 @@
-import { Terminal } from "react";
-
 import { useState } from "react";
 import Step1StartProject from "../../components/CreateTravel/CreateTravel"
 import Step2AddParticipants from "../../components/CreateTravel/AddParticipant";
