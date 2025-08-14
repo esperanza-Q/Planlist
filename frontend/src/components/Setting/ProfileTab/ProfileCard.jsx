@@ -11,7 +11,7 @@ const ProfileCard = ({ profilePic: initialProfilePic="", name: initialName = "",
   // Profile edit states (controlled)
   const [name, setName] = useState(initialName || "");
   const [email, setEmail] = useState(initialEmail || "");
-  const [image, setImage] = useState(profilePic || "");
+  const [image, setImage] = useState(DefaultProfilePic || "");
   const [selectedFile, setSelectedFile] = useState(null);
 
   // Profile edit UI state
@@ -34,7 +34,7 @@ const ProfileCard = ({ profilePic: initialProfilePic="", name: initialName = "",
         const p = data?.profile || data?.user || {};
         setName((p.name ?? initialName ?? "").toString());
         setEmail((p.email ?? initialEmail ?? "").toString());
-        setImage(p.profileImage ?? p.profile_image ?? profilePic ?? "");
+        setImage(p.profileImage ?? p.profile_image ?? DefaultProfilePic ?? "");
       } catch (e) {
         console.error("Error fetching profile:", e);
       }
@@ -97,7 +97,7 @@ const ProfileCard = ({ profilePic: initialProfilePic="", name: initialName = "",
       const p = data?.profile || data?.user || {};
       setName((p.name ?? initialName ?? "").toString());
       setEmail((p.email ?? initialEmail ?? "").toString());
-      setImage(p.profileImage ?? p.profile_image ?? profilePic ?? "");
+      setImage(p.profileImage ?? p.profile_image ?? DefaultProfilePic ?? "");
       setSelectedFile(null);
     } catch (e) {
       console.error("Error reloading profile:", e);
