@@ -1,4 +1,4 @@
-package org.example.planlist.controller;
+package org.example.planlist.controller.Travel;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/planner/{projectId}/travel/dateplanner")
+@RequestMapping("/api/travel/{projectId}/dateplanner")
 @RequiredArgsConstructor
 public class MoveBetweenPlacesController {
 
