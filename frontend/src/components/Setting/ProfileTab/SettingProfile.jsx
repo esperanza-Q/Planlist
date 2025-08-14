@@ -6,20 +6,34 @@ import DefaultProfilePic from "../../../assets/ProfilePic.png";
 import "./SettingProfile.css";
 import { api } from "../../../api/client";
 
+// Small helper to pick the first non-empty field
+const first = (...vals) => vals.find(v => v != null && String(v).trim() !== "") ?? null;
+
 const normalize = (raw) => {
-  const user = raw?.user ?? {};
+  // Your API returns "profile" (per the sample), not "user"
+  const profile = raw?.profile ?? raw?.user ?? {};
   const projectRequest = Array.isArray(raw?.projectRequest) ? raw.projectRequest : [];
+
+  const profilePic =
+    first(
+      profile?.profile_image,
+      profile?.profileImage,
+      profile?.avatarUrl
+    ) || DefaultProfilePic;
+
   return {
     user: {
-      name: user?.name ?? "name",
-      email: user?.email ?? "ex@example.com",
-      profilePic: user?.profile_image ?? DefaultProfilePic,
+      name: profile?.name ?? "name",
+      email: profile?.email ?? "ex@example.com",
+      profilePic,
     },
     projectRequests: projectRequest.map((p, i) => ({
-      invitee_id: p?.invitee_id ?? `unknown-${i}`,
+      // Your sample uses inviteeId
+      invitee_id: p?.inviteeId ?? p?.invitee_id ?? `unknown-${i}`,
       projectTitle: p?.projectTitle ?? "Project title",
       creator: p?.creator ?? "creator",
-      profile_image: user?.profile_image ?? DefaultProfilePic,
+      // use the user/profile image as the avatar for the request card
+      profile_image: profilePic,
     })),
   };
 };
