@@ -53,13 +53,13 @@ public class PtController {
         return ResponseEntity.ok("프로젝트 요청 성공!");
     }
 
-    @DeleteMapping("/inviteUser/{projectId}/deleteRequest/{participantId}")
-    public ResponseEntity<String> acceptInvite(
+    @DeleteMapping("/inviteUser/{projectId}/deleteRequest/{userId}")
+    public ResponseEntity<String> deleteInvite(
             @PathVariable Long projectId,
-            @PathVariable Long participantId
+            @PathVariable Long userId
     ){
 
-        ptService.deletePtInvite(projectId, participantId);
+        ptService.deletePtInvite(projectId, userId);
 
         return ResponseEntity.ok("프로젝트 요청 삭제 성공!");
 
