@@ -58,7 +58,7 @@ public class FreeTimeCalendarService {
             FreeTimeCalendar freeTime = FreeTimeCalendar.builder()
                     .user(user)
                     .availableDate(date)
-                    .all_day(allDay)
+                    .allDay(allDay)
                     .availableStartHour(startHour)
                     .availableStartMin(startMin)
                     .availableEndHour(endHour)
@@ -77,7 +77,7 @@ public class FreeTimeCalendarService {
 
         List<FreeTimeResponseDTO> responseList = freeTimes.stream()
                 .map(freeTime -> {
-                    if (Boolean.TRUE.equals(freeTime.getAll_day())) {
+                    if (Boolean.TRUE.equals(freeTime.getAllDay())) {
                         return FreeTimeResponseDTO.builder()
                                 .date(freeTime.getAvailableDate().toString())
                                 .allDay(true)
