@@ -15,5 +15,7 @@ public interface FreeTimeCalendarRepository extends JpaRepository<FreeTimeCalend
     List<FreeTimeCalendar> findAllByUserAndAvailableDateBetween(User user, LocalDate start, LocalDate end);
 
     List<FreeTimeCalendar> findByUserIdInAndAvailableDateBetween(List<Long> userIds, LocalDate startDate, LocalDate endDate);
-
+    // 📌 추가: all_day = true + 날짜 범위
+    List<FreeTimeCalendar> findByUserIdInAndAllDayTrueAndAvailableDateBetween(
+            List<Long> userIds, LocalDate startDate, LocalDate endDate);
 }

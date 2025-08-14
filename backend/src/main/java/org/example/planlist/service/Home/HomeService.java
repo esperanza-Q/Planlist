@@ -92,7 +92,7 @@ public class HomeService {
 
         return freeTimes.stream()
                 .map(freeTime -> {
-                    boolean allDay = Boolean.TRUE.equals(freeTime.getAll_day());
+                    boolean allDay = Boolean.TRUE.equals(freeTime.getAllDay());
 
                     if (allDay) {
                         return FreeTimeResponseDTO.builder()
