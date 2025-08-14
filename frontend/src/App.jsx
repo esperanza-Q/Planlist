@@ -126,8 +126,7 @@ function App() {
                 <Route path="/project/pt" element={<ProjectViewPT/>}/>
                 <Route path="/project/pt/details" element={<ProjectViewPTDetails />}/>
                 <Route path="/project/travel" element={<ProjectViewTravel/>}/>
-                <Route path="/project/create/pt" element={<PTPage />} />
-
+                <Route path="/project/travel/:projectId" element={<ProjectViewTravel />} />
               </>
             ) : (
               // 인증 안 된 사용자가 보호된 경로로 접근하면 로그인 페이지로 보냄

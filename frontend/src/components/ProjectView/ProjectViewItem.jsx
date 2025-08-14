@@ -31,8 +31,7 @@ const ProjectViewItem = ({project}) => {
           path += "standard";
       }
 
-      navigate(`${path}`,{ state: {project} });
-    };
+navigate(`${path}/${project.id}`);    };
       
     return(
         <div className="ItemDiv" onClick={handleClick}>

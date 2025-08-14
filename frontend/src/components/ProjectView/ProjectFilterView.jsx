@@ -57,6 +57,7 @@ const normalizeProjects = (raw) => {
       id: p?.projectId ?? p?.id ?? `unknown-${i}`,
       title: p?.projectTitle ?? p?.title ?? "Untitled Project",
 
+
       // category token for routing + label display
       category: toUiCategory(p?.category),
 

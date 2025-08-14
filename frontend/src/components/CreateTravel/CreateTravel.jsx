@@ -21,7 +21,7 @@ const CreateTravel = ({ formData, updateFormData, nextStep }) => {
       return;
     }
     try{
-      await api.postSession("api/travel/CreateProject", {
+      await api.postSession("/api/travel/create", {
         title: TravelTitle,
       });
       updateFormData({ TravelTitle, startDate, endDate });

@@ -14,11 +14,15 @@ const recommendedDates = [
 
 const PTCreatePage = () => {
   const [step, setStep] = useState(1);
+// PTCreatePage.jsx
   const [formData, setFormData] = useState({
     title: '',
     startDate: null,
     endDate: null,
-    isTrainer: false, // ✅ keep role through the flow
+    isTrainer: false,
+    // new:
+    project: null,     // full server payload
+    projectId: null,   // convenience id
   });
 
   const nextStep = () => setStep((prev) => prev + 1);

@@ -1,84 +1,168 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './AddParticipants.css';
-import { ReactComponent as BackIcon } from '../../assets/prev_arrow.svg'; 
+import { ReactComponent as BackIcon } from '../../assets/prev_arrow.svg';
 import { ReactComponent as SearchIcon } from '../../assets/Search.svg';
 import { ReactComponent as PlusCircle } from '../../assets/plus_circle.svg';
 import { ReactComponent as XCircle } from '../../assets/x_circle.svg';
 import { ReactComponent as ProjectNextIcon } from "../../assets/Project_next_button.svg";
 
-import profile1 from "../../assets/ProfilePic.png"
-import profile2 from '../../assets/ProfilePic02.svg';
-import profile3 from '../../assets/ProfilePic03.svg';
-import profile4 from '../../assets/ProfilePic04.svg';
+import ProfilePic from "../../assets/ProfilePic.png";
+import { api } from "../../api/client";
 
-// 테스트 데이터 
-const mockFriends = [
-  { id: 1, name: 'NAME1', email: 'example1@gmail.com', profileImage: profile1, status: 'accepted' },
-  { id: 2, name: 'NAME2', email: 'example2@gmail.com', profileImage: profile2, status: 'waiting' },
-  { id: 3, name: 'NAME3', email: 'example3@gmail.com', profileImage: profile3, status: 'waiting' },
-  { id: 4, name: 'NAME4', email: 'example4@gmail.com', profileImage: profile4, status: 'accepted' },
-  { id: 5, name: 'NAME5', email: 'example5@gmail.com', profileImage: profile1, status: 'waiting' },
-  { id: 6, name: 'NAME6', email: 'example6@gmail.com', profileImage: profile1, status: 'accepted' },
-];
+// --- Normalizers for the API shape you shared ---
+const normalizeFromApi = (raw) => {
+  const friends = Array.isArray(raw?.myFriend) ? raw.myFriend : [];
+  const participants = Array.isArray(raw?.participants) ? raw.participants : [];
+
+  const mapFriend = (f, i) => ({
+    id: f?.userId ?? `friend-${i}`,
+    name: f?.name ?? `Friend ${i}`,
+    email: f?.email ?? null,
+    displayEmail: f?.email ?? `friend${i}@example.com`,
+    profileImage: f?.profile_image ?? ProfilePic,
+  });
+
+  const mapParticipant = (p, i) => ({
+    id: p?.userId ?? `participant-${i}`,
+    name: p?.name ?? `User ${i}`,
+    role: p?.role === 'TRAINER' ? 'TRAINER' : 'TRAINEE',
+    isTrainer: p?.role === 'TRAINER',
+    status: p?.status ?? 'invited',
+    profileImage: p?.profile_image ?? ProfilePic,
+    // email not included in spec for participants; leave undefined
+  });
+
+  return {
+    friends: friends.map(mapFriend),
+    participants: participants.map(mapParticipant),
+  };
+};
 
 const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
+  const [friends, setFriends] = useState([]);
   const [participants, setParticipants] = useState([]);
-  const [friends, setFriends] = useState(mockFriends);
+  const [trainerSelections, setTrainerSelections] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
   const [showAllFriends, setShowAllFriends] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Track trainer selection in the Friends tab
-  const [trainerSelections, setTrainerSelections] = useState({});
+  const projectId = formData?.projectId;
 
-  const toggleTrainerSelection = (email) => {
-    setTrainerSelections(prev => ({
-      ...prev,
-      [email]: !prev[email]
-    }));
+  // Fetch friends + current participants for this project
+  useEffect(() => {
+    if (!projectId) return; // wait until Step 1 saved it
+
+    let alive = true;
+    setLoading(true);
+
+    (async () => {
+      try {
+        const json = await api.getSession(`/api/pt/inviteUser/${projectId}`);
+        const { friends, participants } = normalizeFromApi(json);
+        if (!alive) return;
+        setFriends(friends);
+        setParticipants(participants);
+      } catch (e) {
+        console.error('Error fetching invite page data:', e);
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+
+    return () => { alive = false; };
+  }, [projectId]);
+
+  const toggleTrainerSelection = (key) => {
+    setTrainerSelections(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const handleInvite = (friend) => {
-    if (!participants.find(p => p.email === friend.email)) {
-      setParticipants(prev => [
-        ...prev,
-        {
-          ...friend,
-          status: friend.status,
-          isTrainer: !!trainerSelections[friend.email] // pass trainer choice
-        }
-      ]);
+  // Re-fetch after invite so status/role reflect server truth
+  const refetch = async () => {
+    try {
+      const json = await api.getSession(`/api/pt/inviteUser/${projectId}`);
+      const { friends, participants } = normalizeFromApi(json);
+      setFriends(friends);
+      setParticipants(participants);
+    } catch (e) {
+      console.error('Refetch failed:', e);
     }
   };
 
-  const handleRemove = (email) => {
-    setParticipants(prev => prev.filter(p => p.email !== email));
+  const handleInvite = async (friend) => {
+    if (!projectId) { alert('Missing projectId. Create the project first.'); return; }
+    if (!friend?.email) { alert('This friend has no email; cannot invite.'); return; }
+
+    const key = friend.email ?? friend.id;
+    const role = trainerSelections[key] ? 'TRAINER' : 'TRAINEE';
+
+    try {
+      await api.postSession(`/api/pt/inviteUser/${projectId}/invite`, {
+        email: friend.email,
+        role, // backend expects TRAINER / TRAINEE per your spec
+      });
+      await refetch();
+    } catch (e) {
+      console.error('Failed to invite user:', e);
+      alert('Failed to invite user. Please try again.');
+    }
   };
 
-  const handleNext = () => {
-    updateFormData({ participants });
-    nextStep();
+
+
+  const handleRemove = async (part) => {
+    if (!formData?.projectId) { alert('Missing projectId.'); return; }
+    const participantId = part?.projectParticipantId;
+    if (!participantId) {
+      console.error('Missing projectParticipantId on participant:', part);
+      alert('Cannot delete: participantId is missing from server data.');
+      return;
+    }
+    try {
+      await api.deleteSession(
+        `/api/pt/inviteUser/${formData.projectId}/deleteRequest/${participantId}`
+      );
+
+      await refetch(); // stay in sync with server status
+      setParticipants(prev => prev.filter(p => (p.id ?? p.email) !== (part.id ?? part.email)));
+
+    } catch (e) {
+      console.error('Failed to delete invitation:', e);
+      alert('Failed to delete invitation. Please try again.');
+    }
   };
 
-  const filteredFriends = friends.filter(friend =>
-    friend.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    friend.email.toLowerCase().includes(searchTerm.toLowerCase())
+  const lc = (v) => (v ?? '').toLowerCase();
+  const filteredFriends = friends.filter(f =>
+    lc(f.name).includes(lc(searchTerm)) ||
+    lc(f.email ?? f.displayEmail).includes(lc(searchTerm))
   );
-
   const displayedFriends = showAllFriends ? filteredFriends : filteredFriends.slice(0, 3);
+
+  if (loading) {
+    return (
+      <div className="invite-step-container">
+        <div className="invite-header">
+          <button onClick={prevStep} className="prev-button"><BackIcon /></button>
+          <h2>Add Participants</h2>
+        </div>
+        <div style={{ padding: 16 }}>Loading…</div>
+      </div>
+    );
+  }
 
   return (
     <div className="invite-step-container">
       <div className="invite-header">
-        <button onClick={prevStep} className="prev-button"><BackIcon /></button>
         <h2>Add Participants</h2>
       </div>
 
       <div className="invite-box-wrapper">
+        {/* Friends box */}
         <div className="add-box friends-box">
           <div className="friends-header">
             <h3>My Friends</h3>
-            <div className="trainer-title"> trainer</div>
+            <div className="trainer-title">trainer</div>
             <button className="search-toggle-btn" onClick={() => setShowSearch(!showSearch)}>
               <SearchIcon className="search-icon" />
             </button>
@@ -96,30 +180,32 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
           )}
 
           <ul className="scrollable-friend-list">
-            {displayedFriends.map(friend => (
-              <li key={friend.email} className="user-row">
-                <div className="friend-porifleRight">
-                  <Avatar profileImage={friend.profileImage} />
-                  <div>
-                    <div className="user-name">{friend.name}</div>
-                    <div className="user-email">{friend.email}</div>
+            {displayedFriends.map((friend, i) => {
+              const key = friend.email ?? friend.id ?? i;
+              return (
+                <li key={key} className="user-row">
+                  <div className="friend-porifleRight">
+                    <Avatar profileImage={friend.profileImage} />
+                    <div>
+                      <div className="user-name">{friend.name}</div>
+                      <div className="user-email">{friend.email ?? friend.displayEmail}</div>
+                    </div>
                   </div>
-                </div>
 
-                <label className="trainer-flag">
-                  <input
-                    type="checkbox"
-                    checked={!!trainerSelections[friend.email]}
-                    onChange={() => toggleTrainerSelection(friend.email)}
-                  />
-                  
-                </label>
+                  <label className="trainer-flag">
+                    <input
+                      type="checkbox"
+                      checked={!!trainerSelections[key]}
+                      onChange={() => toggleTrainerSelection(key)}
+                    />
+                  </label>
 
-                <button className="PlusCircleButton" onClick={() => handleInvite(friend)}>
-                  <PlusCircle />
-                </button>
-              </li>
-            ))}
+                  <button className="PlusCircleButton" onClick={() => handleInvite(friend)}>
+                    <PlusCircle />
+                  </button>
+                </li>
+              );
+            })}
           </ul>
 
           {!showAllFriends && filteredFriends.length > 3 && (
@@ -129,32 +215,31 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
           )}
         </div>
 
+        {/* Participants box */}
         <div className="add-box participants-box">
           <h3>Participants</h3>
           <ul className="scrollable-participants-list">
-            {participants.map(part => (
-              <li key={part.email} className="user-row">
-                <Avatar profileImage={part.profileImage || profile1} />
-                <div>
-                  <div className="user-name">{part.name}</div>
-                  {part.isTrainer? (
-                  <div className="trainer-label">trainer</div>
-                ): <div className="trainer-label"> trainee</div>}
-                </div>
-                <span className={`status ${part.status}`}>
-                  {part.status}
-                </span>
-                
-                <button className='XCircleButton' onClick={() => handleRemove(part.email)}>
-                  <XCircle />
-                </button>
-              </li>
-            ))}
+            {participants.map((part, i) => {
+              const key = part.id ?? part.email ?? i;
+              return (
+                <li key={key} className="user-row">
+                  <Avatar profileImage={part.profileImage} />
+                  <div>
+                    <div className="user-name">{part.name}</div>
+                    <div className="trainer-label">{part.isTrainer ? 'trainer' : 'trainee'}</div>
+                  </div>
+                  <span className={`status ${part.status}`}>{part.status}</span>
+                  <button className='XCircleButton' onClick={() => handleRemove(part)}>
+                    <XCircle />
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         </div>
       </div>
 
-      <button className="project2-next-button" onClick={handleNext}>
+      <button className="project2-next-button" onClick={() => { updateFormData({ participants }); nextStep(); }}>
         <ProjectNextIcon />
       </button>
     </div>
@@ -163,7 +248,7 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
 
 const Avatar = ({ profileImage }) => (
   <div className="avatar-circle">
-    <img src={profileImage} alt="avatar" className="avatar-image" />
+    <img className="avatar-image" alt="Profile" src={profileImage || ProfilePic} />
   </div>
 );
 
