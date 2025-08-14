@@ -1,6 +1,7 @@
 package org.example.planlist.repository;
 
 import org.example.planlist.dto.ProjectParticipantDTO.ProjectParticipantRequestDTO;
+import org.example.planlist.dto.ProjectParticipantDTO.ProjectParticipantResponseDTO;
 import org.example.planlist.entity.PlannerProject;
 import org.example.planlist.entity.ProjectParticipant;
 import org.example.planlist.entity.User;
@@ -13,6 +14,8 @@ import java.util.Optional;
 
 public interface ProjectParticipantRepository extends JpaRepository<ProjectParticipant, Long> {
     List<ProjectParticipant> findByUser(User user);
+
+    List<ProjectParticipant> findByUserAndResponse(User user, ProjectParticipant.Response response);
 
     List<ProjectParticipant> findByProject_ProjectIdAndResponse(Long projectId, ProjectParticipant.Response response);
 

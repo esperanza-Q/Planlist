@@ -33,13 +33,24 @@ public class HomeService {
     public HomeResponseDTO getHomePage(User user) {
 
         // 프로젝트 수
-        ProjectCount count = projectCountRepository.findByUser(user)
-                .orElse(ProjectCount.builder().upComing(0).inProgress(0).finished(0).build());
+//        ProjectCount count = projectCountRepository.findByUser(user)
+//                .orElse(ProjectCount.builder().upComing(0).inProgress(0).finished(0).build());
+
+        // ✅ 상태별 프로젝트 실시간 카운트
+        int upcomingCount = plannerProjectRepository.countByCreatorAndStatus(user, PlannerProject.Status.UPCOMING);
+        int inProgressCount = plannerProjectRepository.countByCreatorAndStatus(user, PlannerProject.Status.INPROGRESS);
+        int finishedCount = plannerProjectRepository.countByCreatorAndStatus(user, PlannerProject.Status.FINISHED);
+
+//        ProjectCountDTO countDTO = ProjectCountDTO.builder()
+//                .upcoming(count.getUpComing())
+//                .inProgress(count.getInProgress())
+//                .finished(count.getFinished())
+//                .build();
 
         ProjectCountDTO countDTO = ProjectCountDTO.builder()
-                .upcoming(count.getUpComing())
-                .inProgress(count.getInProgress())
-                .finished(count.getFinished())
+                .upcoming(upcomingCount)
+                .inProgress(inProgressCount)
+                .finished(finishedCount)
                 .build();
 
         // 이번 주 프리타임

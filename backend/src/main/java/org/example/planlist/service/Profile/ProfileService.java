@@ -71,6 +71,54 @@ public class ProfileService {
 
         return wrapperDTO;
     }
+//    public ProjectRequestWrapperDTO getProfile() {
+//        User user = SecurityUtil.getCurrentUser();
+//
+//        // 1️⃣ 유저 프로필 DTO 생성
+//        ProfileDTO profileDTO = new ProfileDTO();
+//        profileDTO.setName(user.getName());
+//        profileDTO.setEmail(user.getEmail());
+//        profileDTO.setProfileImage(user.getProfileImage());
+//
+//        // 2️⃣ 프로젝트 참가 리스트 조회
+//        List<ProjectParticipant> projectParticipants = projectParticipantRepository.findByUser(user);
+//
+//        // 3️⃣ 프로젝트 요청 DTO 변환 + 로그 체크
+//        List<ProjectRequestDTO> projectRequestDTOs = projectParticipants.stream()
+//                .filter(pp -> pp.getResponse() == ProjectParticipant.Response.WAITING)
+//                .map(pp -> {
+//                    ProjectRequestDTO dto = new ProjectRequestDTO();
+//
+//                    dto.setInviteeId(pp.getId());
+//
+//                    // 안전하게 Lazy 초기화 체크
+//                    String projectTitle = null;
+//                    String creatorName = null;
+//                    try {
+//                        projectTitle = pp.getProject().getProjectTitle();
+//                        creatorName = pp.getProject().getCreator().getName();
+//                    } catch (Exception e) {
+//                        System.out.println("Lazy 초기화 실패: " + e.getMessage());
+//                    }
+//
+//                    System.out.println("DEBUG: inviteeId=" + pp.getId() +
+//                            ", projectTitle=" + projectTitle +
+//                            ", creatorName=" + creatorName);
+//
+//                    dto.setProjectTitle(projectTitle);
+//                    dto.setCreator(creatorName);
+//
+//                    return dto;
+//                })
+//                .collect(Collectors.toList());
+//
+//        // 4️⃣ Wrapper DTO에 담기
+//        ProjectRequestWrapperDTO wrapperDTO = new ProjectRequestWrapperDTO();
+//        wrapperDTO.setProfile(profileDTO);
+//        wrapperDTO.setProjectRequest(projectRequestDTOs);
+//
+//        return wrapperDTO;
+//    }
 
     @Transactional
     public void acceptProjectRequest(ProjectRequestIdDTO projectRequestIdDTO) {
