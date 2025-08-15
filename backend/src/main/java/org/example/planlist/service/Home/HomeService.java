@@ -1,6 +1,7 @@
 package org.example.planlist.service.Home;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.planlist.dto.FreeTimeCalendarDTO.response.FreeTimeResponseDTO;
 import org.example.planlist.dto.HomeDTO.HomeResponseDTO;
 import org.example.planlist.dto.HomeDTO.ProjectCountDTO;
@@ -9,9 +10,7 @@ import org.example.planlist.entity.FreeTimeCalendar;
 import org.example.planlist.entity.PlannerProject;
 import org.example.planlist.entity.ProjectCount;
 import org.example.planlist.entity.User;
-import org.example.planlist.repository.FreeTimeCalendarRepository;
-import org.example.planlist.repository.PlannerProjectRepository;
-import org.example.planlist.repository.ProjectCountRepository;
+import org.example.planlist.repository.*;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
@@ -21,6 +20,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class HomeService {
@@ -28,19 +28,34 @@ public class HomeService {
     private final ProjectCountRepository projectCountRepository;
     private final FreeTimeCalendarRepository freeTimeCalendarRepository;
     private final PlannerProjectRepository plannerProjectRepository;
+    private final ProjectParticipantRepository participantRepository;
 
     // 홈 진입 시 전체 데이터
     public HomeResponseDTO getHomePage(User user) {
 
-        // 프로젝트 수
-        ProjectCount count = projectCountRepository.findByUser(user)
-                .orElse(ProjectCount.builder().upComing(0).inProgress(0).finished(0).build());
+        int upcomingCount = participantRepository.countByUserAndProject_Status(user, PlannerProject.Status.UPCOMING);
+        int inProgressCount = participantRepository.countByUserAndProject_Status(user, PlannerProject.Status.INPROGRESS);
+        int finishedCount = participantRepository.countByUserAndProject_Status(user, PlannerProject.Status.FINISHED);
+
+        log.info("✅ 상태별 프로젝트 수: UPCOMING={} INPROGRESS={} FINISHED={}", upcomingCount, inProgressCount, finishedCount);
 
         ProjectCountDTO countDTO = ProjectCountDTO.builder()
-                .upcoming(count.getUpComing())
-                .inProgress(count.getInProgress())
-                .finished(count.getFinished())
+                .upcoming(upcomingCount)
+                .inProgress(inProgressCount)
+                .finished(finishedCount)
                 .build();
+
+//        log.info("✅✅" + upcomingCount + " " + inProgressCount + " " + finishedCount);
+//
+//        ProjectCountDTO countDTO = ProjectCountDTO.builder()
+////                .upcoming(count.getUpComing())
+////                .inProgress(count.getInProgress())
+////                .finished(count.getFinished())
+//                .upcoming(upcomingCount)
+//                .inProgress(inProgressCount)
+//                .finished(finishedCount)
+//                .build();
+
 
         // 이번 주 프리타임
         LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);

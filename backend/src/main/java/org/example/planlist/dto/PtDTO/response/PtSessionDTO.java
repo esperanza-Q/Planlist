@@ -7,5 +7,5 @@ import lombok.*;
 public class PtSessionDTO {
     private Long plannerId;
     private String title;
-    private Boolean is_finalized;
+    private boolean is_finalized;
 }

@@ -19,4 +19,5 @@ public interface PtSessionRepository extends JpaRepository<PtSession, Long> {
     List<PtSession> findByProject(PlannerProject project);
 
 
+
 }

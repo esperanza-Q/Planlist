@@ -189,6 +189,19 @@ public class PtService {
     }
 
     @Transactional
+    public String projectFinished(Long projectId) {
+        PlannerProject project = projectRepo.findById(projectId)
+                .orElseThrow(() -> new EntityNotFoundException("프로젝트를 찾을 수 없습니다."));
+
+        project.setStatus(PlannerProject.Status.FINISHED);
+//        project.setConfirmedAt(LocalDateTime.now());
+
+        // 변경된 상태는 트랜잭션 커밋 시점에 자동으로 DB에 반영됩니다.
+
+        return "프로젝트 상태가 FINISHED로 변경되었습니다.";
+    }
+
+    @Transactional
     public AddSessionResponseDTO addPtSession(AddSessionRequestDTO addSessionRequestDTO) {
         Long projectId = addSessionRequestDTO.getProjectId();
 
