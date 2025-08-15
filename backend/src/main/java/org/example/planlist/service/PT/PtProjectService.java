@@ -54,7 +54,6 @@ public class PtProjectService {
                 .map(s -> PtSessionDTO.builder()
                         .plannerId(s.getId())
                         .title(s.getTitle())
-                        .is_finalized((s.getIsFinalized()))
                         .build())
                 .toList();
 
