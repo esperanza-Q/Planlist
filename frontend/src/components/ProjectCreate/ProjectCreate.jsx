@@ -9,10 +9,10 @@ import { ReactComponent as CheckmarkIcon } from '../../assets/CheckmarkIcon.svg'
 import { useNavigate } from 'react-router-dom';
 
 const categories = [
-  { id: 'standard', name: 'Standard', img: StandardImg },
-  { id: 'meeting', name: 'Meeting', img: MeetingImg },
-  { id: 'travel', name: 'Travel', img: TravelImg },
-  { id: 'pt', name: 'PT', img: PTImg },
+  { id: 'STANDARD', name: 'Standard', img: StandardImg },
+  { id: 'MEETING', name: 'Meeting', img: MeetingImg },
+  { id: 'Travel', name: 'Travel', img: TravelImg },
+  { id: 'PT', name: 'PT', img: PTImg },
 ];
 
 const ProjectCreate = () => {

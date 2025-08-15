@@ -49,4 +49,12 @@ public interface DatePlannerRepository extends JpaRepository<DatePlanner, Long> 
             @Param("endDate") LocalDate endDate,
             @Param("statuses") List<String> statuses
     );
+
+    boolean existsByProject_ProjectIdAndDateAndCategoryAndWishlist_WishlistId(
+            Long projectId,
+            LocalDate date,
+            DatePlanner.Category category,
+            Long wishlistId
+    );
+
 }

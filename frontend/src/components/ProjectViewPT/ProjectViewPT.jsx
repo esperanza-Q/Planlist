@@ -1,3 +1,4 @@
+// src/components/PT/ProjectViewPT.jsx
 import React, { useEffect, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { api } from "../../api/client";
@@ -11,6 +12,18 @@ import "../ProjectView/ProjectViewDiv.css";
 
 const useQuery = () => new URLSearchParams(useLocation().search);
 
+const toBool = (v) => {
+  if (v === true) return true;
+  if (v === false) return false;
+  if (typeof v === "string") {
+    const s = v.trim().toLowerCase();
+    if (s === "true" || s === "1") return true;
+    if (s === "false" || s === "0") return false;
+  }
+  if (typeof v === "number") return v === 1;
+  return false;
+};
+
 const normalize = (payload) => {
   const proj = Array.isArray(payload?.projects) ? payload.projects[0] : null;
   const participants = Array.isArray(payload?.participants) ? payload.participants : [];
@@ -20,23 +33,27 @@ const normalize = (payload) => {
   return {
     id: proj?.projectId ?? proj?.id ?? null,
     title: proj?.projectName ?? "PT Project",
-    description: "", // none from API
+    description: "",
     category: proj?.category ?? "PT",
 
-    // What PTInfoCard expects
+    // PTInfoCard expects this:
     users: participants.map((p, i) => ({
       name: p?.name ?? `User ${i + 1}`,
       avatar: p?.profileImage ?? p?.profile_image ?? ProfilePic,
     })),
 
-    // What PTList expects
-    _sessionsRaw: sessions.map((s, i) => ({
-      plannerId: s?.plannerId ?? s?.id ?? String(i + 1),
-      title: s?.title ?? `Session ${i + 1}`,
-      is_finalized: !!(s?.is_finalized ?? s?.finalized),
-    })),
+    // ✅ Keep finalized flags exactly (and normalized)
+    _sessionsRaw: sessions.map((s, i) => {
+      const finalizedBool = toBool(s?._finalized ?? s?.is_finalized ?? s?.finalized);
+      return {
+        plannerId: s?.plannerId ?? s?.id ?? String(i + 1),
+        title: s?.title ?? `Session ${i + 1}`,
+        _finalized: finalizedBool,       // keep original-style key
+        is_finalized: finalizedBool,     // also expose snake_case
+      };
+    }),
 
-    // What MemoCard expects
+    // MemoCard expects this:
     memos: memos.map((m, i) => ({
       id: String(m?.noteId ?? m?.id ?? i + 1),
       type: String(m?.share ?? "PERSONAL").toLowerCase() === "group" ? "group" : "personal",

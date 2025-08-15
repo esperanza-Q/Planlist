@@ -11,3 +11,4 @@ public class AddSessionRequestDTO {
     private LocalDate startDate;
     private LocalDate endDate;
 }
+ 
