@@ -1,6 +1,7 @@
 package org.example.planlist.dto.MeetingDTO.request;
 
 import lombok.Data;
+import org.example.planlist.entity.MeetingSession;
 
 import java.time.LocalDate;
 
@@ -10,4 +11,8 @@ public class AddSessionRequestDTO {
     private String title;
     private LocalDate startDate;
     private LocalDate endDate;
+
+    private Boolean isRecurring;
+    private MeetingSession.RecurrenceUnit recurrenceUnit;
+    private Integer recurrenceCount;
 }
