@@ -95,7 +95,7 @@ const MemoListPage = () => {
       <div className="note-memo-grid">
         {!loading && !errorMsg && (
           hasFiltered ? (
-            filteredMemos.map((memo) => <MemoPart key={memo.id} memo={memo} />)
+            filteredMemos.map((memo) => <MemoPart key={memo.noteId} memo={memo} />)
           ) : hasMemos ? (
             <p style={{ marginTop: '2rem', textAlign: 'justify' }}>No results found</p>
           ) : (

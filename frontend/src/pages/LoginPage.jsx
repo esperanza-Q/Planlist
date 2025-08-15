@@ -20,40 +20,49 @@ const LoginPage = () => {
   };
 
   const onSubmit = async (e) => {
-    e.preventDefault();
-    setErr('');
-    setLoading(true);
-    try {
-      // 1) 로그인 요청
-      const res = await fetch('/api/users/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', // 쿠키 세션 대비(프록시라 same-origin로 처리됨)
-        body: JSON.stringify({ email: form.email, password: form.password }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.message || data.error || '로그인에 실패했습니다.');
+  e.preventDefault();
+  setErr('');
+  setLoading(true);
 
-      // 2) JWT 모드면 저장
-      const token = data.accessToken || data.token || data.jwt;
-      if (token) localStorage.setItem('accessToken', token);
+  try {
+    const res = await fetch('/api/users/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ email: form.email, password: form.password }),
+    });
 
-      // 3) 로그인 상태 확인(+ 사용자 정보 필요시)
-      const meRes = await fetch('/api/users/me', {
-        method: 'GET',
-        credentials: 'include',
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      if (!meRes.ok) throw new Error('로그인 상태 확인에 실패했습니다.');
+    const data = await res.json(); // ✅ 한 번만 읽는다
 
-      // const me = await meRes.json(); // 필요하면 상태/컨텍스트에 저장
-      navigate('/home'); // 홈으로
-    } catch (e) {
-      setErr(e.message || '로그인 중 오류가 발생했습니다.');
-    } finally {
-      setLoading(false);
+    if (!res.ok) {
+      throw new Error(data.message || data.error || '로그인에 실패했습니다.');
     }
-  };
+
+    // JWT 토큰 저장
+    const token = data.accessToken || data.token || data.jwt;
+    if (token) localStorage.setItem('accessToken', token);
+
+    // 로그인 상태 확인
+    const meRes = await fetch('/api/users/me', {
+      method: 'GET',
+      credentials: 'include',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+
+    if (!meRes.ok) {
+      const meData = await meRes.json(); // ✅ 한 번만 읽기
+      throw new Error(meData.message || '로그인 상태 확인에 실패했습니다.');
+    }
+
+    // 성공하면 홈으로
+    navigate('/home');
+  } catch (e) {
+    setErr(e.message || '로그인 중 오류가 발생했습니다.');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
 const onGoogleLogin = () => {
   window.location.href = 'http://localhost:8080/oauth2/authorization/google';
