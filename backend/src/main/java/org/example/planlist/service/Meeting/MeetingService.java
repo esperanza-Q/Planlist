@@ -125,24 +125,11 @@ public class MeetingService {
 
         PlannerProject project = projectRepository.findByProjectId(projectId);
 
-//        // 🔒 이미 요청이 존재하는지 확인
-//        if (participantRepository.existsByProjectAndUser(project, receiver)) {
-//            throw new IllegalStateException("이미 해당 사용자에게 초대 요청을 보냈습니다.");
-//        }
-        Optional<ProjectParticipant> existingParticipantOpt = participantRepository.findByProjectAndUser(project, receiver);
-
-        if (existingParticipantOpt.isPresent()) {
-            ProjectParticipant existingParticipant = existingParticipantOpt.get();
-
-            if (existingParticipant.getResponse() == ProjectParticipant.Response.REJECTED) {
-                // REJECTED 상태면 다시 WAITING으로 변경
-                existingParticipant.setResponse(ProjectParticipant.Response.WAITING);
-                participantRepository.save(existingParticipant);
-                return; // 이미 저장했으니 끝
-            } else {
-                throw new IllegalStateException("이미 해당 사용자에게 초대 요청을 보냈습니다.");
-            }
+        // 🔒 이미 요청이 존재하는지 확인
+        if (participantRepository.existsByProjectAndUser(project, receiver)) {
+            throw new IllegalStateException("이미 해당 사용자에게 초대 요청을 보냈습니다.");
         }
+
 
         ProjectParticipant participant = ProjectParticipant.builder()
                 .user(receiver)

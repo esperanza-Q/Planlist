@@ -1,5 +1,7 @@
 package org.example.planlist.mapper;
 
+import org.example.planlist.dto.MeetingReferenceDTO.MeetingReferenceRequestDTO;
+import org.example.planlist.dto.MeetingReferenceDTO.MeetingReferenceResponseDTO;
 import org.example.planlist.entity.*;
 
 public class MeetingReferenceMapper {
