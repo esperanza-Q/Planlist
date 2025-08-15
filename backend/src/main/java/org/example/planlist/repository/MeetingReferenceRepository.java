@@ -1,6 +1,5 @@
 package org.example.planlist.repository;
 
-import org.example.planlist.dto.MeetingReferenceDTO.MeetingReferenceResponseDTO;
 import org.example.planlist.entity.MeetingReference;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
