@@ -6,5 +6,4 @@ import org.example.planlist.entity.ProjectParticipant;
 @Data
 public class MeetingProjectInviteRequestDTO {
     private String email;
-    private ProjectParticipant.Role role;
 }
