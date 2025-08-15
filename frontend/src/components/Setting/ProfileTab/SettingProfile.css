@@ -91,7 +91,7 @@
     top:95px;
     left:245px;
     height:40px;
-    width:120px;
+    width:fit-content;
     font-size:33px;
     font-weight:600;
     color:#354FAE;
@@ -252,6 +252,8 @@
     left:15px;
     width:65px;
     height:65px;
+    width:65px;
+    border-radius: 50%;
 }
 
 .project-name{

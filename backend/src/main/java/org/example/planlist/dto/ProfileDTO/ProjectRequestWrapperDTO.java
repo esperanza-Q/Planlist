@@ -10,4 +10,14 @@ import java.util.List;
 public class ProjectRequestWrapperDTO {
     private ProfileDTO profile;
     private List<ProjectRequestDTO> projectRequest;
+    //changes by seoyoung
+    public ProjectRequestWrapperDTO() {
+    }
+    public ProjectRequestWrapperDTO(ProfileDTO profile, List<ProjectRequestDTO> projectRequest) {
+        this.profile = profile;
+        this.projectRequest = projectRequest;
+
+        
+    }
+    //change end
 }

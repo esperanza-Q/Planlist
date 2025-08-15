@@ -124,6 +124,7 @@ function App() {
                 <Route path="/project/meeting/details" element={<ProjectViewMeetingDetails />} />
                 <Route path="/project/standard" element={<ProjectViewStandard />} />
                 <Route path="/project/pt" element={<ProjectViewPT/>}/>
+                <Route path="/project/pt/:projectId" element={<ProjectViewPT />} />
                 <Route path="/project/pt/details" element={<ProjectViewPTDetails />}/>
                 <Route path="/project/travel" element={<ProjectViewTravel/>}/>
                 <Route path="/project/travel/:projectId" element={<ProjectViewTravel />} />

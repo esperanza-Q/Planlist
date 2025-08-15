@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+// src/components/StandardCreatePage/AddParticipants.jsx (PT)
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import './AddParticipants.css';
 import { ReactComponent as BackIcon } from '../../assets/prev_arrow.svg';
 import { ReactComponent as SearchIcon } from '../../assets/Search.svg';
@@ -8,6 +9,10 @@ import { ReactComponent as ProjectNextIcon } from "../../assets/Project_next_but
 
 import ProfilePic from "../../assets/ProfilePic.png";
 import { api } from "../../api/client";
+
+// helpers
+const lc = (v) => (v ?? '').toString().toLowerCase();
+const idStr = (v) => (v == null ? null : String(v));
 
 // --- Normalizers for the API shape you shared ---
 const normalizeFromApi = (raw) => {
@@ -19,18 +24,33 @@ const normalizeFromApi = (raw) => {
     name: f?.name ?? `Friend ${i}`,
     email: f?.email ?? null,
     displayEmail: f?.email ?? `friend${i}@example.com`,
-    profileImage: f?.profile_image ?? ProfilePic,
+    profileImage: f?.profileImage ?? f?.profile_image ?? ProfilePic,
   });
 
-  const mapParticipant = (p, i) => ({
-    id: p?.userId ?? `participant-${i}`,
-    name: p?.name ?? `User ${i}`,
-    role: p?.role === 'TRAINER' ? 'TRAINER' : 'TRAINEE',
-    isTrainer: p?.role === 'TRAINER',
-    status: p?.status ?? 'invited',
-    profileImage: p?.profile_image ?? ProfilePic,
-    // email not included in spec for participants; leave undefined
-  });
+  const mapParticipant = (p, i) => {
+    // PT uses p.response; normalize to: 'accepted' | 'waiting' | 'rejected'
+    const raw = lc(p?.response ?? p?.status ?? 'waiting');
+    const status =
+      raw === 'accepted' ? 'accepted' :
+      raw === 'rejected' || raw === 'declined' ? 'rejected' :
+      'waiting';
+
+    return {
+      id: p?.userId ?? `participant-${i}`,
+      name: p?.name ?? `User ${i}`,
+      role: p?.role === 'TRAINER' ? 'TRAINER' : 'TRAINEE',
+      isTrainer: p?.role === 'TRAINER',
+      status,
+      profileImage: p?.profileImage ?? p?.profile_image ?? ProfilePic,
+      projectParticipantId:
+        p?.projectParticipantId ??
+        p?.participantId ??
+        p?.projectParticipantID ??
+        p?.ppid ??
+        null,
+      email: p?.email ?? null, // may be absent; fine
+    };
+  };
 
   return {
     friends: friends.map(mapFriend),
@@ -46,48 +66,97 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
   const [showAllFriends, setShowAllFriends] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   const projectId = formData?.projectId;
 
-  // Fetch friends + current participants for this project
-  useEffect(() => {
-    if (!projectId) return; // wait until Step 1 saved it
-
-    let alive = true;
-    setLoading(true);
-
-    (async () => {
-      try {
-        const json = await api.getSession(`/api/pt/inviteUser/${projectId}`);
-        const { friends, participants } = normalizeFromApi(json);
-        if (!alive) return;
-        setFriends(friends);
-        setParticipants(participants);
-      } catch (e) {
-        console.error('Error fetching invite page data:', e);
-      } finally {
-        if (alive) setLoading(false);
-      }
-    })();
-
-    return () => { alive = false; };
-  }, [projectId]);
-
-  const toggleTrainerSelection = (key) => {
-    setTrainerSelections(prev => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  // Re-fetch after invite so status/role reflect server truth
-  const refetch = async () => {
+  // ====== fetch & refetch helpers ======
+  const fetchingRef = useRef(false);
+  const safeFetch = async () => {
+    if (!projectId || fetchingRef.current) return;
+    fetchingRef.current = true;
     try {
       const json = await api.getSession(`/api/pt/inviteUser/${projectId}`);
       const { friends, participants } = normalizeFromApi(json);
       setFriends(friends);
       setParticipants(participants);
     } catch (e) {
-      console.error('Refetch failed:', e);
+      console.error('Fetch invite data failed:', e);
+    } finally {
+      fetchingRef.current = false;
     }
   };
+
+  // Initial load
+  useEffect(() => {
+    if (!projectId) return;
+    setLoading(true);
+    (async () => {
+      await safeFetch();
+      setLoading(false);
+    })();
+  }, [projectId]);
+
+  // Gate: allow Next when every participant is ACCEPTED or REJECTED (i.e., no WAITING)
+  const pendingCount = participants.filter(p => !['accepted', 'rejected'].includes(lc(p.status))).length;
+  const allResolved = pendingCount === 0;
+
+  // Live polling while unresolved + refresh on focus/visibility
+  useEffect(() => {
+    if (!projectId) return;
+
+    const onFocus = () => safeFetch();
+    const onVis = () => { if (!document.hidden) safeFetch(); };
+
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVis);
+
+    let intervalId = null;
+    if (!allResolved) {
+      intervalId = setInterval(safeFetch, 6000);
+    } else {
+      // last sync when all resolved
+      safeFetch();
+    }
+
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVis);
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [projectId, allResolved]);
+
+  const toggleTrainerSelection = (key) => {
+    setTrainerSelections(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const refetch = async () => { await safeFetch(); };
+
+  // Build a live set of invited IDs/emails to filter friends list
+  const invitedIds = useMemo(
+    () => new Set(participants.map(p => idStr(p.id)).filter(Boolean)),
+    [participants]
+  );
+  const invitedEmails = useMemo(
+    () => new Set(participants.map(p => lc(p.email)).filter(Boolean)),
+    [participants]
+  );
+
+  // Friends shown = not invited + search filter
+  const filteredFriends = useMemo(() => {
+    const base = friends.filter(f => {
+      const fid = idStr(f.id);
+      const femail = lc(f.email);
+      const hiddenById = fid && invitedIds.has(fid);
+      const hiddenByEmail = femail && invitedEmails.has(femail);
+      return !hiddenById && !hiddenByEmail;
+    });
+    if (!searchTerm.trim()) return base;
+    const q = lc(searchTerm);
+    return base.filter(f => lc(f.name).includes(q) || lc(f.email ?? f.displayEmail).includes(q));
+  }, [friends, invitedIds, invitedEmails, searchTerm]);
+
+  const displayedFriends = showAllFriends ? filteredFriends : filteredFriends.slice(0, 3);
 
   const handleInvite = async (friend) => {
     if (!projectId) { alert('Missing projectId. Create the project first.'); return; }
@@ -99,16 +168,26 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
     try {
       await api.postSession(`/api/pt/inviteUser/${projectId}/invite`, {
         email: friend.email,
-        role, // backend expects TRAINER / TRAINEE per your spec
+        role,
       });
+
+      // Optimistic remove from Friends immediately
+      setFriends(prev => prev.filter(f =>
+        idStr(f.id) !== idStr(friend.id) && lc(f.email) !== lc(friend.email)
+      ));
+      setTrainerSelections(prev => {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+
+      // Server truth
       await refetch();
     } catch (e) {
       console.error('Failed to invite user:', e);
       alert('Failed to invite user. Please try again.');
     }
   };
-
-
 
   const handleRemove = async (part) => {
     if (!formData?.projectId) { alert('Missing projectId.'); return; }
@@ -122,22 +201,12 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
       await api.deleteSession(
         `/api/pt/inviteUser/${formData.projectId}/deleteRequest/${participantId}`
       );
-
-      await refetch(); // stay in sync with server status
-      setParticipants(prev => prev.filter(p => (p.id ?? p.email) !== (part.id ?? part.email)));
-
+      await refetch(); // friend shows up again automatically
     } catch (e) {
       console.error('Failed to delete invitation:', e);
       alert('Failed to delete invitation. Please try again.');
     }
   };
-
-  const lc = (v) => (v ?? '').toLowerCase();
-  const filteredFriends = friends.filter(f =>
-    lc(f.name).includes(lc(searchTerm)) ||
-    lc(f.email ?? f.displayEmail).includes(lc(searchTerm))
-  );
-  const displayedFriends = showAllFriends ? filteredFriends : filteredFriends.slice(0, 3);
 
   if (loading) {
     return (
@@ -220,7 +289,7 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
           <h3>Participants</h3>
           <ul className="scrollable-participants-list">
             {participants.map((part, i) => {
-              const key = part.id ?? part.email ?? i;
+              const key = part.id ?? i;
               return (
                 <li key={key} className="user-row">
                   <Avatar profileImage={part.profileImage} />
@@ -228,7 +297,7 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
                     <div className="user-name">{part.name}</div>
                     <div className="trainer-label">{part.isTrainer ? 'trainer' : 'trainee'}</div>
                   </div>
-                  <span className={`status ${part.status}`}>{part.status}</span>
+                  <span className={`status ${part.status}`}>{(part.status || '').toUpperCase()}</span>
                   <button className='XCircleButton' onClick={() => handleRemove(part)}>
                     <XCircle />
                   </button>
@@ -239,7 +308,33 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
         </div>
       </div>
 
-      <button className="project2-next-button" onClick={() => { updateFormData({ participants }); nextStep(); }}>
+      <button
+        className={`project2-next-button ${(!allResolved || submitting) ? 'is-disabled' : ''}`}
+        title={!allResolved ? "Waiting for responses" : "Next"}
+        onClick={async () => {
+          if (!allResolved) {
+            alert(`Everyone must respond before continuing${pendingCount ? ` (${pendingCount} pending)` : ""}. Accepted or Rejected are both okay.`);
+            return;
+          }
+          if (submitting) return;
+          setSubmitting(true);
+          try {
+            // Hit in-progress endpoint (POST then fallback to GET)
+            try {
+              await api.postSession(`/api/pt/inviteUser/${projectId}/inprogress`, {});
+            } catch {
+              await api.getSession(`/api/pt/inviteUser/${projectId}/inprogress`);
+            }
+            updateFormData({ participants });
+            nextStep();
+          } catch (err) {
+            console.error('Failed to set in-progress:', err);
+            alert('Failed to set project to in-progress. Please try again.');
+          } finally {
+            setSubmitting(false);
+          }
+        }}
+      >
         <ProjectNextIcon />
       </button>
     </div>
@@ -248,7 +343,19 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
 
 const Avatar = ({ profileImage }) => (
   <div className="avatar-circle">
-    <img className="avatar-image" alt="Profile" src={profileImage || ProfilePic} />
+    <img
+      className="avatar-image"
+      alt="Profile"
+      src={profileImage || ProfilePic}
+      loading="lazy"
+      referrerPolicy="no-referrer"
+      onError={(e) => {
+        if (e.currentTarget.src !== ProfilePic) {
+          e.currentTarget.onerror = null;
+          e.currentTarget.src = ProfilePic;
+        }
+      }}
+    />
   </div>
 );
 
