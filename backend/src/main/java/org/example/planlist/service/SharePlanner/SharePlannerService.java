@@ -224,8 +224,8 @@ public class SharePlannerService {
         LocalTime endTime;
 
         if (Boolean.TRUE.equals(dto.getAllDay())) {
-            startTime = LocalTime.of(0, 0);
-            endTime = LocalTime.of(23, 59);
+            startTime = LocalTime.MIN;
+            endTime = LocalTime.MAX;
         } else {
             startTime = dto.getStart() != null ? LocalTime.parse(dto.getStart()) : null;
             endTime = dto.getEnd() != null ? LocalTime.parse(dto.getEnd()) : null;
@@ -244,14 +244,22 @@ public class SharePlannerService {
             List<FreeTimeCalendar> freeTimes = freeTimeCalendarRepository.findByUserAndAvailableDate(user, date);
 
             for (FreeTimeCalendar freeTime : freeTimes) {
-                // null-safe 처리
-                int startHour = Optional.ofNullable(freeTime.getAvailableStartHour()).orElse(0);
-                int startMin = Optional.ofNullable(freeTime.getAvailableStartMin()).orElse(0);
-                int endHour = Optional.ofNullable(freeTime.getAvailableEndHour()).orElse(23);
-                int endMin = Optional.ofNullable(freeTime.getAvailableEndMin()).orElse(59);
+                LocalTime freeStart;
+                LocalTime freeEnd;
 
-                LocalTime freeStart = LocalTime.of(startHour, startMin);
-                LocalTime freeEnd = LocalTime.of(endHour, endMin);
+                // allDay 처리
+                if (Boolean.TRUE.equals(freeTime.getAllDay())) {
+                    freeStart = LocalTime.MIN;
+                    freeEnd = LocalTime.MAX;
+                } else {
+                    int startHour = Optional.ofNullable(freeTime.getAvailableStartHour()).orElse(0);
+                    int startMin = Optional.ofNullable(freeTime.getAvailableStartMin()).orElse(0);
+                    int endHour = Optional.ofNullable(freeTime.getAvailableEndHour()).orElse(23);
+                    int endMin = Optional.ofNullable(freeTime.getAvailableEndMin()).orElse(59);
+
+                    freeStart = LocalTime.of(startHour, startMin);
+                    freeEnd = LocalTime.of(endHour, endMin);
+                }
 
                 // 겹치는 경우만 처리
                 if (!freeEnd.isBefore(startTime) && !freeStart.isAfter(endTime)) {
@@ -263,9 +271,9 @@ public class SharePlannerService {
 
                     // (2) 앞/뒤 모두 남음 → 분할
                     else if (freeStart.isBefore(startTime) && freeEnd.isAfter(endTime)) {
-                        // 앞쪽 수정 (0:00 시작 보장)
-                        freeTime.setAvailableStartHour(0);
-                        freeTime.setAvailableStartMin(0);
+                        // 앞쪽 수정
+                        freeTime.setAvailableStartHour(freeStart.getHour());
+                        freeTime.setAvailableStartMin(freeStart.getMinute());
                         freeTime.setAvailableEndHour(startTime.getHour());
                         freeTime.setAvailableEndMin(startTime.getMinute());
                         freeTime.setAllDay(false);
@@ -286,8 +294,8 @@ public class SharePlannerService {
 
                     // (3) 앞쪽만 남음 → 끝 시간 줄임
                     else if (freeStart.isBefore(startTime)) {
-                        freeTime.setAvailableStartHour(0);
-                        freeTime.setAvailableStartMin(0);
+                        freeTime.setAvailableStartHour(freeStart.getHour());
+                        freeTime.setAvailableStartMin(freeStart.getMinute());
                         freeTime.setAvailableEndHour(startTime.getHour());
                         freeTime.setAvailableEndMin(startTime.getMinute());
                         freeTime.setAllDay(false);
