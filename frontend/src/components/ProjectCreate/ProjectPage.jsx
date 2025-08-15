@@ -11,10 +11,10 @@ const ProjectPage = () => {
   const params = new URLSearchParams(useLocation().search);
   const category = params.get("category");
 
-  if (category === "standard") return <StandardPage />;
-  if (category === "meeting") return <MeetingPage />;
-  if (category === "travel") return <TravelPage />;
-  if (category === "pt") return <PTPage />;
+  if (category === "STANDARD") return <StandardPage />;
+  if (category === "MEETING") return <MeetingPage />;
+  if (category === "Travel") return <TravelPage />;
+  if (category === "PT") return <PTPage />;
 
   return <div>Please select a valid category.</div>;
 };

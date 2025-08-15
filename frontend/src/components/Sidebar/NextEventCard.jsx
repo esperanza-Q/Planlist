@@ -14,15 +14,25 @@ const NextEventCard = () => {
     const fetchNextEvent = async () => {
       setLoading(true);
       try {
-        const { data } = await api.get('/api/sidebar', { timeout: 10000 });
+        const response = await api.get('/api/sidebar');
+        console.log('Sidebar API response:', response);
+        console.log('Sidebar data:', response.data);
+
+        const data = response.data; // 실제 데이터
+        console.log('Fetched data:', data);
+
         if (!cancelled) {
-          setEvent(data && Object.keys(data).length > 0 ? data : null);
+          // 서버 데이터가 배열이면 첫 번째 요소 사용, 객체면 그대로
+          const nextEvent = Array.isArray(data)
+            ? data[0] || null
+            : data && Object.keys(data).length > 0
+            ? data
+            : null;
+          setEvent(nextEvent);
         }
       } catch (err) {
-        if (!cancelled) {
-          console.error('Failed to fetch event:', err);
-          setEvent(null);
-        }
+        console.error('Failed to fetch event:', err);
+        if (!cancelled) setEvent(null);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -45,6 +55,7 @@ const NextEventCard = () => {
     return { time: `${hour}:${m}`, ampm };
   };
 
+  // 로딩 중 표시
   if (loading) {
     return (
       <div className="event-card">
@@ -61,6 +72,7 @@ const NextEventCard = () => {
     );
   }
 
+  // 이벤트 없을 때 표시
   if (!event) {
     return (
       <div className="event-card">
@@ -87,7 +99,7 @@ const NextEventCard = () => {
         <div className="event-title">
           <p className="event-label">Today's Next Event</p>
           <p className="event-name">
-            <span className="event-dot" /> {event.title}
+            <span className="event-dot" /> {event.title || 'Untitled Event'}
           </p>
         </div>
       </div>

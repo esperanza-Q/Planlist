@@ -37,17 +37,19 @@ const CalendarSection = () => {
   const fetchFreeTime = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/api/home"); // 전체 데이터 가져오기
+      const { gridStart, gridEnd } = getGridRange(activeStartDate);
+      const res = await api.get(`/api/home/freeTimeCalendar/getFreeTime?startDate=${toISODate(gridStart)}&endDate=${toISODate(gridEnd)}`);
       const items = res?.freeTimeCalendar ?? [];
 
       const map = new Map();
       items.forEach((entry) => {
-        const d = entry.date;
-        if (!map.has(d)) map.set(d, { full: false, partial: false });
-        const rec = map.get(d);
-        if (entry.allDay) rec.full = true;
-        else rec.partial = true;
-      });
+      const d = toISODate(entry.date);
+      if (!d) return; // 유효하지 않은 날짜는 무시
+      if (!map.has(d)) map.set(d, { full: false, partial: false });
+      const rec = map.get(d);
+      if (entry.allDay) rec.full = true;
+      else rec.partial = true;
+    });
 
       const full = [];
       const partial = [];
@@ -68,16 +70,30 @@ const CalendarSection = () => {
   };
 
   fetchFreeTime();
-}, []);
+}, [activeStartDate]);
+ 
 
   const tileClassName = useMemo(() => {
-    return ({ date }) => {
-      const d = toISODate(date);
-      if (fullDates.includes(d)) return "tile-full";
-      if (partialDates.includes(d)) return "tile-partial";
-      return null;
+  return ({ date }) => {
+    const toISODate = (date) => {
+      if (!(date instanceof Date)) {
+        date = new Date(date);
+      }
+      if (isNaN(date.getTime())) {
+        console.warn("⚠️ 잘못된 날짜 값:", date);
+        return null;
+      }
+      return format(date, "yyyy-MM-dd");
     };
-  }, [fullDates, partialDates]);
+
+    const d = toISODate(date);
+    if (!d) return null;
+    if (fullDates.includes(d)) return "tile-full";
+    if (partialDates.includes(d)) return "tile-partial";
+    return null;
+  };
+}, [fullDates, partialDates]);
+
 
   return (
     <div className="calendar-section">
