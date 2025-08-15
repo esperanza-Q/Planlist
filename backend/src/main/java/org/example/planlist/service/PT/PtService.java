@@ -169,8 +169,8 @@ public class PtService {
     }
 
     @Transactional
-    public void deletePtInvite(Long projectId, Long participantId) {
-        ProjectParticipant participant = participantRepository.findByProject_ProjectIdAndUserId(projectId, participantId);
+    public void deletePtInvite(Long projectId, Long userId) {
+        ProjectParticipant participant = participantRepository.findByProject_ProjectIdAndUserId(projectId, userId);
 
         participantRepository.delete(participant);
     }
