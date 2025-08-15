@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './MeetingSaveProject.css';
-import MemoModal from '../StandardCreatePage/MemoModal';
+import MemoModal from './MemoModal_meeting';
 
 import { ReactComponent as BackIcon } from '../../assets/prev_arrow.svg';
 import { ReactComponent as ProfileOverflowIcon } from '../../assets/profile_overflow.svg';

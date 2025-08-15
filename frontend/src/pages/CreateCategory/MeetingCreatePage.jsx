@@ -2,10 +2,10 @@
 
 import React, { useState } from 'react';
 import Step1BigMeetingStartProject from "../../components/MeetingCreatePage/BigMeetingStartProject";
-import Step2AddParticipants from "../../components/StandardCreatePage/AddParticipants";
+import Step2AddParticipants from "../../components/MeetingCreatePage/Add_Participants_meeting";
 
 import Step3DetailMeetingStartPage from "../../components/MeetingCreatePage/DetailMeetingStartPage";
-import Step4SelectDate from "../../components/StandardCreatePage/SelectDate";
+import Step4SelectDate from "../../components/MeetingCreatePage/SelectDate_meeting";
 import Step5MeetingSaveProject from "../../components/MeetingCreatePage/MeetingSaveProject";
 
 

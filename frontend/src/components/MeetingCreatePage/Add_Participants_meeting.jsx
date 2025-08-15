@@ -1,27 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import './AddParticipants.css';
+import '../StandardCreatePage/AddParticipants.css';
 import { ReactComponent as BackIcon } from '../../assets/prev_arrow.svg'; 
 import { ReactComponent as SearchIcon } from '../../assets/Search.svg';
 import { ReactComponent as PlusCircle } from '../../assets/plus_circle.svg';
 import { ReactComponent as XCircle } from '../../assets/x_circle.svg';
 import { ReactComponent as ProjectNextIcon } from "../../assets/Project_next_button.svg";
+
 import axios from 'axios';
+
+
 
 const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
   const [participants, setParticipants] = useState([]);
-  const [friends, setFriends] = useState([]);
+  const [friends, setFriends] = useState([]); 
   const [searchTerm, setSearchTerm] = useState('');
   const [showAllFriends, setShowAllFriends] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
 
-  // 1️⃣ 친구 목록 불러오기
-    useEffect(() => {
-    if (!formData.projectId) return; 
+  // 친구 목록 불러오기
+  useEffect(() => {
     const fetchFriends = async () => {
       try {
-        const res = await axios.get(`/api/standard/inviteUser/${formData.projectId}`);
-        console.log("친구 목록 응답:", res.data);
-        setFriends(res.data.myFriend || []);
+        const res = await axios.get(`/api/meeting/inviteUser/${formData.projectId}`);
+        setFriends(res.data.myFriend);
       } catch (err) {
         console.error("Failed to fetch friends:", err);
       }
@@ -29,11 +30,11 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
     fetchFriends();
   }, [formData.projectId]);
 
+  // 프로젝트 진행 상태 확인
   useEffect(() => {
-    if (!formData.projectId) return;
     const checkInProgress = async () => {
       try {
-        const res = await axios.get(`/api/standard/inviteUser/${formData.projectId}/inprogress`);
+        const res = await axios.get(`/api/meeting/inviteUser/${formData.projectId}/inprogress`);
         // 필요 시 상태 업데이트
       } catch (err) {
         console.error("Failed to check project status:", err);
@@ -42,34 +43,39 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
     checkInProgress();
   }, [formData.projectId]);
 
-  // 3️⃣ 참가자 초대
   const handleInvite = async (friend) => {
-    if (participants.find(p => p.email === friend.email)) {
-      alert("이미 초대한 참가자입니다.");
-      return;
-    }
-    try {
-      await axios.post(
-        `/api/standard/inviteUser/${formData.projectId}/invite`,
+  if (participants.find(p => p.email === friend.email)) {
+    alert("이미 초대한 참가자입니다.");
+    return;
+  }
+
+  try {
+    await axios.post(
+        `/api/meeting/inviteUser/${formData.projectId}/invite`,
         { userEmail: friend.email, role: 'PARTICIPANT' },
         { headers: { 'Content-Type': 'application/json' } }
-      );
-      setParticipants(prev => [...prev, { ...friend, status: 'waiting' }]);
-    } catch (err) {
-      console.error("Failed to invite user:", err);
-      alert("유저 초대에 실패했습니다. 서버 로그 확인 필요");
-    }
-  };
+        );
 
-  // 4️⃣ 참가자 삭제
-  const handleRemove = async (participant) => {
+
+    setParticipants(prev => [...prev, { ...friend, status: 'waiting' }]);
+  } catch (err) {
+    console.error("Failed to invite user:", err);
+    alert("유저 초대에 실패했습니다. 서버 로그 확인 필요");
+  }
+};
+
+
+
+
+    const handleRemove = async (participant) => {
     try {
-      await axios.delete(`/api/standard/inviteUser/${formData.projectId}/deleteRequest/${participant.id}`);
-      setParticipants(prev => prev.filter(p => p.id !== participant.id));
+        await axios.delete(`/api/meeting/inviteUser/${formData.projectId}/deleteRequest/${participant.id}`);
+        setParticipants(prev => prev.filter(p => p.id !== participant.id));
     } catch (err) {
-      console.error("Failed to remove participant:", err);
+        console.error("Failed to remove participant:", err);
     }
-  };
+ };
+
 
   const handleNext = () => {
     updateFormData({ participants });
@@ -115,11 +121,11 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
             {displayedFriends.map(friend => (
               <li key={friend.email} className="user-row">
                 <div className="friend-porifleRight">
-                  <Avatar profileImage={friend.profileImage} />
-                  <div>
+                    <Avatar profileImage={friend.profileImage} />
+                    <div>
                     <div className="user-name">{friend.name}</div>
                     <div className="user-email">{friend.email}</div>
-                  </div>
+                    </div>
                 </div>
                 <button className="PlusCircleButton" onClick={() => handleInvite(friend)}><PlusCircle /></button>
               </li>
@@ -147,13 +153,14 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
                   {part.status}
                 </span>
                 <button className='XCircleButton' onClick={() => handleRemove(part)}><XCircle /></button>
+
               </li>
             ))}
           </ul>
         </div>
       </div>
-
-      <button className="project2-next-button" onClick={handleNext}><ProjectNextIcon/></button>
+       <button className="project2-next-button" onClick={handleNext}><ProjectNextIcon/></button>
+      
     </div>
   );
 };

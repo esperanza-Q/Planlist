@@ -24,7 +24,7 @@ const StartProject = ({ formData, updateFormData, nextStep }) => {
 
   const handleNext = async () => {
     if (!title.trim()) {
-      setError('프로젝트 제목을 입력해주세요.');
+      setError('Please enter the project title');
       return;
     }
     if (!startDate) {
@@ -40,7 +40,7 @@ const StartProject = ({ formData, updateFormData, nextStep }) => {
         start_week_date: formatDateYYYYMMDD(startDate),
       };
       
-      const data = await api.post('/api/standard', payload);
+      const data = await api.post('/api/standard/createProject', payload);
       updateFormData({
         title: data.title,
         startDate: startDate,                      // 사용자가 고른 기준일
