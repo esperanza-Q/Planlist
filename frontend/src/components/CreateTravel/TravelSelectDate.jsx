@@ -1,4 +1,4 @@
-// TravelSelectDate.jsx — fetch fixed year=2025, month=8 exactly once
+// TravelSelectDate.jsx — fetch current & next month for the visible window, cache by YYYY-MM
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import calendar_icon from "../../assets/calendar_icon.svg";
@@ -12,25 +12,16 @@ import { ReactComponent as BackIcon } from "../../assets/prev_arrow.svg";
 import leftArrow from "../../assets/arrow_down_left.svg";
 import rightArrow from "../../assets/arrow_down_right.svg";
 
-import profile1 from "../../assets/ProfilePic.png";
-import profile2 from "../../assets/ProfilePic02.svg";
-import profile3 from "../../assets/ProfilePic03.svg";
-import profile4 from "../../assets/ProfilePic04.svg";
-import { ReactComponent as ProfileOverflowIcon } from "../../assets/profile_overflow.svg";
-
 import { api } from "../../api/client";
 
-// mock thumbs (unchanged)
-const mockFriends = [
-  { id: 1, name: "NAME1", email: "example1@gmail.com", profileImage: profile1 },
-  { id: 2, name: "NAME2", email: "example2@gmail.com", profileImage: profile2 },
-  { id: 3, name: "NAME3", email: "example3@gmail.com", profileImage: profile3 },
-  { id: 4, name: "NAME4", email: "example4@gmail.com", profileImage: profile4 },
-  { id: 5, name: "NAME5", email: "example5@gmail.com", profileImage: profile1 },
-  { id: 6, name: "NAME6", email: "example6@gmail.com", profileImage: profile1 },
-];
+// ---- helpers ----
+const ymKey = (d) => {
+  const y = d.getFullYear();
+  const m = d.getMonth() + 1;          // 1..12
+  return `${y}-${String(m).padStart(2, "0")}`;
+};
+const getYearMonth = (d) => ({ year: d.getFullYear(), month: d.getMonth() + 1 });
 
-// utilities
 const groupConsecutiveDates = (isoDates = []) => {
   const sorted = [...isoDates]
     .filter(Boolean)
@@ -76,49 +67,91 @@ const TravelSelectDate = ({
   const [startDate, setStartDate] = useState(formData.startDate || null);
   const [endDate, setEndDate] = useState(formData.endDate || null);
 
+  // which two months to show (offset 0 and 1 from anchor)
   const [currentMonthOffset, setCurrentMonthOffset] = useState(0);
 
-  const todayRef = useRef(new Date()); // fixed anchor for calendar UI
+  // Anchor: "now" (so Aug 2025 shows Aug+Sep 2025 initially)
+  const anchorRef = useRef(new Date());
 
-  const [serverRanges, setServerRanges] = useState([]); // from API (Aug 2025 only)
+  // month cache: { 'YYYY-MM': string[] /*commonDates*/ }
+  const [monthCache, setMonthCache] = useState(() => ({}));
+  const inFlightRef = useRef(new Set()); // track 'YYYY-MM' currently fetching
+
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState(null);
 
-  // ✅ Fetch exactly year=2025&month=8 once when projectId is ready
+  // visible months keys (e.g., ['2025-08','2025-09'])
+  const visibleKeys = useMemo(() => {
+    const cur = addMonths(anchorRef.current, currentMonthOffset);
+    const next = addMonths(anchorRef.current, currentMonthOffset + 1);
+    return [ymKey(cur), ymKey(next)];
+  }, [currentMonthOffset]);
+
+  // fetch helper (idempotent via inFlightRef + cache)
+  const fetchMonth = async (d) => {
+    const key = ymKey(d);
+    if (monthCache[key] !== undefined) return; // already cached
+    if (inFlightRef.current.has(key)) return;  // already fetching
+
+    inFlightRef.current.add(key);
+    try {
+      const { year, month } = getYearMonth(d);
+      // GET /Travel/{projectId}/SharedCalendar?year=YYYY&month=M
+      const res = await api.getSession(`/Travel/${projectId}/SharedCalendar`, {
+        params: { year, month },
+      });
+
+      // client.getSession: 204 => returns null; 200 => parsed body
+      const commonDates = Array.isArray(res?.commonDates) ? res.commonDates : [];
+      setMonthCache((prev) => {
+        if (prev[key] !== undefined) return prev; // avoid re-set loops
+        return { ...prev, [key]: commonDates };
+      });
+    } catch (e) {
+      // On error, cache empty to avoid re-spam; surface lightweight error
+      setMonthCache((prev) => (prev[key] !== undefined ? prev : { ...prev, [key]: [] }));
+      setErr("Failed to load shared calendar.");
+    } finally {
+      inFlightRef.current.delete(key);
+    }
+  };
+
+  // fetch for current & next month when projectId or offset changes
   useEffect(() => {
     if (!projectId) return;
-    let cancelled = false;
-    (async () => {
-      setLoading(true);
-      setErr(null);
-      try {
-        const res = await api.getSession(`/Travel/${projectId}/SharedCalendar`, {
-          params: { year: 2025, month: 8 },
-          validateStatus: () => true,
-        });
-        if (cancelled) return;
+    let active = true;
 
-        if (res.status === 200) {
-          const isoList = Array.isArray(res.data?.commonDates) ? res.data.commonDates : [];
-          setServerRanges(groupConsecutiveDates(isoList));
-        } else if (res.status === 204) {
-          setServerRanges([]); // no common dates
-        } else {
-          console.warn("SharedCalendar non-OK:", res.status, res.data);
-          setServerRanges([]);
-          setErr("Failed to load shared calendar.");
-        }
-      } catch (e) {
-        if (!cancelled) {
-          console.error("SharedCalendar error:", e);
-          setErr("Failed to load shared calendar.");
-        }
+    const run = async () => {
+      setErr(null);
+      // Decide if we need to show loading spinner (only if something missing)
+      const missing = visibleKeys.some((k) => monthCache[k] === undefined);
+      if (missing) setLoading(true);
+
+      try {
+        const [curKey, nextKey] = visibleKeys;
+        const curDate = parseISO(`${curKey}-01`);
+        const nextDate = parseISO(`${nextKey}-01`);
+        await Promise.all([fetchMonth(curDate), fetchMonth(nextDate)]);
       } finally {
-        if (!cancelled) setLoading(false);
+        if (active) setLoading(false);
       }
-    })();
-    return () => { cancelled = true; };
-  }, [projectId]);
+    };
+
+    run();
+    return () => { active = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId, currentMonthOffset, /* visibleKeys is derived */]);
+
+  // build the ranges for ONLY the two visible months
+  const visibleCommonDates = useMemo(() => {
+    const all = visibleKeys.flatMap((k) => monthCache[k] || []);
+    return all;
+  }, [monthCache, visibleKeys]);
+
+  const serverRanges = useMemo(
+    () => groupConsecutiveDates(visibleCommonDates),
+    [visibleCommonDates]
+  );
 
   const allRecommended = useMemo(
     () => unionRanges(serverRanges, recommendedDates || []),
@@ -166,34 +199,30 @@ const TravelSelectDate = ({
         <div className="choose-title">
           <button onClick={prevStep} className="prev-button"><BackIcon /></button>
           <h3 className="calendar-title">Project name</h3>
-          {/* <div style={{ marginLeft: "auto", fontSize: 12, opacity: 0.75 }}>
-            {projectId ? `Project #${projectId}` : "No projectId"}
-            {loading ? " · loading…" : ""}
-            {err ? " · error" : ""}
-          </div> */}
         </div>
-
-        {/* <div className="selcet-friends-profile select-friends">
-          {mockFriends.slice(0, 3).map((f) => (
-            <img key={f.id} src={f.profileImage} alt={f.name} className="selcet-profile-img" />
-          ))}
-          {mockFriends.length > 4 && <ProfileOverflowIcon className="profile-skip-icon" />}
-        </div> */}
 
         <div className="calendar-card">
           <div className="calendar-navigate">
-            <button className="navigate-left" onClick={() => setCurrentMonthOffset((p) => p - 1)}>
+            <button
+              className="navigate-left"
+              onClick={() => setCurrentMonthOffset((p) => p - 1)}
+              aria-label="previous month"
+            >
               <img src={leftArrow} alt="prev" />
             </button>
-            <button className="navigate-right" onClick={() => setCurrentMonthOffset((p) => p + 1)}>
+            <button
+              className="navigate-right"
+              onClick={() => setCurrentMonthOffset((p) => p + 1)}
+              aria-label="next month"
+            >
               <img src={rightArrow} alt="next" />
             </button>
           </div>
 
           <div className="calendar-months">
             {[currentMonthOffset, currentMonthOffset + 1].map((offset) => {
-              const monthStart = startOfMonth(addMonths(todayRef.current, offset));
-              const monthEnd = endOfMonth(addMonths(todayRef.current, offset));
+              const monthStart = startOfMonth(addMonths(anchorRef.current, offset));
+              const monthEnd = endOfMonth(addMonths(anchorRef.current, offset));
               const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
               return (
@@ -240,6 +269,8 @@ const TravelSelectDate = ({
                 {endDate ? format(endDate, "MM/dd") : "--"}
               </span>
             </div>
+            {loading && <span style={{ marginLeft: 8, fontSize: 12, opacity: 0.7 }}>loading…</span>}
+            {err && <span style={{ marginLeft: 8, fontSize: 12, color: "crimson" }}>failed to load</span>}
           </div>
         </div>
       </div>

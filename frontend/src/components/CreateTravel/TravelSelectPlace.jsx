@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+// src/components/CreateTravel/TravelSelectPlace.jsx
+import React, { useState, useEffect } from 'react';
 import PlaceMap from '../StandardCreatePage/PlaceMap';
 
 import LocationIcon from '../../icons/LocationIcon';
@@ -7,52 +8,103 @@ import { ReactComponent as ProjectNextIcon } from "../../assets/Project_next_but
 import { ReactComponent as SearchIcon } from '../../assets/Search.svg';
 import x_circle from "../../assets/x_circle.svg";
 
+// Helper function to map Google's place types to our categories
+const mapGoogleTypesToCategories = (types) => {
+  // Always work with lowercase types to ensure consistency
+  const lowerCaseTypes = types.map(type => type.toLowerCase());
+
+  // Priority 1: Check for 'stay' types
+  const stayTypes = ['lodging', 'hotel', 'hostel', 'motel', 'resort'];
+  if (lowerCaseTypes.some(type => stayTypes.includes(type))) {
+    return 'stay';
+  }
+
+  // Priority 2: Check for 'dining' types
+  const diningTypes = [
+    'restaurant', 'cafe', 'bar', 'bakery', 'meal_takeaway', 'food'
+  ];
+  if (lowerCaseTypes.some(type => diningTypes.includes(type))) {
+    return 'dining';
+  }
+
+  // Priority 3: Check for specific 'place' types
+  const placeTypes = [
+    'tourist_attraction', 'museum', 'art_gallery', 'park',
+    'landmark', 'zoo', 'aquarium', 'amusement_park',
+    'shopping_mall', 'store'
+  ];
+  if (lowerCaseTypes.some(type => placeTypes.includes(type))) {
+    return 'place';
+  }
+  
+  // Default to 'place' if no other specific type is found
+  return 'place';
+};
+
 const TravelSelectPlace = ({ formData, updateFormData, nextStep, prevStep }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [submittedSearchTerm, setSubmittedSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('all');
+  const [hoveredPlace, setHoveredPlace] = useState(null);
 
-  // 하드코딩된 데이터는 그대로 유지합니다.
-  const [places] = useState([
-    { id: 1, name: 'Namsan Tower', address: 'Seoul, Yongsan-gu', description: '', category: 'place', lat: 37.5512, lng: 126.9882 },
-    { id: 2, name: 'Gwangjang Market', address: 'Seoul, Jongno-gu', description: '', category: 'dining', lat: 37.5701, lng: 126.9998 },
-    { id: 3, name: 'Lotte Hotel', address: 'Seoul, Jung-gu', description: '', category: 'stay', lat: 37.5646, lng: 126.9798 },
-    { id: 4, name: 'Bukchon Hanok Village', address: 'Seoul, Jongno-gu', description: '', category: 'place', lat: 37.5829, lng: 126.9837 },
-    { id: 5, name: 'Changdeokgung Palace', address: 'Seoul, Jongno-gu', description: '', category: 'place', lat: 37.5794, lng: 126.9909 },
-    { id: 6, name: 'Namdaemun Market', address: 'Seoul, Jung-gu', description: '', category: 'dining', lat: 37.5596, lng: 126.9765 },
-    { id: 7, name: 'The Shilla Seoul', address: 'Seoul, Jung-gu', description: '', category: 'stay', lat: 37.5583, lng: 127.0050 },
-    { id: 8, name: 'Dongdaemun Design Plaza', address: 'Seoul, Jung-gu', description: '', category: 'place', lat: 37.5660, lng: 127.0093 },
-    { id: 9, name: 'Itaewon Street', address: 'Seoul, Yongsan-gu', description: '', category: 'dining', lat: 37.5348, lng: 126.9904 },
-    { id: 10, name: 'Grand Hyatt Seoul', address: 'Seoul, Yongsan-gu', description: '', category: 'stay', lat: 37.5323, lng: 127.0016 },
-    { id: 11, name: 'Seoul Forest', address: 'Seoul, Seongdong-gu', description: '', category: 'place', lat: 37.5445, lng: 127.0427 },
-    { id: 12, name: 'Mangwon Market', address: 'Seoul, Mapo-gu', description: '', category: 'dining', lat: 37.5562, lng: 126.9069 },
-    { id: 13, name: 'Conrad Seoul', address: 'Seoul, Yeongdeungpo-gu', description: '', category: 'stay', lat: 37.5252, lng: 126.9242 },
-    { id: 14, name: 'Gyeongbokgung Palace', address: 'Seoul, Jongno-gu', description: '', category: 'place', lat: 37.5799, lng: 126.9769 },
-    { id: 15, name: 'Tongin Market', address: 'Seoul, Jongno-gu', description: '', category: 'dining', lat: 37.5795, lng: 126.9680 },
-    { id: 16, name: 'Four Seasons Hotel Seoul', address: 'Seoul, Jongno-gu', description: '', category: 'stay', lat: 37.5707, lng: 126.9764 },
-    { id: 17, name: 'Han River Park', address: 'Seoul, Yeouido', description: '', category: 'place', lat: 37.5284, lng: 126.9329 },
-    { id: 18, name: 'Garak Market', address: 'Seoul, Songpa-gu', description: '', category: 'dining', lat: 37.4913, lng: 127.1182 },
-    { id: 19, name: 'Signiel Seoul', address: 'Seoul, Songpa-gu', description: '', category: 'stay', lat: 37.5133, lng: 127.1027 },
-    { id: 20, name: 'Seodaemun Prison History Hall', address: 'Seoul, Seodaemun-gu', description: '', category: 'place', lat: 37.5746, lng: 126.9560 },
-    { id: 21, name: 'Gyeongdong Market', address: 'Seoul, Dongdaemun-gu', description: '', category: 'dining', lat: 37.5855, lng: 127.0375 },
-    { id: 22, name: 'Novotel Ambassador Seoul Yongsan', address: 'Seoul, Yongsan-gu', description: '', category: 'stay', lat: 37.5298, lng: 126.9649 },
-    { id: 23, name: 'Bukhansan National Park', address: 'Seoul, Gangbuk-gu', description: '', category: 'place', lat: 37.6593, lng: 127.0097 },
-    { id: 24, name: 'Majang Meat Market', address: 'Seoul, Seongdong-gu', description: '', category: 'dining', lat: 37.5684, lng: 127.0425 },
-    { id: 25, name: 'InterContinental Seoul COEX', address: 'Seoul, Gangnam-gu', description: '', category: 'stay', lat: 37.5134, lng: 127.0565 },
-    { id: 26, name: 'Bongeunsa Temple', address: 'Seoul, Gangnam-gu', description: '', category: 'place', lat: 37.5147, lng: 127.0560 },
-    { id: 27, name: 'Yangnyeong Market', address: 'Seoul, Dongdaemun-gu', description: '', category: 'dining', lat: 37.5750, lng: 127.0189 },
-    { id: 28, name: 'JW Marriott Hotel Seoul', address: 'Seoul, Seocho-gu', description: '', category: 'stay', lat: 37.5050, lng: 127.0039 },
-    { id: 29, name: 'Seoul City Hall', address: 'Seoul, Jung-gu', description: '', category: 'place', lat: 37.5663, lng: 126.9780 },
-    { id: 30, name: 'Cheonggyecheon Stream', address: 'Seoul, Jongno-gu', description: '', category: 'place', lat: 37.5694, lng: 126.9829 },
-    { id: 31, name: 'COEX Mall', address: 'Seoul, Gangnam-gu', description: '', category: 'place', lat: 37.5118, lng: 127.0594 }
-  ]);
+  const [searchResults, setSearchResults] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const [selectedPlaces, setSelectedPlaces] = useState(formData.places || []);
+  const [showSaved, setShowSaved] = useState(false);
+
+  useEffect(() => {
+    if (!submittedSearchTerm) {
+      setSearchResults([]);
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    if (window.google && window.google.maps && window.google.maps.places) {
+      const service = new window.google.maps.places.PlacesService(document.createElement('div'));
+      const request = {
+        query: submittedSearchTerm,
+        fields: ['place_id', 'name', 'formatted_address', 'geometry', 'types'],
+        locationBias: {
+          center: new window.google.maps.LatLng(37.5665, 126.9780),
+          radius: 50000,
+        },
+      };
+
+      service.textSearch(request, (results, status) => {
+        if (status === window.google.maps.places.PlacesServiceStatus.OK && results) {
+          const formattedResults = results.map(result => ({
+            id: result.place_id,
+            name: result.name,
+            address: result.formatted_address,
+            lat: result.geometry.location.lat(),
+            lng: result.geometry.location.lng(),
+            description: '',
+            category: mapGoogleTypesToCategories(result.types),
+          }));
+          setSearchResults(formattedResults);
+        } else {
+          setSearchResults([]);
+          setError('No results found. Please try a different search.');
+        }
+        setIsLoading(false);
+      });
+    }
+  }, [submittedSearchTerm]);
+
+  const handleSearch = () => {
+    setSubmittedSearchTerm(searchTerm);
+    setHoveredPlace(null);
+    setShowSaved(false);
+  };
 
   const handleSelectPlace = (place) => {
-    // 선택된 장소에 위도/경도 정보가 없으면 추가해주는 로직이 필요합니다.
-    // 기존 데이터에 lat, lng를 추가했습니다.
     if (!selectedPlaces.some(p => p.id === place.id)) {
       setSelectedPlaces([...selectedPlaces, place]);
+      setHoveredPlace(place);
     }
   };
 
@@ -64,60 +116,106 @@ const TravelSelectPlace = ({ formData, updateFormData, nextStep, prevStep }) => 
     updateFormData({ places: selectedPlaces });
     nextStep();
   };
-
-  const filteredPlaces = places.filter((place) => {
-    const matchesSearch = place.name.toLowerCase().includes(searchTerm.toLowerCase());
+  
+  const filteredSearchPlaces = searchResults.filter((place) => {
     const matchesCategory = activeTab === 'all' || place.category === activeTab;
-    return matchesSearch && matchesCategory;
+    return matchesCategory;
   });
 
+  const filteredSavedPlaces = selectedPlaces.filter((place) => {
+    const matchesCategory = activeTab === 'all' || place.category === activeTab;
+    return matchesCategory;
+  });
+
+  const placesToDisplay = showSaved ? filteredSavedPlaces : filteredSearchPlaces;
+  
   return (
     <div className="choose-place-container">
-      {/* ... (기존 UI) */}
       <div className="choose-title">
         <button onClick={prevStep} className="prev-button"><BackIcon /></button>
-        <h2>Project name</h2>
+        <h2>{formData.title}</h2>
       </div>
 
       <div className="choose-content">
-        <div className="map-section">
-          {/* filteredPlaces의 첫 번째 항목을 PlaceMap에 전달 */}
-          <PlaceMap selectedPlace={filteredPlaces[0] || null} />
+        <div className="map-section" style={{ height: '600px' }}>
+          <PlaceMap 
+            selectedPlace={hoveredPlace} 
+            selectedPlaces={selectedPlaces} 
+            places={placesToDisplay}
+            
+          />
         </div>
 
         <div className="choose-search-panel">
-          {/* ... (기존 UI) */}
+          <div className="tab category-tabs toggle-buttons-container">
+                <button
+                    className={`toggle-button ${!showSaved ? 'active' : ''}`}
+                    onClick={() => setShowSaved(false)}
+                    disabled={!showSaved}
+                >
+                    Search
+                </button>
+                <button
+                    className={`toggle-button ${showSaved ? 'active' : ''}`}
+                    onClick={() => setShowSaved(true)}
+                    disabled={showSaved}
+                >
+                    Saved ({selectedPlaces.length})
+                </button>
+            </div>
           <div className="tab category-tabs">
+            
             {['all', 'place', 'dining', 'stay'].map(tab => (
               <button
                 key={tab}
                 className={`category-tab ${activeTab === tab ? 'active' : ''}`}
-                onClick={() => setActiveTab(tab)}
+                onClick={() => {
+                  setActiveTab(tab);
+                  setHoveredPlace(null);
+                }}
+                disabled={activeTab === tab}
               >
                 {tab.charAt(0).toUpperCase() + tab.slice(1)}
               </button>
             ))}
           </div>
 
-          <div className="choose-search-bar">
-            <input
-              type="text"
-              placeholder="searching place..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <button className="choose-search-button"><SearchIcon /></button>
+          
+          <div className="choose-search-bar-and-toggle">
+            <div className="choose-search-bar">
+              <input
+                type="text"
+                placeholder="searching place..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSearch();
+                  }
+                }}
+              />
+              <button className="choose-search-button" onClick={handleSearch}><SearchIcon /></button>
+            </div>
+            
+            
           </div>
 
-          <ul className="place-list">
-            {filteredPlaces.map((place) => {
-              const isSelected = selectedPlaces.some(p => p.id === place.id);
+          <ul className="place-list" >
+            {isLoading && !showSaved && <p>Searching for places...</p>}
+            {error && !showSaved && <p className="error-message">{error}</p>}
+            {!isLoading && placesToDisplay.length === 0 && (
+              <p>{showSaved ? 'You have no saved places in this category.' : 'No places found. Try a different search term.'}</p>
+            )}
 
+            {!isLoading && placesToDisplay.map((place) => {
+              const isSelected = selectedPlaces.some(p => p.id === place.id);
               return (
                 <li
                   key={place.id}
                   className={`place-item ${isSelected ? 'selected' : 'not-selected'}`}
                   onClick={() => handleSelectPlace(place)}
+                  onMouseEnter={() => setHoveredPlace(place)}
+                  onMouseLeave={() => setHoveredPlace(null)}
                 >
                   <div className="place-title" >
                     <LocationIcon color={isSelected ? "#081F5C" : "#BAD6EB"} />
@@ -134,8 +232,8 @@ const TravelSelectPlace = ({ formData, updateFormData, nextStep, prevStep }) => 
                       </button>
                     )}
                   </div>
-                  <div className="place-address">{place.address}</div>
-                  <div className="place-desc">
+                  <div className="place-address" >{place.address}</div>
+                  <div className="place-desc" style={{color:"#EEF1F6"}}>
                     {place.description || 'description about the place......'}
                   </div>
                 </li>

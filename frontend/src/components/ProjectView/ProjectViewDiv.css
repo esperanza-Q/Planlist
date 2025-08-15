@@ -109,9 +109,11 @@ button:hover{
 }
 
 .friend-small-name{
+    
     position:absolute;
     margin: 3px 0px 0px 5px;
     width:50px;
+    overflow-x:hidden;
     color:#0A205C;
 }
 

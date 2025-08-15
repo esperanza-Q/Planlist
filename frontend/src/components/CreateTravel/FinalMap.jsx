@@ -1,5 +1,6 @@
+// src/components/CreateTravel/FinalMap.jsx
 import React, { useState, useEffect } from 'react';
-import PlaceMap from '../StandardCreatePage/PlaceMap2';
+import PlaceMap from '../StandardCreatePage/PlaceMap';
 import LocationIcon from '../../icons/LocationIcon';
 import { ReactComponent as BackIcon } from '../../assets/prev_arrow.svg';
 import SaveIcon from '../../icons/SaveIcon';
@@ -8,41 +9,30 @@ import { format, eachDayOfInterval } from 'date-fns';
 
 const predefinedCategories = ['place', 'dining', 'stay'];
 
-const TravelSelectPlace = ({ formData, updateFormData, nextStep, prevStep }) => {
+const FinalMap = ({ formData, updateFormData, nextStep, prevStep }) => {
   const [dateTabs, setDateTabs] = useState([]);
   const [activeCategory, setActiveCategory] = useState('All');
   const [activeDate, setActiveDate] = useState('All');
-  const [selectedPlaceForMap, setSelectedPlaceForMap] = useState(null); // 지도에 표시할 장소 상태 추가
+  const [selectedPlaceForMap, setSelectedPlaceForMap] = useState(null);
 
   useEffect(() => {
     if (formData.startDate && formData.endDate) {
       const dates = eachDayOfInterval({
         start: new Date(formData.startDate),
         end: new Date(formData.endDate),
-      }).map(d => format(d, 'yyyy-MM-dd'));
+      }).map(d => format(d, 'MM/dd')); // Changed the format here
       setDateTabs(dates);
     }
   }, [formData.startDate, formData.endDate]);
 
-  const selectedPlaces = (formData.places || []).filter(p => p.date);
+  const allScheduledPlaces = (formData.places || []).filter(p => p.date);
 
-  const filteredPlaces = selectedPlaces.filter((place) => {
+  const filteredPlaces = allScheduledPlaces.filter((place) => {
     const matchCategory = activeCategory === 'All' || place.category === activeCategory;
     const matchDate = activeDate === 'All' || place.date === activeDate;
     return matchCategory && matchDate;
   });
 
-  // useEffect를 사용하여 filteredPlaces가 변경될 때마다 첫 번째 장소를 지도에 표시합니다.
-  // 이 부분이 없다면, 목록을 클릭하기 전에는 지도가 비어있게 됩니다.
-  useEffect(() => {
-    if (filteredPlaces.length > 0) {
-      setSelectedPlaceForMap(filteredPlaces[0]);
-    } else {
-      setSelectedPlaceForMap(null);
-    }
-  }, [filteredPlaces]);
-  
-  // 장소 리스트 아이템을 클릭했을 때 호출될 핸들러
   const handlePlaceClick = (place) => {
     setSelectedPlaceForMap(place);
   };
@@ -50,7 +40,7 @@ const TravelSelectPlace = ({ formData, updateFormData, nextStep, prevStep }) => 
   const handleSave = async () => {
     const payload = {
       ...formData,
-      places: selectedPlaces,
+      places: allScheduledPlaces,
     };
 
     try {
@@ -76,13 +66,12 @@ const TravelSelectPlace = ({ formData, updateFormData, nextStep, prevStep }) => 
     <div className="choose-place-container">
       <div className="choose-title">
         <button onClick={prevStep} className="prev-button"><BackIcon /></button>
-        <h2>Place name</h2>
+        <h2>{formData.title}</h2>
       </div>
 
       <div className="choose-content">
         <div className="map-section">
-          {/* 지도에 표시할 장소를 selectedPlaceForMap 상태로 전달 */}
-          <PlaceMap selectedPlace={selectedPlaceForMap} />
+          <PlaceMap places={filteredPlaces} selectedPlace={selectedPlaceForMap} />
         </div>
 
         <div className="choose-search-panel">
@@ -93,6 +82,7 @@ const TravelSelectPlace = ({ formData, updateFormData, nextStep, prevStep }) => 
                 key={tab}
                 className={`category-tab ${activeCategory === tab ? 'active' : ''}`}
                 onClick={() => setActiveCategory(tab)}
+                disabled={activeCategory === tab}
               >
                 {tab.charAt(0).toUpperCase() + tab.slice(1)}
               </button>
@@ -106,6 +96,7 @@ const TravelSelectPlace = ({ formData, updateFormData, nextStep, prevStep }) => 
                 key={tab}
                 className={`date-tab ${activeDate === tab ? 'active' : ''}`}
                 onClick={() => setActiveDate(tab)}
+                disabled={activeDate === tab}
               >
                 {tab}
               </button>
@@ -121,7 +112,7 @@ const TravelSelectPlace = ({ formData, updateFormData, nextStep, prevStep }) => 
                 <li
                   key={place.id}
                   className="place-item selected"
-                  onClick={() => handlePlaceClick(place)} // 클릭 핸들러 추가
+                  onClick={() => handlePlaceClick(place)}
                 >
                   <div className="place-title">
                     <LocationIcon color="#081F5C" />
@@ -147,4 +138,4 @@ const TravelSelectPlace = ({ formData, updateFormData, nextStep, prevStep }) => 
   );
 };
 
-export default TravelSelectPlace;
+export default FinalMap;

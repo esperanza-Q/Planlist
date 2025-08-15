@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { api } from "../../api/client";
 
+
 import "../ProjectView/ProjectViewDiv.css";
 import "./ProjectViewPT.css";
 
@@ -13,10 +14,8 @@ import ExerciseCard from "./ExerciseCard";
 
 import DefaultProfilePic from "../../assets/ProfilePic.png";
 
-// ----------------------------------------------------
-// Toggle this flag to switch between mock/API
-// ----------------------------------------------------
-const USE_MOCK = true;
+// Toggle mock quickly if needed
+const USE_MOCK = false;
 
 // helpers
 const toDate = (d) => {
@@ -31,55 +30,44 @@ const toTime = (t) => {
   return m ? `${m[1]}:${m[2]}` : t;
 };
 
-// ---- MOCK DATA (kept close to your backend shape) ----
+// ---- MOCK DATA shaped like your backend ----
 const buildMock = (plannerId) => ({
-  // backend-style keys the normalizer expects
-  date: "2025-08-27",
+  title: "PT Session A",
+  Date: "2025-08-27T10:00:00",
   startTime: "10:00:00",
   endTime: "11:30:00",
-  title: "PT Session A",
-  todayGoal: "Form check on squats; moderate intensity.",
-  participants: [
-    { name: "sujin01", profileImage: null },
-    { name: "Kim", profileImage: null },
+  Participants: [
+    { name: "sujin01", profile_image: null },
+    { name: "Kim", profile_image: null },
   ],
-  comments: [
-    {
-      name: " Kim",
-      role: "TRAINER",
-      profile_image: null,
-      content: "Warm up 10 min + mobility. Keep core tight.",
-    },
-    {
-      name: "you",
-      role: "MEMBER",
-      profile_image: null,
-      content: "Felt good today. Knees tracked better.",
-    },
+  Comments: [
+    { name: "Kim", profile_image: null, role: "TRAINER", content: "Warm-up 10 min." },
+    { name: "you", profile_image: null, role: "TRAINEE", content: "Felt good today." },
   ],
-  exercises: [
-    { name: "Back Squat", sets: 4, reps: "6–8", weight: "40–50kg" },
-    { name: "Romanian Deadlift", sets: 3, reps: 8, weight: "30–40kg" },
+  TodayGoal: "Form check on squats; moderate intensity.",
+  MyExercises: [
+    { exercisePlanId: 1, exerciseName: "Back Squat", time: "10m", sets: 4, type: "DONE" },
+    { exercisePlanId: 2, exerciseName: "Hip Thrust", time: "10m", sets: 3, type: "TRAINER_P" },
   ],
-  myExercises: [
-    { name: "Back Squat", sets: [8, 8, 7, 6], weights: ["40", "42.5", "45", "45"] },
-    { name: "Hip Thrust", sets: [12, 12, 12], weights: ["35", "35", "35"] },
+  Exercises: [
+    { exerciseId: 11, exerciseName: "Back Squat" },
+    { exerciseId: 12, exerciseName: "Romanian Deadlift" },
   ],
   _mockMeta: { plannerId },
 });
 
-// normalize backend -> UI
+// normalize backend -> UI (handles lowercase keys from API)
+// normalize backend -> UI (handles lowercase keys from API & uses real images)
 const normalizeSession = (raw, plannerId) => {
   const d = raw ?? {};
   const startDate = toDate(d.date) ?? "TBD";
   const startTime = toTime(d.startTime) ?? "TBD";
   const endTime = d.endTime ? toTime(d.endTime) : "none";
 
-  // Force ALL avatars to DefaultProfilePic
   const project = {
     id: Number(plannerId),
     title: d.title ?? "",
-    description: d.todayGoal ?? "",
+    description:  "  ",
     category: "pt",
     status: "Active",
     repeat: "none",
@@ -92,7 +80,7 @@ const normalizeSession = (raw, plannerId) => {
     users: Array.isArray(d.participants)
       ? d.participants.map((p, i) => ({
           name: p?.name ?? `Member ${i + 1}`,
-          avatar: DefaultProfilePic, // force default
+          avatar: p?.profileImage || p?.profile_image || DefaultProfilePic,
         }))
       : [],
     meetings: [],
@@ -101,7 +89,7 @@ const normalizeSession = (raw, plannerId) => {
   const comments = Array.isArray(d.comments)
     ? d.comments.map((c, i) => ({
         id: i + 1,
-        profilepic: DefaultProfilePic, // force default
+        profilepic: c?.profileImage || c?.profile_image || DefaultProfilePic,
         user: c?.name ?? "user",
         text: c?.content ?? "",
         isTrainer: String(c?.role).toUpperCase() === "TRAINER",
@@ -115,6 +103,7 @@ const normalizeSession = (raw, plannerId) => {
   return { project, comments, goal, exercises, myExercises };
 };
 
+
 const ProjectViewPTDetails = () => {
   const { search } = useLocation();
   const plannerId = useMemo(
@@ -125,7 +114,6 @@ const ProjectViewPTDetails = () => {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
 
-  // children props
   const [project, setProject] = useState(null);
   const [comments, setComments] = useState([]);
   const [goal, setGoal] = useState("");
@@ -137,38 +125,20 @@ const ProjectViewPTDetails = () => {
       setLoading(true);
       setErr(null);
 
-      // If using mock: skip API and load immediately
-      if (USE_MOCK) {
-        const mock = buildMock(plannerId);
-        const norm = normalizeSession(mock, plannerId);
-        setProject(norm.project);
-        setComments(norm.comments);
-        setGoal(norm.goal);
-        setExercises(norm.exercises);
-        setMyExercises(norm.myExercises);
-        setLoading(false);
-        return;
-      }
-
-      // Otherwise try real API, but fall back to mock on error
       try {
-        const res = await api.get("/api/pt/session", {
-          params: { sessionId: plannerId },
-        });
+        const raw = USE_MOCK
+          ? buildMock(plannerId)
+          : await api.get("/api/pt/session", { params: { sessionId: plannerId } }); // client.js returns data directly
 
-        console.debug("[PT] raw session:", res.data);
-        const norm = normalizeSession(res.data, plannerId);
-        console.debug("[PT] normalized project for PTDetailInfoCard:", norm.project);
-
+        const norm = normalizeSession(raw, plannerId);
         setProject(norm.project);
         setComments(norm.comments);
         setGoal(norm.goal);
         setExercises(norm.exercises);
         setMyExercises(norm.myExercises);
       } catch (e) {
-        console.error("Failed to fetch PT session, falling back to mock:", e);
-        const mock = buildMock(plannerId);
-        const norm = normalizeSession(mock, plannerId);
+        console.error("PT session fetch failed; falling back to mock:", e);
+        const norm = normalizeSession(buildMock(plannerId), plannerId);
         setProject(norm.project);
         setComments(norm.comments);
         setGoal(norm.goal);
@@ -186,20 +156,23 @@ const ProjectViewPTDetails = () => {
       <div className="project-view-div detail">
         <div className="layout ProjectViewDiv">
           <PTDetailInfoCard project={project || { users: [] }} />
-          <CommentCard initialComments={comments} />
+          <CommentCard initialComments={comments} sessionId={plannerId} />
         </div>
 
         <div className="layout ProjectViewDiv">
-          <PTGoalCard goal={goal} />
-          <ExerciseCard exercises={exercises} myExercises={myExercises} />
+          <PTGoalCard   goal={goal}  sessionId={plannerId}
+            onSaved={(g) => setGoal(g)} // optional: keep parent state in sync
+          />
+          <ExerciseCard
+          sessionId={plannerId}
+          availableExercises={exercises}    
+          initialSelected={myExercises}     />
+           
+          
         </div>
 
         {loading && <div style={{ padding: 12 }}>Loading…</div>}
-        {err && (
-          <div style={{ padding: 12, color: "crimson" }}>
-            {String(err)}
-          </div>
-        )}
+        {err && <div style={{ padding: 12, color: "crimson" }}>{String(err)}</div>}
       </div>
     </div>
   );
