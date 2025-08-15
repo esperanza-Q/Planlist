@@ -2,19 +2,22 @@ package org.example.planlist.service.Travel;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.example.planlist.dto.PtDTO.response.FreeTimeIntervalDTO;
 import org.example.planlist.dto.TravelDTO.Request.TravelCreateRequestDTO;
 import org.example.planlist.dto.TravelDTO.Request.TravelProjectInviteRequestDTO;
 import org.example.planlist.dto.TravelDTO.Response.InviteUserResponseDTO;
 import org.example.planlist.dto.TravelDTO.Response.TravelCreateResponseDTO;
+import org.example.planlist.dto.TravelDTO.Response.TravelInviteeFreeTimeResponseDTO;
 import org.example.planlist.entity.*;
 import org.example.planlist.repository.*;
 import org.example.planlist.security.SecurityUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,7 +29,8 @@ public class TravelService {
     private final UserRepository userRepository;
     private final ProjectParticipantRepository participantRepository;
     private final FriendRepository friendRepository; // 친구 관계 조회용
-    private final PlannerProjectRepository projectRepo;
+    private final PlannerProjectRepository plannerProjectRepository;
+    private final FreeTimeCalendarRepository freeTimeCalendarRepository;
 
     public Optional<User> findByEmail(String email) {return userRepository.findByEmail(email);}
 
@@ -163,7 +167,7 @@ public class TravelService {
 
     @Transactional
     public String projectConfirm(Long projectId) {
-        PlannerProject project = projectRepo.findById(projectId)
+        PlannerProject project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("프로젝트를 찾을 수 없습니다."));
 
         project.setStatus(PlannerProject.Status.INPROGRESS);
@@ -174,4 +178,101 @@ public class TravelService {
         return "프로젝트 상태가 INPROGRESS로 변경되었습니다.";
     }
 
+
+    // 여행 프로젝트 메서드
+    @Transactional(readOnly = true)
+    public List<TravelInviteeFreeTimeResponseDTO> getTravelSharedCalendar(Long projectId, LocalDate startDate, LocalDate endDate) {
+        List<ProjectParticipant> participants = participantRepository
+                .findByProject_ProjectIdAndResponse(projectId, ProjectParticipant.Response.ACCEPTED);
+
+        List<Long> userIds = participants.stream()
+                .map(p -> p.getUser().getId())
+                .toList();
+
+        if (userIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // 1. 전원 가능한 날짜(allDay)
+        List<FreeTimeCalendar> allDayFreeTimes = freeTimeCalendarRepository
+                .findByUserIdInAndAllDayTrueAndAvailableDateBetween(userIds, startDate, endDate);
+
+        Map<LocalDate, Long> dateCountMap = allDayFreeTimes.stream()
+                .collect(Collectors.groupingBy(FreeTimeCalendar::getAvailableDate, Collectors.counting()));
+
+        List<FreeTimeIntervalDTO> allDayCommonList = dateCountMap.entrySet().stream()
+                .filter(e -> e.getValue() == userIds.size())
+                .map(e -> FreeTimeIntervalDTO.ofAllDay(e.getKey()))
+                .sorted(Comparator.comparing(FreeTimeIntervalDTO::getDate))
+                .toList();
+
+        // 2. 개인별 allDay 가능 날짜 + 공통 날짜 같이 담기
+        return participants.stream()
+                .map(p -> {
+                    List<FreeTimeCalendar> freeTimes = freeTimeCalendarRepository
+                            .findByUserIdAndAllDayTrueAndAvailableDateBetween(
+                                    p.getUser().getId(), startDate, endDate);
+
+                    List<FreeTimeIntervalDTO> dtoList = freeTimes.stream()
+                            .map(ft -> FreeTimeIntervalDTO.ofAllDay(ft.getAvailableDate()))
+                            .toList();
+
+                    return TravelInviteeFreeTimeResponseDTO.builder()
+                            .inviteeId(p.getUser().getId())
+                            .name(p.getUser().getName())
+                            .profileImage(p.getUser().getProfileImage())
+                            .role(p.getRole())
+                            .response(p.getResponse())
+                            .freeTimes(dtoList)
+                            .commonDates(allDayCommonList) // 전원 가능한 날짜
+                            .build();
+                })
+                .toList();
+    }
+
+//    @Transactional
+//    public void confirmTravelDate(Long projectId, LocalDate date) {
+//        PlannerProject project = plannerProjectRepository.findById(projectId)
+//                .orElseThrow(() -> new RuntimeException("프로젝트를 찾을 수 없습니다."));
+//
+//        project.setStartDate(date);
+//        project.setEndDate(date);
+//        project.setStatus(PlannerProject.Status.INPROGRESS);
+//
+//        plannerProjectRepository.save(project);
+//    }
+
+    // 여행 날짜 확정
+    @Transactional
+    public void confirmTravelDateRange(Long projectId, LocalDate startDate, LocalDate endDate) {
+        PlannerProject project = plannerProjectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("프로젝트를 찾을 수 없습니다."));
+
+        // 1. 날짜 유효성 체크
+        if (startDate.isAfter(endDate)) {
+            throw new IllegalArgumentException("시작일은 종료일보다 이후일 수 없습니다.");
+        }
+
+//        // 2. 이미 확정된 프로젝트인지 체크
+//        if (project.getStatus() == PlannerProject.Status.INPROGRESS) {
+//            throw new IllegalStateException("이미 확정된 프로젝트입니다. 날짜 변경은 별도 절차를 사용하세요.");
+//        }
+
+        // 3. 연속된 날짜인지 체크
+        long daysBetween = ChronoUnit.DAYS.between(startDate, endDate) + 1; // +1 해서 포함 범위 계산
+        List<LocalDate> selectedDates = startDate.datesUntil(endDate.plusDays(1)).toList();
+        if (selectedDates.size() != daysBetween) {
+            throw new IllegalArgumentException("선택한 날짜가 연속되지 않습니다.");
+        }
+
+        // 4. 확정 처리
+        project.setStartDate(startDate);
+        project.setEndDate(endDate);
+        project.setStatus(PlannerProject.Status.INPROGRESS);
+        project.setConfirmedAt(LocalDateTime.now());
+
+        plannerProjectRepository.save(project);
+    }
+
 }
+
