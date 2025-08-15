@@ -7,6 +7,7 @@ import org.example.planlist.dto.TravelDTO.Request.TravelCreateRequestDTO;
 import org.example.planlist.dto.TravelDTO.Request.TravelProjectInviteRequestDTO;
 import org.example.planlist.dto.TravelDTO.Response.InviteUserResponseDTO;
 import org.example.planlist.dto.TravelDTO.Response.TravelCreateResponseDTO;
+import org.example.planlist.dto.TravelDTO.Response.TravelInviteeFreeTimeResponseDTO;
 import org.example.planlist.dto.TravelDTO.Response.TravelProjectDetailResponseDTO;
 import org.example.planlist.entity.PlannerSession;
 import org.example.planlist.service.Travel.TravelService;
@@ -76,37 +77,39 @@ public class TravelController {
 
     }
 
-    @GetMapping("/project")
-    public ResponseEntity<TravelProjectDetailResponseDTO> getTravelProjectDetail(
-            @RequestParam Long projectId) {
-        return ResponseEntity.ok(travelProjectService.getTravelProjectDetail(projectId));
-    }
-
     @GetMapping("/inviteUser/{projectId}/inprogress")
     public ResponseEntity<String> projectConfirm(
             @PathVariable Long projectId) {
         return ResponseEntity.ok(travelService.projectConfirm(projectId));
     }
 
-    // 여행 프로젝트 공유 캘린더 (all_day 가능 날짜만 반환)
-    @GetMapping("/project/travelSharedCalendar")
-    public ResponseEntity<SharedPlannerResponseDTO> getTravelSharedCalendar(
-            @RequestParam Long projectId,
+    @GetMapping("/project/{projectId}")
+    public ResponseEntity<TravelProjectDetailResponseDTO> getTravelProjectDetail(
+            @PathVariable Long projectId) {
+        return ResponseEntity.ok(travelProjectService.getTravelProjectDetail(projectId));
+    }
+
+    // 여행 프로젝트 공유 캘린더 조회(all_day 가능 날짜만 반환)
+    @GetMapping("/project/{projectId}/travelSharedCalendar")
+    public ResponseEntity<List<TravelInviteeFreeTimeResponseDTO>> getTravelSharedCalendar(
+            @PathVariable Long projectId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
     ) {
-        SharedPlannerResponseDTO response = sharePlannerService.getTravelSharedCalendar(projectId, startDate, endDate);
+        List<TravelInviteeFreeTimeResponseDTO> response =
+                travelService.getTravelSharedCalendar(projectId, startDate, endDate);
         return ResponseEntity.ok(response);
     }
 
+
     // 여행 프로젝트 확정 날짜 선택 (여러 날짜 연속 가능)
-    @PostMapping("/project/travelSelectDate")
+    @PostMapping("/project/{projectId}/travelSelectDate")
     public ResponseEntity<String> confirmTravelDate(
-            @RequestParam Long projectId,
+            @PathVariable Long projectId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
     ) {
-        sharePlannerService.confirmTravelDateRange(projectId, startDate, endDate);
+        travelService.confirmTravelDateRange(projectId, startDate, endDate);
         return ResponseEntity.ok("여행 날짜가 확정되었습니다!");
     }
 

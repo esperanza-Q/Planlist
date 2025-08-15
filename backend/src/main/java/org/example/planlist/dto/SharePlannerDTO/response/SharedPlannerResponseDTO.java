@@ -2,7 +2,6 @@ package org.example.planlist.dto.SharePlannerDTO.response;
 
 import lombok.*;
 import org.example.planlist.dto.PtDTO.response.FreeTimeIntervalDTO;
-
 import java.util.List;
 
 // 최종 응답 DTO
