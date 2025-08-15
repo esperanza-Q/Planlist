@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import PlaceMap from '../StandardCreatePage/PlaceMap';
+import PlaceMap from '../StandardCreatePage/PlaceMap2';
 import LocationIcon from '../../icons/LocationIcon';
 import { ReactComponent as BackIcon } from '../../assets/prev_arrow.svg';
 import SaveIcon from '../../icons/SaveIcon';
-
 import { ReactComponent as ProjectNextIcon } from "../../assets/Project_next_button.svg";
 import { format, eachDayOfInterval } from 'date-fns';
 
@@ -13,6 +12,7 @@ const TravelSelectPlace = ({ formData, updateFormData, nextStep, prevStep }) => 
   const [dateTabs, setDateTabs] = useState([]);
   const [activeCategory, setActiveCategory] = useState('All');
   const [activeDate, setActiveDate] = useState('All');
+  const [selectedPlaceForMap, setSelectedPlaceForMap] = useState(null); // 지도에 표시할 장소 상태 추가
 
   useEffect(() => {
     if (formData.startDate && formData.endDate) {
@@ -31,31 +31,46 @@ const TravelSelectPlace = ({ formData, updateFormData, nextStep, prevStep }) => 
     const matchDate = activeDate === 'All' || place.date === activeDate;
     return matchCategory && matchDate;
   });
-const handleSave = async () => {
-  const payload = {
-    ...formData,
-    // include only data that actually exists here
-    places: selectedPlaces, // or filteredPlaces, your call
+
+  // useEffect를 사용하여 filteredPlaces가 변경될 때마다 첫 번째 장소를 지도에 표시합니다.
+  // 이 부분이 없다면, 목록을 클릭하기 전에는 지도가 비어있게 됩니다.
+  useEffect(() => {
+    if (filteredPlaces.length > 0) {
+      setSelectedPlaceForMap(filteredPlaces[0]);
+    } else {
+      setSelectedPlaceForMap(null);
+    }
+  }, [filteredPlaces]);
+  
+  // 장소 리스트 아이템을 클릭했을 때 호출될 핸들러
+  const handlePlaceClick = (place) => {
+    setSelectedPlaceForMap(place);
   };
 
-  try {
-    const res = await fetch('/api/project/save', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
+  const handleSave = async () => {
+    const payload = {
+      ...formData,
+      places: selectedPlaces,
+    };
 
-    if (res.ok) {
-      alert('저장 완료!');
-      nextStep();
-    } else {
-      alert('저장 실패!');
+    try {
+      const res = await fetch('/api/project/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        alert('저장 완료!');
+        nextStep();
+      } else {
+        alert('저장 실패!');
+      }
+    } catch (err) {
+      console.error('저장 오류:', err);
+      alert('에러 발생');
     }
-  } catch (err) {
-    console.error('저장 오류:', err);
-    alert('에러 발생');
-  }
-};
+  };
 
   return (
     <div className="choose-place-container">
@@ -66,7 +81,8 @@ const handleSave = async () => {
 
       <div className="choose-content">
         <div className="map-section">
-          <PlaceMap selectedPlace={filteredPlaces[0] || null} />
+          {/* 지도에 표시할 장소를 selectedPlaceForMap 상태로 전달 */}
+          <PlaceMap selectedPlace={selectedPlaceForMap} />
         </div>
 
         <div className="choose-search-panel">
@@ -102,7 +118,11 @@ const handleSave = async () => {
               <li>No places for this selection.</li>
             ) : (
               filteredPlaces.map((place) => (
-                <li key={place.id} className="place-item selected">
+                <li
+                  key={place.id}
+                  className="place-item selected"
+                  onClick={() => handlePlaceClick(place)} // 클릭 핸들러 추가
+                >
                   <div className="place-title">
                     <LocationIcon color="#081F5C" />
                     <span>{place.name}</span>
@@ -123,7 +143,6 @@ const handleSave = async () => {
           Save <SaveIcon />
         </button>
       </div>
-
     </div>
   );
 };

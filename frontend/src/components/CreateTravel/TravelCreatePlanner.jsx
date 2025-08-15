@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ReactComponent as BackIcon } from '../../assets/prev_arrow.svg';
 import { ReactComponent as ProjectNextIcon } from "../../assets/Project_next_button.svg";
 import PlaceMap from '../StandardCreatePage/PlaceMap';
-import MemoCard from '../ProjectViewTravel/TravelMemoCard';
+import MemoCard from "../ProjectView/MemoCard";
 import TravelPlannerCard from './TravelPlannerCard';
 import "./TravelCreatePlanner.css";
 
