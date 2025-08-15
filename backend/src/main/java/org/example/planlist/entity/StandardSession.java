@@ -15,12 +15,10 @@ import lombok.experimental.SuperBuilder;
 @Inheritance(strategy = InheritanceType.JOINED)
 public class StandardSession extends PlannerSession {
 
-    @Column(nullable = false)
+
     private String address;
 
-    @Column(nullable = false)
     private Float latitude;
 
-    @Column(nullable = false)
     private Float longitude;
 }
