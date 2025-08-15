@@ -18,7 +18,7 @@ public class ProfileController {
 
     private final ProfileService profileService;
 
-    @GetMapping(" ")
+    @GetMapping
     public ResponseEntity<ProjectRequestWrapperDTO> getProfile() {
         ProjectRequestWrapperDTO response = profileService.getProfile();
         return ResponseEntity.ok(response);
@@ -39,8 +39,7 @@ public class ProfileController {
     @PutMapping("/updateProfile")
     public ResponseEntity<Void> updateProfile(
             @RequestPart(required = false) MultipartFile profileImage,
-            @RequestPart(required = false) String name
-    ) throws IOException {
+            @RequestPart(required = false) String name) throws IOException {
         profileService.updateProfile(profileImage, name);
         return ResponseEntity.ok().build();
     }

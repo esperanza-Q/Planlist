@@ -5,10 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.planlist.dto.SharePlannerDTO.request.SelectTimeRequestDTO;
 import org.example.planlist.dto.PtDTO.response.FreeTimeIntervalDTO;
 import org.example.planlist.dto.SharePlannerDTO.response.SharedPlannerResponseDTO;
-import org.example.planlist.entity.FreeTimeCalendar;
-import org.example.planlist.entity.PlannerSession;
-import org.example.planlist.entity.ProjectParticipant;
-import org.example.planlist.entity.PtSession;
+import org.example.planlist.entity.*;
 import org.example.planlist.repository.*;
 import org.example.planlist.util.Interval;
 import org.springframework.stereotype.Service;
@@ -74,7 +71,7 @@ public class SharePlannerService {
             Map<Long, List<Interval>> userIntervals = new HashMap<>();
             for (FreeTimeCalendar ft : dayFreeTimes) {
                 Interval interval;
-                if (Boolean.TRUE.equals(ft.getAll_day())) {
+                if (Boolean.TRUE.equals(ft.getAllDay())) {
                     interval = new Interval(LocalTime.MIN, LocalTime.MAX);
                 } else {
                     interval = new Interval(
@@ -216,35 +213,175 @@ public class SharePlannerService {
 
     @Transactional
     public PlannerSession updateSelectTime(Long plannerId, SelectTimeRequestDTO dto) {
-        // 기존 세션 찾기
+        // 1. 기존 세션 찾기
         PtSession session = ptSessionRepository.findById(plannerId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid plannerId: " + plannerId));
 
-        // 날짜 파싱
+        // 2. 날짜/시간 파싱
         LocalDate date = LocalDate.parse(dto.getDate());
-        LocalTime startTime = null;
-        LocalTime endTime = null;
+        LocalTime startTime;
+        LocalTime endTime;
 
-        // allDay 여부에 따라 시간 설정
-        if (dto.getAllDay() != null && dto.getAllDay()) {
+        if (Boolean.TRUE.equals(dto.getAllDay())) {
             startTime = LocalTime.of(0, 0);
             endTime = LocalTime.of(23, 59);
         } else {
-            if (dto.getStart() != null) {
-                startTime = LocalTime.parse(dto.getStart());
-            }
-            if (dto.getEnd() != null) {
-                endTime = LocalTime.parse(dto.getEnd());
-            }
+            startTime = dto.getStart() != null ? LocalTime.parse(dto.getStart()) : null;
+            endTime = dto.getEnd() != null ? LocalTime.parse(dto.getEnd()) : null;
         }
 
-        // 값 업데이트
+        // 3. 세션 값 업데이트
         session.setDate(date);
         session.setStartTime(startTime);
         session.setEndTime(endTime);
         session.setIsFinalized(true);
 
-        // 저장
+        // 4. 프로젝트 참가자 FreeTimeCalendar 조정
+        PlannerProject project = session.getProject();
+        for (ProjectParticipant participant : project.getParticipants()) {
+            User user = participant.getUser();
+            List<FreeTimeCalendar> freeTimes = freeTimeCalendarRepository.findByUserAndAvailableDate(user, date);
+
+            for (FreeTimeCalendar freeTime : freeTimes) {
+                // null-safe 처리
+                int startHour = Optional.ofNullable(freeTime.getAvailableStartHour()).orElse(0);
+                int startMin = Optional.ofNullable(freeTime.getAvailableStartMin()).orElse(0);
+                int endHour = Optional.ofNullable(freeTime.getAvailableEndHour()).orElse(23);
+                int endMin = Optional.ofNullable(freeTime.getAvailableEndMin()).orElse(59);
+
+                LocalTime freeStart = LocalTime.of(startHour, startMin);
+                LocalTime freeEnd = LocalTime.of(endHour, endMin);
+
+                // 겹치는 경우만 처리
+                if (!freeEnd.isBefore(startTime) && !freeStart.isAfter(endTime)) {
+
+                    // (1) 완전히 덮힘 → 삭제
+                    if (!freeStart.isBefore(startTime) && !freeEnd.isAfter(endTime)) {
+                        freeTimeCalendarRepository.delete(freeTime);
+                    }
+
+                    // (2) 앞/뒤 모두 남음 → 분할
+                    else if (freeStart.isBefore(startTime) && freeEnd.isAfter(endTime)) {
+                        // 앞쪽 수정 (0:00 시작 보장)
+                        freeTime.setAvailableStartHour(0);
+                        freeTime.setAvailableStartMin(0);
+                        freeTime.setAvailableEndHour(startTime.getHour());
+                        freeTime.setAvailableEndMin(startTime.getMinute());
+                        freeTime.setAllDay(false);
+                        freeTimeCalendarRepository.save(freeTime);
+
+                        // 뒤쪽 새 객체 추가
+                        FreeTimeCalendar newFreeTime = FreeTimeCalendar.builder()
+                                .user(user)
+                                .availableDate(date)
+                                .allDay(false)
+                                .availableStartHour(endTime.getHour())
+                                .availableStartMin(endTime.getMinute())
+                                .availableEndHour(freeEnd.getHour())
+                                .availableEndMin(freeEnd.getMinute())
+                                .build();
+                        freeTimeCalendarRepository.save(newFreeTime);
+                    }
+
+                    // (3) 앞쪽만 남음 → 끝 시간 줄임
+                    else if (freeStart.isBefore(startTime)) {
+                        freeTime.setAvailableStartHour(0);
+                        freeTime.setAvailableStartMin(0);
+                        freeTime.setAvailableEndHour(startTime.getHour());
+                        freeTime.setAvailableEndMin(startTime.getMinute());
+                        freeTime.setAllDay(false);
+                        freeTimeCalendarRepository.save(freeTime);
+                    }
+
+                    // (4) 뒤쪽만 남음 → 시작 시간 당김
+                    else if (freeEnd.isAfter(endTime)) {
+                        freeTime.setAvailableStartHour(endTime.getHour());
+                        freeTime.setAvailableStartMin(endTime.getMinute());
+                        freeTime.setAvailableEndHour(freeEnd.getHour());
+                        freeTime.setAvailableEndMin(freeEnd.getMinute());
+                        freeTime.setAllDay(false);
+                        freeTimeCalendarRepository.save(freeTime);
+                    }
+                }
+            }
+        }
+
+        // 5. 프로젝트 startDate / endDate 재계산
+        List<PtSession> allSessions = ptSessionRepository.findByProject(project);
+
+        LocalDate minDate = allSessions.stream()
+                .filter(PtSession::getIsFinalized)
+                .map(PtSession::getDate)
+                .min(LocalDate::compareTo)
+                .orElse(null);
+
+        LocalDate maxDate = allSessions.stream()
+                .filter(PtSession::getIsFinalized)
+                .map(PtSession::getDate)
+                .max(LocalDate::compareTo)
+                .orElse(null);
+
+        project.setStartDate(minDate);
+        project.setEndDate(maxDate);
+        plannerProjectRepository.save(project);
+
+        // 6. 세션 저장 후 반환
         return ptSessionRepository.save(session);
+    }
+
+    // 여행 프로젝트 메서드
+    @Transactional(readOnly = true)
+    public SharedPlannerResponseDTO getTravelSharedCalendar(Long projectId, LocalDate startDate, LocalDate endDate) {
+        List<ProjectParticipant> participants = projectParticipantRepository
+                .findByProject_ProjectIdAndResponse(projectId, ProjectParticipant.Response.ACCEPTED);
+        List<Long> userIds = participants.stream()
+                .map(p -> p.getUser().getId())
+                .toList();
+
+        if (userIds.isEmpty()) {
+            return new SharedPlannerResponseDTO(
+                    startDate + " ~ " + endDate,
+                    Collections.emptyList()
+            );
+        }
+
+        List<FreeTimeCalendar> allDayFreeTimes = freeTimeCalendarRepository
+                .findByUserIdInAndAllDayTrueAndAvailableDateBetween(userIds, startDate, endDate);
+
+        Map<LocalDate, Long> dateCountMap = allDayFreeTimes.stream()
+                .collect(Collectors.groupingBy(FreeTimeCalendar::getAvailableDate, Collectors.counting()));
+
+        List<FreeTimeIntervalDTO> allDayCommonList = dateCountMap.entrySet().stream()
+                .filter(e -> e.getValue() == userIds.size())
+                .map(e -> FreeTimeIntervalDTO.ofAllDay(e.getKey()))
+                .sorted(Comparator.comparing(FreeTimeIntervalDTO::getDate))
+                .toList();
+
+        return new SharedPlannerResponseDTO(startDate + " ~ " + endDate, allDayCommonList);
+    }
+
+    @Transactional
+    public void confirmTravelDate(Long projectId, LocalDate date) {
+        PlannerProject project = plannerProjectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("프로젝트를 찾을 수 없습니다."));
+
+        project.setStartDate(date);
+        project.setEndDate(date);
+        project.setStatus(PlannerProject.Status.INPROGRESS);
+
+        plannerProjectRepository.save(project);
+    }
+
+    // 여행 날짜 확정
+    @Transactional
+    public void confirmTravelDateRange(Long projectId, LocalDate startDate, LocalDate endDate) {
+        PlannerProject project = plannerProjectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("프로젝트를 찾을 수 없습니다."));
+
+        project.setStartDate(startDate);
+        project.setEndDate(endDate);
+        project.setStatus(PlannerProject.Status.INPROGRESS);
+
+        plannerProjectRepository.save(project);
     }
 }

@@ -1,0 +1,113 @@
+.landing-container {
+  background-image: url('../assets/Landing_backgroud.svg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  color: white;
+  font-family: 'IBM Plex Sans KR', sans-serif;
+  text-align: center;
+  overflow: hidden;
+  height: 1080px;
+}
+
+
+.landing-header{
+    margin-top: 55px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+.landing-login-button {
+    position: fixed;
+    top: 89px;
+    right: 100px;
+    font-family: 'Montserrat';
+    background: var(--Galaxy);
+    border: none;
+    padding: 11px 20px;
+    color: white;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.tagline {
+  font-size: 1.3rem;
+  margin-top: 32px;
+}
+
+
+/* 회전 */
+.circle-wrapper {
+  position: relative;
+  width: 100%;
+  height: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+}
+.mascot-round-wrapper {
+  position: relative;
+  width: 1054px;
+  height: 1054px;
+  
+}
+
+.mascot-img {
+  position: absolute;
+  bottom: 25%;
+  transform: translateX(-50%);
+  
+  width: 794px;
+  z-index: 3;
+}
+
+.mascot-round-wrapper img:nth-child(2) { /* background 원 */
+  position: fixed;
+  top: 403px;
+  
+  
+  transform: translateX(-50%);
+  width: 1050px;
+  z-index: 1;
+}
+
+.rotating-circle {
+  position: absolute;
+  width: 1000px;
+  height: 1000px;
+bottom: -25px;
+  z-index: 0;
+}
+
+.rotating-round {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 850px;
+  transform: translate(-50%, -50%);
+  animation: rotate 30s linear infinite;
+  transform-origin: center center;
+}
+
+.rotating-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1150px;
+  transform: translate(-50%, -50%);
+  animation: rotate 30s linear infinite;
+  transform-origin: center center;
+}
+
+@keyframes rotate {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+
+

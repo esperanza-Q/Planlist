@@ -1,0 +1,91 @@
+.memo-detail-page {
+  max-width: 800px;
+  margin: 60px auto;
+  font-family: 'Helvetica Neue', sans-serif;
+  padding: 20px;
+  line-height: 1.6;
+  font-family: 'IBM Plex Sans KR', sans-serif;
+}
+
+.memo-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.memo-detail-buttons{
+    display: flex;
+    flex-direction: row;
+    
+}
+
+.memo-detail-buttons button {
+  display: flex;
+  align-items: center;
+  margin-left: 18px;
+  padding: 7px 12px;
+  border-radius: 6px ;
+  background-color: var(--EEF1F6);
+  cursor: pointer;
+  font-size: 14px;
+  border: none;
+}
+
+.memo-detail-buttons button svg{
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+}
+
+.memo-detail-title {
+  width: 100%;
+  font-size: 24px;
+  font-weight: bold;
+  border: none;
+  margin-bottom: 16px;
+}
+
+.memo-detail-content {
+  width: 100%;
+  border: none;
+  border-radius: 6px;
+  padding: 12px;
+  resize: vertical;
+  margin-bottom: 16px;
+  font-size: 14px;
+  font-family: 'IBM Plex Sans KR', sans-serif;
+}
+
+.memo-detail-image {
+  max-width: 100%;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.memo-detail-buttons button:focus,
+.memo-detail-upload:focus,
+.memo-detail-title:focus,
+.memo-detail-content:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+
+.memo-detail-upload {
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  background: var(--Planetary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.memo-detail-upload svg{
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+}
