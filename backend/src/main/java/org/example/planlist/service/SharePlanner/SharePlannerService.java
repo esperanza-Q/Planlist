@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.planlist.dto.SharePlannerDTO.request.SelectTimeRequestDTO;
 import org.example.planlist.dto.PtDTO.response.FreeTimeIntervalDTO;
 import org.example.planlist.dto.SharePlannerDTO.response.SharedPlannerResponseDTO;
+import org.example.planlist.dto.TravelDTO.Response.TravelInviteeFreeTimeResponseDTO;
 import org.example.planlist.entity.*;
 import org.example.planlist.repository.*;
 import org.example.planlist.util.Interval;
@@ -327,61 +328,5 @@ public class SharePlannerService {
 
         // 6. 세션 저장 후 반환
         return ptSessionRepository.save(session);
-    }
-
-    // 여행 프로젝트 메서드
-    @Transactional(readOnly = true)
-    public SharedPlannerResponseDTO getTravelSharedCalendar(Long projectId, LocalDate startDate, LocalDate endDate) {
-        List<ProjectParticipant> participants = projectParticipantRepository
-                .findByProject_ProjectIdAndResponse(projectId, ProjectParticipant.Response.ACCEPTED);
-        List<Long> userIds = participants.stream()
-                .map(p -> p.getUser().getId())
-                .toList();
-
-        if (userIds.isEmpty()) {
-            return new SharedPlannerResponseDTO(
-                    startDate + " ~ " + endDate,
-                    Collections.emptyList()
-            );
-        }
-
-        List<FreeTimeCalendar> allDayFreeTimes = freeTimeCalendarRepository
-                .findByUserIdInAndAllDayTrueAndAvailableDateBetween(userIds, startDate, endDate);
-
-        Map<LocalDate, Long> dateCountMap = allDayFreeTimes.stream()
-                .collect(Collectors.groupingBy(FreeTimeCalendar::getAvailableDate, Collectors.counting()));
-
-        List<FreeTimeIntervalDTO> allDayCommonList = dateCountMap.entrySet().stream()
-                .filter(e -> e.getValue() == userIds.size())
-                .map(e -> FreeTimeIntervalDTO.ofAllDay(e.getKey()))
-                .sorted(Comparator.comparing(FreeTimeIntervalDTO::getDate))
-                .toList();
-
-        return new SharedPlannerResponseDTO(startDate + " ~ " + endDate, allDayCommonList);
-    }
-
-    @Transactional
-    public void confirmTravelDate(Long projectId, LocalDate date) {
-        PlannerProject project = plannerProjectRepository.findById(projectId)
-                .orElseThrow(() -> new RuntimeException("프로젝트를 찾을 수 없습니다."));
-
-        project.setStartDate(date);
-        project.setEndDate(date);
-        project.setStatus(PlannerProject.Status.INPROGRESS);
-
-        plannerProjectRepository.save(project);
-    }
-
-    // 여행 날짜 확정
-    @Transactional
-    public void confirmTravelDateRange(Long projectId, LocalDate startDate, LocalDate endDate) {
-        PlannerProject project = plannerProjectRepository.findById(projectId)
-                .orElseThrow(() -> new RuntimeException("프로젝트를 찾을 수 없습니다."));
-
-        project.setStartDate(startDate);
-        project.setEndDate(endDate);
-        project.setStatus(PlannerProject.Status.INPROGRESS);
-
-        plannerProjectRepository.save(project);
     }
 }

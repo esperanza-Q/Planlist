@@ -21,4 +21,12 @@ public interface FreeTimeCalendarRepository extends JpaRepository<FreeTimeCalend
 
     // 유저와 가능한 날짜로 조회
     List<FreeTimeCalendar> findByUserAndAvailableDate(User user, LocalDate availableDate);
+
+    // 단일 사용자 하루 종일 가능한 날짜 조회
+    List<FreeTimeCalendar> findByUserIdAndAllDayTrueAndAvailableDateBetween(
+            Long userId,
+            LocalDate startDate,
+            LocalDate endDate
+    );
+
 }
