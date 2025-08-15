@@ -14,9 +14,7 @@ import org.example.planlist.security.SecurityUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -33,9 +31,7 @@ public class MeetingService {
     private final FriendRepository friendRepository; // 친구 관계 조회용
     private final PlannerProjectRepository projectRepo;
 
-    public Optional<User> findByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }
+    public Optional<User> findByEmail(String email) {return userRepository.findByEmail(email);}
 
     @Transactional
     public MeetingProjectCreateResponseDTO createProject(MeetingProjectCreateRequestDTO request) {
@@ -133,7 +129,6 @@ public class MeetingService {
 //        if (participantRepository.existsByProjectAndUser(project, receiver)) {
 //            throw new IllegalStateException("이미 해당 사용자에게 초대 요청을 보냈습니다.");
 //        }
-
         Optional<ProjectParticipant> existingParticipantOpt = participantRepository.findByProjectAndUser(project, receiver);
 
         if (existingParticipantOpt.isPresent()) {
@@ -172,7 +167,6 @@ public class MeetingService {
                 .orElseThrow(() -> new EntityNotFoundException("프로젝트를 찾을 수 없습니다."));
 
         project.setStatus(PlannerProject.Status.INPROGRESS);
-        project.setConfirmedAt(LocalDateTime.now());
 
         // 변경된 상태는 트랜잭션 커밋 시점에 자동으로 DB에 반영됩니다.
 
@@ -180,84 +174,25 @@ public class MeetingService {
     }
 
     @Transactional
-    public List<AddSessionResponseDTO> addMeetingSessions(AddSessionRequestDTO req) {
-        PlannerProject project = projectRepo.findById(req.getProjectId())
+    public AddSessionResponseDTO addMeetingSession(AddSessionRequestDTO addSessionRequestDTO) {
+        Long projectId = addSessionRequestDTO.getProjectId();
+
+        PlannerProject project = projectRepo.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("프로젝트를 찾을 수 없습니다."));
 
-        if (req.getStartDate() == null) {
-            throw new IllegalArgumentException("startDate는 필수입니다.");
-        }
 
-        boolean recurring = Boolean.TRUE.equals(req.getIsRecurring());
-        int total = recurring ? Math.max(1, req.getRecurrenceCount()) : 1;
+        MeetingSession session = MeetingSession.builder()
+                .project(project)
+                .title(addSessionRequestDTO.getTitle())
+                .isFinalized(false) // 초기값
+                .startWeekDay(addSessionRequestDTO.getStartDate())
+                .endWeekDay(addSessionRequestDTO.getEndDate())
+                .build();
 
-        if (recurring && req.getRecurrenceUnit() == null) {
-            throw new IllegalArgumentException("반복 단위를 선택해주세요. (DAILY/WEEKLY)");
-        }
+        meetingSessionRepository.save(session);
 
-        List<MeetingSession> toSave = new ArrayList<>(total);
+        AddSessionResponseDTO  addSessionResponseDTO = new AddSessionResponseDTO(session.getId(), session.getStartWeekDay(), session.getEndWeekDay());
 
-        for (int i = 0; i < total; i++) {
-            LocalDate start = req.getStartDate();
-            LocalDate end   = req.getEndDate();
-
-            if (recurring) {
-                switch (req.getRecurrenceUnit()) {
-                    case DAILY -> {
-                        start = start.plusDays(i); // i=0,1,2,...
-                        if (end != null) end = end.plusDays(i);
-                    }
-                    case WEEKLY -> {
-                        start = start.plusDays(7L * i); // i=0,+7,+14,...
-                        if (end != null) end = end.plusDays(7L * i);
-                    }
-                }
-            }
-
-            MeetingSession session = MeetingSession.builder()
-                    .project(project)
-                    .title(req.getTitle())
-                    .isFinalized(false)
-                    .isRecurring(recurring)
-                    .recurrenceUnit(recurring ? req.getRecurrenceUnit() : null)
-                    .recurrenceCount(recurring ? total : null)
-                    .startWeekDay(start)
-                    .endWeekDay(end != null ? end : start)
-                    .build();
-
-            toSave.add(session);
-        }
-
-        List<MeetingSession> saved = meetingSessionRepository.saveAll(toSave);
-
-        return saved.stream()
-                .map(s -> new AddSessionResponseDTO(
-                        s.getId(),
-                        s.getStartWeekDay(),
-                        s.getEndWeekDay()
-                ))
-                .toList();
+        return addSessionResponseDTO;
     }
-//    @Transactional
-//    public AddSessionResponseDTO addMeetingSession(AddSessionRequestDTO addSessionRequestDTO) {
-//        Long projectId = addSessionRequestDTO.getProjectId();
-//
-//        PlannerProject project = projectRepo.findById(projectId)
-//                .orElseThrow(() -> new EntityNotFoundException("프로젝트를 찾을 수 없습니다."));
-//
-//
-//        MeetingSession session = MeetingSession.builder()
-//                .project(project)
-//                .title(addSessionRequestDTO.getTitle())
-//                .isFinalized(false) // 초기값
-//                .startWeekDay(addSessionRequestDTO.getStartDate())
-//                .endWeekDay(addSessionRequestDTO.getEndDate())
-//                .build();
-//
-//        meetingSessionRepository.save(session);
-//
-//        AddSessionResponseDTO  addSessionResponseDTO = new AddSessionResponseDTO(session.getId(), session.getStartWeekDay(), session.getEndWeekDay());
-//
-//        return addSessionResponseDTO;
-//    }
 }

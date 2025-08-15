@@ -1,6 +1,5 @@
 package org.example.planlist.controller.Meeting;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.planlist.dto.MeetingDTO.request.MeetingProjectCreateRequestDTO;
 import org.example.planlist.dto.MeetingDTO.request.MeetingProjectInviteRequestDTO;
@@ -14,12 +13,9 @@ import org.example.planlist.entity.PlannerSession;
 import org.example.planlist.repository.PlannerSessionRepository;
 import org.example.planlist.service.Meeting.MeetingProjectService;
 import org.example.planlist.service.Meeting.MeetingService;
-import org.example.planlist.service.Meeting.MeetingSessionService;
 import org.example.planlist.service.SharePlanner.SharePlannerService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -29,7 +25,6 @@ public class MeetingController {
     private final MeetingService meetingService;
     private final MeetingProjectService meetingProjectService;
     private final SharePlannerService sharePlannerService;
-    private final MeetingSessionService meetingSessionService;
     private final PlannerSessionRepository plannerSessionRepository;
 
     @PostMapping("/createProject")
@@ -85,31 +80,12 @@ public class MeetingController {
         return ResponseEntity.ok(meetingService.projectConfirm(projectId));
     }
 
-//    // 단건 회차
-//    @PostMapping("/project/addSession")
-//    public ResponseEntity<AddSessionResponseDTO> addMeetingSession(
-//            @RequestBody AddSessionRequestDTO addSessionRequestDTO) {
-//
-//        AddSessionResponseDTO dto = meetingService.addMeetingSession(addSessionRequestDTO);
-//
-//        return ResponseEntity.ok(dto);
-//    }
+    @PostMapping("/project/addSession")
+    public ResponseEntity<AddSessionResponseDTO> addMeetingSession(
+            @RequestBody AddSessionRequestDTO addSessionRequestDTO) {
 
-    /** 회차 배치 생성 (비반복=1개, 반복=1~N개) */
-    @PostMapping("/project/addSessions")
-    public ResponseEntity<List<AddSessionResponseDTO>> addMeetingSessions(
-            @Valid @RequestBody AddSessionRequestDTO req) {
+        AddSessionResponseDTO dto = meetingService.addMeetingSession(addSessionRequestDTO);
 
-        List<AddSessionResponseDTO> result = meetingService.addMeetingSessions(req);
-        return ResponseEntity.ok(result);
-    }
-
-    /** 회차 단건 열람: addMeetingSessions 응답의 plannerId로 조회 */
-    @GetMapping("/sessions/{plannerId}")
-    public ResponseEntity<MeetingSessionResponseDTO> getSessionDetail(
-            @PathVariable Long plannerId) {
-
-        MeetingSessionResponseDTO dto = meetingSessionService.getMeetingSession(plannerId);
         return ResponseEntity.ok(dto);
     }
 
