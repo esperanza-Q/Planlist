@@ -71,8 +71,8 @@ public class ProfileService {
                 .map(pp -> {
                     ProjectRequestDTO dto = new ProjectRequestDTO();
                     dto.setInviteeId(pp.getId());
-                    // dto.setProjectTitle(pp.getProject().getProjectTitle());
-                    // dto.setCreator(pp.getProject().getCreator().getName());
+                     dto.setProjectTitle(pp.getProject().getProjectTitle());
+                     dto.setCreator(pp.getProject().getCreator().getName());
                     return dto;
                 })
                 .collect(Collectors.toList());

@@ -3,6 +3,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import './DetailPTStartPage.css';
 
+import { api } from '../../api/client';
 import PT_icon from '../../assets/dumbbell_icon.svg';
 import { ReactComponent as ProjectNextIcon } from "../../assets/Project_next_button.svg";
 
@@ -13,10 +14,30 @@ const DetailPTStartPage = ({ formData, updateFormData, nextStep }) => {
   const [startDate, setStartDate] = useState(formData.startDate || new Date());
   const [endDate, setEndDate] = useState(formData.endDate || new Date());
 
-  const handleNext = () => {
+  const handleNext = async() => {
+
+    if (!title.trim()) {
+      alert("Please enter a title for your PT project.");
+      return;
+    }
+
+    try {
+      const project = await api.postSession("/api/pt/project/addSession", {
+        title,
+        startDate,
+        endDate
+      });
+
+
+
     // formData에 값 저장 후 다음 스텝으로 이동
     updateFormData({ title, startDate, endDate });
     nextStep();
+
+    } catch (e) {
+      console.error("Failed to send PT creation request:", e);
+      alert("Failed to create PT project. Please try again.");
+    }
   };
 
   return (
