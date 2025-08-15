@@ -1,5 +1,5 @@
 // src/components/CreateTravel/AddParticipant.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import '../../components/StandardCreatePage/AddParticipants.css';
 
 import { ReactComponent as BackIcon } from '../../assets/prev_arrow.svg';
@@ -109,49 +109,71 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
 
   const projectId = formData?.projectId;
 
-  // fetch friends + current participants for this project
-  useEffect(() => {
-    if (!projectId) {
-      setErr("Missing projectId");
-      setLoading(false);
-      return;
+  // ===== reload helpers (safe fetch + polling + focus/visibility) =====
+  const fetchingRef = useRef(false);
+  const safeFetch = async () => {
+    if (!projectId || fetchingRef.current) return;
+    fetchingRef.current = true;
+    try {
+      const json = await api.getSession(`/api/travel/inviteUser/${projectId}`);
+      const normalized = normalizeFromApi(json);
+      const self = getAuthUserLoose(formData, normalized.participants);
+
+      const nf = normalized.friends.filter((f) => !isSelf(f, self));
+      const np = normalized.participants.filter((p) => !isSelf(p, self));
+
+      setFriends(nf);
+      setParticipants(np);
+      setErr("");
+    } catch (e) {
+      console.error('Error fetching invite page data:', e);
+      setErr(e?.message || "Failed to load data");
+    } finally {
+      fetchingRef.current = false;
     }
-    let alive = true;
+  };
+
+  // initial load
+  useEffect(() => {
+    if (!projectId) { setErr("Missing projectId"); setLoading(false); return; }
     setLoading(true);
-    setErr("");
-
     (async () => {
-      try {
-        const json = await api.getSession(`/api/travel/inviteUser/${projectId}`);
-        if (!alive) return;
-
-        const normalized = normalizeFromApi(json);
-        const self = getAuthUserLoose(formData, normalized.participants);
-
-        const nf = normalized.friends.filter((f) => !isSelf(f, self));
-        const np = normalized.participants.filter((p) => !isSelf(p, self));
-
-        setFriends(nf);
-        setParticipants(np);
-      } catch (e) {
-        if (!alive) return;
-        console.error('Error fetching invite page data:', e);
-        setErr(e?.message || "Failed to load data");
-      } finally {
-        if (alive) setLoading(false);
-      }
+      await safeFetch();
+      setLoading(false);
     })();
-
-    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, formData]);
 
-  const refetch = async () => {
-    const json = await api.getSession(`/api/travel/inviteUser/${projectId}`);
-    const normalized = normalizeFromApi(json);
-    const self = getAuthUserLoose(formData, normalized.participants);
-    setFriends(normalized.friends.filter((f) => !isSelf(f, self)));
-    setParticipants(normalized.participants.filter((p) => !isSelf(p, self)));
-  };
+  // derive pending & set up polling + focus/visibility refresh
+  const pendingCount = participants.filter((p) => !isAcceptedStatus(p.status)).length;
+  const allAccepted = pendingCount === 0;
+
+  useEffect(() => {
+    if (!projectId) return;
+
+    const onFocus = () => safeFetch();
+    const onVis = () => { if (!document.hidden) safeFetch(); };
+
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVis);
+
+    let intervalId = null;
+    if (!allAccepted) {
+      intervalId = setInterval(safeFetch, 6000);
+    } else {
+      // one last sync when everyone accepted
+      safeFetch();
+    }
+
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVis);
+      if (intervalId) clearInterval(intervalId);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId, allAccepted]);
+
+  const refetch = async () => { await safeFetch(); };
 
   const handleInvite = async (friend) => {
     if (!projectId) { alert('Missing projectId. Create the project first.'); return; }
@@ -190,10 +212,6 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
     lc(f.name).includes(lc(searchTerm)) || lc(f.email ?? f.displayEmail).includes(lc(searchTerm))
   );
   const displayedFriends = showAllFriends ? filteredFriends : filteredFriends.slice(0, 3);
-
-  // acceptance gate (derived)
-  const pendingCount = participants.filter((p) => !isAcceptedStatus(p.status)).length;
-  const allAccepted = pendingCount === 0;
 
   return (
     <div className="invite-step-container">
@@ -270,7 +288,6 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
                         <div className="user-name">{part.name}</div>
                         <div className="trainer-label">{part.isTrainer ? 'trainer' : 'trainee'}</div>
                       </div>
-                      {/* show uppercased for readability */}
                       <span className={`status ${part.status}`}>{(part.status || '').toUpperCase()}</span>
                       <button className='XCircleButton' onClick={() => handleRemove(part)}>
                         <XCircle />
@@ -284,12 +301,9 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
 
           <button
             className="project2-next-button"
-            title={allAccepted ? "Next" : "Waiting for everyone to accept"}
+            title="Next"
             onClick={() => {
-              // if (!allAccepted) {
-              //   alert(`Everyone needs to accept before continuing${pendingCount ? ` (${pendingCount} pending)` : ""}.`);
-              //   return;
-              // }
+              // keep your current behavior (no alert gate here)
               updateFormData({ participants });
               nextStep();
             }}

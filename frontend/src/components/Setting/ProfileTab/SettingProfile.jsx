@@ -7,9 +7,10 @@ import "./SettingProfile.css";
 import { api } from "../../../api/client";
 
 // pick the first non-empty value
-const first = (...vals) => vals.find(v => v != null && String(v).trim() !== "") ?? null;
+const first = (...vals) =>
+  vals.find((v) => v != null && String(v).trim() !== "") ?? null;
 
-// --- DROP-IN: ultra-resilient normalizer ---
+// ultra-resilient normalizer
 const normalize = (raw) => {
   const root = raw?.data ?? raw ?? {};
 
@@ -31,47 +32,46 @@ const normalize = (raw) => {
     ) || DefaultProfilePic;
 
   const user = {
-    name: first(
-      userOrProfile.name,
-      userOrProfile.username,
-      userOrProfile.displayName
-    ) ?? "name",
-    email: first(
-      userOrProfile.email,
-      userOrProfile.mail,
-      userOrProfile.userEmail
-    ) ?? "ex@example.com",
+    name:
+      first(
+        userOrProfile.name,
+        userOrProfile.username,
+        userOrProfile.displayName
+      ) ?? "name",
+    email:
+      first(userOrProfile.email, userOrProfile.mail, userOrProfile.userEmail) ??
+      "ex@example.com",
     profilePic,
   };
 
   const projectRequests = reqs.map((p, i) => {
-    // Try flat, snake_case, and nested variants for title:
-    const projectTitle = first(
-      p?.projectTitle,
-      p?.project_title,
-      p?.title,
-      p?.project?.title,
-      p?.project?.name,
-      p?.project?.projectTitle,
-      p?.projectName
-    ) ?? "Project title";
+    const projectTitle =
+      first(
+        p?.projectTitle,
+        p?.project_title,
+        p?.title,
+        p?.project?.title,
+        p?.project?.name,
+        p?.project?.projectTitle,
+        p?.projectName
+      ) ?? "Project title";
 
-    // Try multiple sources for creator/owner:
-    const creator = first(
-      p?.creator,
-      p?.creatorName,
-      p?.creator_name,
-      p?.owner,
-      p?.ownerName,
-      p?.createdBy,
-      p?.createdByName,
-      p?.creatorEmail,                 // fallback to email if name missing
-      p?.project?.creator,
-      p?.project?.creatorName,
-      p?.project?.ownerName,
-      p?.project?.owner?.name,
-      p?.project?.creator?.name
-    ) ?? "creator";
+    const creator =
+      first(
+        p?.creator,
+        p?.creatorName,
+        p?.creator_name,
+        p?.owner,
+        p?.ownerName,
+        p?.createdBy,
+        p?.createdByName,
+        p?.creatorEmail,
+        p?.project?.creator,
+        p?.project?.creatorName,
+        p?.project?.ownerName,
+        p?.project?.owner?.name,
+        p?.project?.creator?.name
+      ) ?? "creator";
 
     return {
       invitee_id: p?.invitee_id ?? p?.inviteeId ?? `unknown-${i}`,
@@ -98,7 +98,6 @@ const MypageProfile = ({ setView }) => {
     (async () => {
       try {
         const json = await api.getSession("/api/settings/profile");
-        // Debug once to confirm actual payload shape
         console.log("[/api/settings/profile] raw:", json);
         const normalized = normalize(json);
         console.log("[/api/settings/profile] normalized:", normalized);
@@ -110,7 +109,9 @@ const MypageProfile = ({ setView }) => {
         if (alive) setLoading(false);
       }
     })();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, []);
 
   const { user, projectRequests } = profileData ?? DEFAULT_STATE;
@@ -118,7 +119,9 @@ const MypageProfile = ({ setView }) => {
   return (
     <div className="screen">
       <div className="tab">
-        <button onClick={() => setView("profile")} disabled>profile</button>
+        <button onClick={() => setView("profile")} disabled>
+          profile
+        </button>
         <button onClick={() => setView("friends")}>friends</button>
       </div>
 

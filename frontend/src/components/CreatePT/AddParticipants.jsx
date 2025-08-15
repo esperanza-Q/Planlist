@@ -1,5 +1,5 @@
 // src/components/StandardCreatePage/AddParticipants.jsx (PT)
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import './AddParticipants.css';
 import { ReactComponent as BackIcon } from '../../assets/prev_arrow.svg';
 import { ReactComponent as SearchIcon } from '../../assets/Search.svg';
@@ -28,26 +28,27 @@ const normalizeFromApi = (raw) => {
   });
 
   const mapParticipant = (p, i) => {
-    const rs = lc(p?.response ?? p?.status ?? 'waiting');
-    const status = rs === 'accepted' ? 'accepted' : 'waiting';
+    // PT uses p.response; normalize to: 'accepted' | 'waiting' | 'rejected'
+    const raw = lc(p?.response ?? p?.status ?? 'waiting');
+    const status =
+      raw === 'accepted' ? 'accepted' :
+      raw === 'rejected' || raw === 'declined' ? 'rejected' :
+      'waiting';
+
     return {
-      // IMPORTANT: id here is the USER ID (what the DELETE API expects)
-      id: p?.userId ?? p?.id ?? `participant-${i}`,
+      id: p?.userId ?? `participant-${i}`,
       name: p?.name ?? `User ${i}`,
       role: p?.role === 'TRAINER' ? 'TRAINER' : 'TRAINEE',
       isTrainer: p?.role === 'TRAINER',
       status,
       profileImage: p?.profileImage ?? p?.profile_image ?? ProfilePic,
-
-      // Some backends also send a projectParticipantId — keep it around just in case
       projectParticipantId:
         p?.projectParticipantId ??
         p?.participantId ??
         p?.projectParticipantID ??
         p?.ppid ??
         null,
-
-      email: p?.email ?? null,
+      email: p?.email ?? null, // may be absent; fine
     };
   };
 
@@ -69,45 +70,67 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
 
   const projectId = formData?.projectId;
 
-  // Fetch friends + current participants for this project
-  useEffect(() => {
-    if (!projectId) return;
-
-    let alive = true;
-    setLoading(true);
-
-    (async () => {
-      try {
-        const json = await api.getSession(`/api/pt/inviteUser/${projectId}`);
-        if (!alive) return;
-        const { friends, participants } = normalizeFromApi(json);
-        setFriends(friends);
-        setParticipants(participants);
-      } catch (e) {
-        console.error('Error fetching invite page data:', e);
-      } finally {
-        if (alive) setLoading(false);
-      }
-    })();
-
-    return () => { alive = false; };
-  }, [projectId]);
-
-  const toggleTrainerSelection = (key) => {
-    setTrainerSelections(prev => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  // Re-fetch after invite/remove so status/role reflect server truth
-  const refetch = async () => {
+  // ====== fetch & refetch helpers ======
+  const fetchingRef = useRef(false);
+  const safeFetch = async () => {
+    if (!projectId || fetchingRef.current) return;
+    fetchingRef.current = true;
     try {
       const json = await api.getSession(`/api/pt/inviteUser/${projectId}`);
       const { friends, participants } = normalizeFromApi(json);
       setFriends(friends);
       setParticipants(participants);
     } catch (e) {
-      console.error('Refetch failed:', e);
+      console.error('Fetch invite data failed:', e);
+    } finally {
+      fetchingRef.current = false;
     }
   };
+
+  // Initial load
+  useEffect(() => {
+    if (!projectId) return;
+    setLoading(true);
+    (async () => {
+      await safeFetch();
+      setLoading(false);
+    })();
+  }, [projectId]);
+
+  // Gate: allow Next when every participant is ACCEPTED or REJECTED (i.e., no WAITING)
+  const pendingCount = participants.filter(p => !['accepted', 'rejected'].includes(lc(p.status))).length;
+  const allResolved = pendingCount === 0;
+
+  // Live polling while unresolved + refresh on focus/visibility
+  useEffect(() => {
+    if (!projectId) return;
+
+    const onFocus = () => safeFetch();
+    const onVis = () => { if (!document.hidden) safeFetch(); };
+
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVis);
+
+    let intervalId = null;
+    if (!allResolved) {
+      intervalId = setInterval(safeFetch, 6000);
+    } else {
+      // last sync when all resolved
+      safeFetch();
+    }
+
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVis);
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [projectId, allResolved]);
+
+  const toggleTrainerSelection = (key) => {
+    setTrainerSelections(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const refetch = async () => { await safeFetch(); };
 
   // Build a live set of invited IDs/emails to filter friends list
   const invitedIds = useMemo(
@@ -148,18 +171,17 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
         role,
       });
 
-      // Optimistically remove from friends so the card updates immediately
+      // Optimistic remove from Friends immediately
       setFriends(prev => prev.filter(f =>
         idStr(f.id) !== idStr(friend.id) && lc(f.email) !== lc(friend.email)
       ));
-      // Clean up selection toggle for that friend
       setTrainerSelections(prev => {
         const next = { ...prev };
         delete next[key];
         return next;
       });
 
-      // Then sync with server
+      // Server truth
       await refetch();
     } catch (e) {
       console.error('Failed to invite user:', e);
@@ -167,32 +189,24 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
     }
   };
 
-  // 🔧 FIXED: delete uses USER ID in the path (not projectParticipantId)
   const handleRemove = async (part) => {
     if (!formData?.projectId) { alert('Missing projectId.'); return; }
-
-    // Backend contract: /deleteRequest/{userId}
-    const userId = part?.id ?? part?.userId;
-    if (!userId) {
-      console.error('Missing userId on participant:', part);
-      alert('Cannot delete: userId is missing from server data.');
+    const participantId = part?.projectParticipantId;
+    if (!participantId) {
+      console.error('Missing projectParticipantId on participant:', part);
+      alert('Cannot delete: participantId is missing from server data.');
       return;
     }
-
     try {
       await api.deleteSession(
-        `/api/pt/inviteUser/${formData.projectId}/deleteRequest/${userId}`
+        `/api/pt/inviteUser/${formData.projectId}/deleteRequest/${participantId}`
       );
-      await refetch(); // friends list will automatically show this person again
+      await refetch(); // friend shows up again automatically
     } catch (e) {
       console.error('Failed to delete invitation:', e);
       alert('Failed to delete invitation. Please try again.');
     }
   };
-
-  // Gate: only allow Next when every participant accepted
-  const pendingCount = participants.filter(p => lc(p.status) !== 'accepted').length;
-  const allAccepted = pendingCount === 0;
 
   if (loading) {
     return (
@@ -295,22 +309,27 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
       </div>
 
       <button
-        className={`project2-next-button ${(!allAccepted || submitting) ? 'is-disabled' : ''}`}
-        title={allAccepted ? "Next" : "Waiting for everyone to accept"}
+        className={`project2-next-button ${(!allResolved || submitting) ? 'is-disabled' : ''}`}
+        title={!allResolved ? "Waiting for responses" : "Next"}
         onClick={async () => {
+          if (!allResolved) {
+            alert(`Everyone must respond before continuing${pendingCount ? ` (${pendingCount} pending)` : ""}. Accepted or Rejected are both okay.`);
+            return;
+          }
           if (submitting) return;
           setSubmitting(true);
           try {
+            // Hit in-progress endpoint (POST then fallback to GET)
             try {
+              await api.postSession(`/api/pt/inviteUser/${projectId}/inprogress`, {});
+            } catch {
               await api.getSession(`/api/pt/inviteUser/${projectId}/inprogress`);
-            } catch (err) {
-              console.error('Failed to set in-progress:', err);
-              alert('Failed to set project to in-progress. Please try again.');
-              setSubmitting(false);
-              return;
             }
             updateFormData({ participants });
             nextStep();
+          } catch (err) {
+            console.error('Failed to set in-progress:', err);
+            alert('Failed to set project to in-progress. Please try again.');
           } finally {
             setSubmitting(false);
           }
