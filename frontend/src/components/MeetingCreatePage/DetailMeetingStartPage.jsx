@@ -45,12 +45,12 @@ const DetailMeetingStartPage = ({ formData, updateFormData, nextStep }) => {
       // 2️⃣ 회차 생성 (필수 NOT NULL 필드 모두 포함)
       const payload = {
         projectId: projectId,
-        subtitle: title,
+        title: title,
         startDate: startDate.toISOString().slice(0, 10),
         endDate: startDate.toISOString().slice(0, 10),
-        isRecurring: false,
-        recurrenceCount: 0,
-        recurrenceUnit: 'DAILY'
+        "isRecurring" : 1,
+        "recurrenceUnit" : "WEEKLY",
+        "recurrenceCount":1
       };
       console.log('Add session payload (for server):', payload);
 
