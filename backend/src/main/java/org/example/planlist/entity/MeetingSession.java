@@ -17,6 +17,8 @@ import java.util.List;
 @DiscriminatorValue("MEETING")
 @Inheritance(strategy = InheritanceType.JOINED)
 public class MeetingSession extends PlannerSession {
+    @Column(nullable = false)
+    private String subTitle;
 
     @Column(name = "is_recurring", nullable = false)
     private Boolean isRecurring;

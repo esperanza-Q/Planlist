@@ -80,15 +80,14 @@ public class StandardController {
         return ResponseEntity.ok(standardService.projectConfirm(projectId));
     }
 
-    @PostMapping("/project/addSession")
-    public ResponseEntity<AddSessionResponseDTO> addStandardSession(
-            @RequestBody AddSessionRequestDTO addSessionRequestDTO) {
-
-        AddSessionResponseDTO dto = standardService.addStandardSession(addSessionRequestDTO);
-
-        return ResponseEntity.ok(dto);
-    }
-
+//    @PostMapping("/project/addSession")
+//    public ResponseEntity<AddSessionResponseDTO> addStandardSession(
+//            @RequestBody AddSessionRequestDTO addSessionRequestDTO) {
+//
+//        AddSessionResponseDTO dto = standardService.addStandardSession(addSessionRequestDTO);
+//
+//        return ResponseEntity.ok(dto);
+//    }
 
 
     @GetMapping("/project/sharePlanner")
