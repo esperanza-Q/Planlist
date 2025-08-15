@@ -1,0 +1,384 @@
+.Meeting-Create-step5-container {
+  display: flex;
+  gap: 5rem;
+  font-family: 'IBM Plex Sans KR', sans-serif;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+  margin-left: 100px;
+ 
+}
+
+/* 상단 타이틀 + 프로필 */
+.save-project-left-section{
+    display: flex;
+    flex-direction: column;
+
+}
+
+.save-project-title {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.save-project-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.save-project-title-row h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.save-project-profile-pics {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.save-project-profile-pic {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/*오버플로우 아이콘 넣기 */
+.save-project-profile-overflow-icon {
+  width: 34px;
+  height: 34px;
+}
+
+
+
+/* 좌측 정보 영역 */
+.save-project-left-panel {
+  width: 551px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+
+}
+
+.Meeting-Create-save-project-section-box {
+  background: var(--EEF1F6);
+  padding: 1.2rem 1.5rem;
+  border-radius: 16px;
+  border: 1px solid var(--Galaxy);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.Meeting-Create-save-project-section-box label {
+  font-weight: 600;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+}
+
+.Meeting-Create-save-project-section-box input {
+  padding: 0.35rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--Galaxy);
+  background-color: white;
+  font-size: 0.95rem;
+  width: 519x;
+  margin-top: 0.4rem;
+}
+
+
+.save-project-tofrom-title{
+    display: flex;
+    flex-direction: column;
+
+}
+
+.save-project-tofrom-title h5{
+    margin: 0px;
+    margin-left: 5px;
+}
+
+.save-project-time-inputs {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.file-upload-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  justify-content: space-between;
+}
+
+.custom-file-upload {
+  background-color: white;
+  border: 1px solid var(--Galaxy);
+  color: black;
+  padding: 8px 30px;
+  font-size: medium;
+  font-weight: 200;
+  border-radius: 6px;
+  cursor: pointer;
+  
+  transition: background-color 0.2s ease;
+}
+
+.Meeting-Create-save-project-file-preview-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.file-tag {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  border: 1.5px solid var(--Galaxy);
+  border-radius: 10px;
+  padding: 11px 20px;
+  font-size: 14px;
+  color: black;
+}
+
+.file-name {
+  margin-right: 10px;
+  font-weight: 500;
+}
+
+.delete-file-button {
+  background-color: transparent;
+  border: 2px solid #D12C2C;
+  color: #D12C2C;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  line-height: 14px;
+  text-align: center;
+  padding: 0;
+  cursor: pointer;
+}
+
+
+.custom-file-upload:hover {
+  background-color: white;
+}
+
+input[type="file"] {
+  display: none;
+}
+
+.file-count {
+  color: #555;
+  font-size: 0.9rem;
+}
+
+
+
+
+/* 우측 메모 영역 */
+.Meeting-Create-save-project-right-panel {
+  width: 707px;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.Meeting-Create-save-project-memo-section {
+  display: flex;
+  flex-direction: column;
+  height: 350px; 
+  border: none;
+  border-radius: 16px;
+  padding: 16px;
+  background-color: none;
+  width: 770px;
+}
+
+
+.Meeting-Create-save-project-memo-header {
+  display: flex;
+  align-items: stretch;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 12px;
+}
+
+
+.Meeting-Create-save-project-memo-header-button{
+    border: none;
+    background-color: white;
+}
+
+
+
+.Meeting-Create-save-project-memo-placeholder {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); 
+  gap: 16px;
+  max-height: 640px; 
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+
+
+
+/*Location 버튼 */
+
+/*헤더부분 */
+.Meeting-Create-location-header{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+
+.Meeting-Create-choose-search-bar {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 25px;
+  padding: 0.2rem 1rem;
+  margin-bottom: 0.5rem;
+  background-color: white;
+  height: 30px;
+}
+
+.Meeting-Create-choose-search-bar input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 12px;
+  background: transparent;
+  margin: 0px;
+}
+
+.Meeting-Create-choose-search-button{
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.Meeting-Create-choose-search-button svg{
+  width: 16px;
+  height: 16px;
+}
+
+
+/* 장소 리스트 */
+
+.Meeting-Create-place-list {
+  list-style: none; 
+  padding: 0;       
+  margin: 0;
+  overflow-y: auto;
+  max-height: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.Meeting-Create-place-item {
+  padding: 0.9rem;
+  font-size: 15px;
+  border-radius: 15px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  display: flex;
+  flex-direction: column;
+  background: white;
+}
+
+.Meeting-Create-place-item.selected {
+  border: 1px solid var(--Galaxy);
+}
+
+.Meeting-Create-place-item.not-selected {
+  border: 1px solid var(--Venus);
+}
+
+.Meeting-Create-place-title {
+  font-weight: 560;
+  margin-bottom: 0.35rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.Meeting-Create-place-title svg{
+    width: 17px;
+    height: 17px;
+}
+
+.Meeting-Create-place-address,
+.Meeting-Create-place-desc {
+  font-size: 11px;
+  color: #555;
+}
+
+
+/*구글 미트 */
+.create-meeting-link-button {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 1px solid var(--Galaxy);
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  cursor: pointer;
+  width: 200px;
+  gap: 10px;
+}
+
+.create-meeting-link-button svg{
+    width: 20px;
+    height: 20px;
+}
+
+
+
+
+/* Save 버튼 */
+.Meeting-Create-save-project-bottom-right {
+  position: fixed;
+  bottom: 2rem;
+  right: 3rem;
+}
+
+.Meeting-Create-save-project-save-button {
+  background: var(--Planetary);
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 0.7rem 2rem;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background 0.2s ease;
+    margin-right: 100px;
+    margin-bottom: 80px;
+}
+
+.save-project-save-button:hover {
+  background: #3554b8;
+}

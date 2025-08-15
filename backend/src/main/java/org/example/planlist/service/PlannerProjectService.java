@@ -200,7 +200,8 @@ public class PlannerProjectService {
 
         // 현재 유저가 참가자로 속한 프로젝트 참가 정보들 조회
         List<ProjectParticipant> myParticipations =
-                projectParticipantRepository.findByUser(currentUser);
+//                projectParticipantRepository.findByUser(currentUser);
+                projectParticipantRepository.findByUserAndResponse(currentUser, ProjectParticipant.Response.ACCEPTED);
 
         // ProjectParticipant → PlannerProject → DTO 변환 (중복 제거)
         return myParticipations.stream()
@@ -226,6 +227,8 @@ public class PlannerProjectService {
                 .endDate(project.getEndDate())
                 .Participants(participantDTOs)
                 .status(project.getStatus())
+                .createdAt(project.getCreatedAt())
+                .confirmedAt(project.getConfirmedAt())
                 .build();
     }
 

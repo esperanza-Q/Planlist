@@ -4,7 +4,17 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
+node_modules/
+frontend/node_modules/
+# Dependencies
+**/node_modules/
 
+NUL
+**/NUL
+
+# Tool caches (webpack/terser/esbuild/parcel, etc.)
+**/.cache/
+**/.parcel-cache/
 ### STS ###
 .apt_generated
 .classpath
@@ -16,6 +26,7 @@ build/
 bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
+NUL
 
 ### IntelliJ IDEA ###
 .idea
@@ -37,3 +48,8 @@ credentials.json
 
 ### VS Code ###
 .vscode/
+**/node_modules/
+**/.cache/
+**/.parcel-cache/
+
+node_modules/

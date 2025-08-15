@@ -13,8 +13,9 @@ import java.util.List;
 @Entity
 @Builder
 @AllArgsConstructor
-@Table(name= "date_planner")
+@Table(name = "date_planner")
 public class DatePlanner {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "calendar_id", nullable = false)
@@ -74,5 +75,6 @@ public class DatePlanner {
     private Wishlist wishlist;
 
     @OneToMany(mappedBy = "datePlanner", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<MoveBetweenPlaces> moveBetweenPlacesList = new ArrayList<>();
 }
