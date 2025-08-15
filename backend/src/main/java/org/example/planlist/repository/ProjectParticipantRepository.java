@@ -14,6 +14,8 @@ import java.util.Optional;
 public interface ProjectParticipantRepository extends JpaRepository<ProjectParticipant, Long> {
     List<ProjectParticipant> findByUser(User user);
 
+    List<ProjectParticipant> findByUserAndResponse(User user, ProjectParticipant.Response response);
+
     List<ProjectParticipant> findByProject_ProjectIdAndResponse(Long projectId, ProjectParticipant.Response response);
 
     List<ProjectParticipant> findByProject_ProjectId(Long projectId);
@@ -48,4 +50,10 @@ public interface ProjectParticipantRepository extends JpaRepository<ProjectParti
     List<ProjectParticipant> findWithUserByProject(@Param("project") PlannerProject project);
 
     Optional<ProjectParticipant> findByProjectAndUser(PlannerProject project, User user);
+
+    int countByUserAndProject_Status(User user, PlannerProject.Status status);
+
+//    int countByUserAndProject_Status(User user, PlannerProject.Status.INPROGRESS);
+
+//    int countByUserAndProject_Status(User user, PlannerProject.Status.FINISHED);
 }
