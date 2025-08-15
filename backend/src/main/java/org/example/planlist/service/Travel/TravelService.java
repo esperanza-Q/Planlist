@@ -242,35 +242,34 @@ public class TravelService {
 //        plannerProjectRepository.save(project);
 //    }
 
-    // 여행 날짜 확정
+
+    // 여행 날짜 확정: 연속 날짜 확정 + 참여자 allDay 프리타임 일괄 삭제
     @Transactional
     public void confirmTravelDateRange(Long projectId, LocalDate startDate, LocalDate endDate) {
         PlannerProject project = plannerProjectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("프로젝트를 찾을 수 없습니다."));
 
-        // 1. 날짜 유효성 체크
         if (startDate.isAfter(endDate)) {
             throw new IllegalArgumentException("시작일은 종료일보다 이후일 수 없습니다.");
         }
 
-//        // 2. 이미 확정된 프로젝트인지 체크
-//        if (project.getStatus() == PlannerProject.Status.INPROGRESS) {
-//            throw new IllegalStateException("이미 확정된 프로젝트입니다. 날짜 변경은 별도 절차를 사용하세요.");
-//        }
-
-        // 3. 연속된 날짜인지 체크
-        long daysBetween = ChronoUnit.DAYS.between(startDate, endDate) + 1; // +1 해서 포함 범위 계산
+        // 연속 날짜 리스트(포함 범위)
         List<LocalDate> selectedDates = startDate.datesUntil(endDate.plusDays(1)).toList();
-        if (selectedDates.size() != daysBetween) {
-            throw new IllegalArgumentException("선택한 날짜가 연속되지 않습니다.");
+
+        // ✅ 확정 날짜들에서, ACCEPTED 참여자들의 allDay 프리타임 삭제
+        List<ProjectParticipant> accepted = participantRepository
+                .findByProject_ProjectIdAndResponse(projectId, ProjectParticipant.Response.ACCEPTED);
+
+        List<Long> userIds = accepted.stream().map(pp -> pp.getUser().getId()).toList();
+        if (!userIds.isEmpty() && !selectedDates.isEmpty()) {
+            freeTimeCalendarRepository.deleteAllDayByUserIdsAndDates(userIds, selectedDates);
         }
 
-        // 4. 확정 처리
+        // 프로젝트 확정 정보 업데이트
         project.setStartDate(startDate);
         project.setEndDate(endDate);
         project.setStatus(PlannerProject.Status.INPROGRESS);
         project.setConfirmedAt(LocalDateTime.now());
-
         plannerProjectRepository.save(project);
     }
 
