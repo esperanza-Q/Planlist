@@ -19,6 +19,8 @@ public interface PlannerProjectRepository extends JpaRepository<PlannerProject, 
 
     List<PlannerProject> findByCreatorAndStatus(User user, PlannerProject.Status status);
 
+
+
 //    @Query("SELECT p FROM PlannerProject p " +
 //           "JOIN p.participants part " +
 //           "JOIN part.user u " +
