@@ -7,19 +7,23 @@ import './DetailPTStartPage.css';
 import { api } from '../../api/client';
 import PT_icon from '../../assets/dumbbell_icon.svg';
 import { ReactComponent as ProjectNextIcon } from "../../assets/Project_next_button.svg";
-import { addDays, parseISO, isValid as isValidDate } from 'date-fns';
+import { addDays } from 'date-fns'; // optional, keeps end = start + 7 UX
 
 const DetailPTStartPage = ({ formData, updateFormData, nextStep }) => {
   const [title, setTitle] = useState(formData.title || '');
   const [startDate, setStartDate] = useState(formData.startDate || new Date());
   const [endDate, setEndDate] = useState(formData.endDate || addDays(new Date(), 7));
 
+  // robustly pull projectId from prior step
   const getProjectId = (fd) =>
-    fd?.projectId ?? fd?.project?.id ?? fd?.project?.projectId ?? null;
+    fd?.projectId ??
+    fd?.project?.id ??
+    fd?.project?.projectId ??
+    null;
 
   const handleStartChange = (date) => {
     setStartDate(date);
-    if (date) setEndDate(addDays(date, 7)); // keep +7 UX
+    if (date) setEndDate(addDays(date, 7)); // keep your +7 behavior
   };
 
   const handleNext = async () => {
@@ -35,37 +39,14 @@ const DetailPTStartPage = ({ formData, updateFormData, nextStep }) => {
     }
 
     try {
-      const res = await api.postSession("/api/pt/project/addSession", {
-        projectId,
+      await api.postSession("/api/pt/project/addSession", {
+        projectId,       // ✅ include projectId from previous step
         title,
-        // send date-only strings if your backend expects that:
-        // startDate: formatISO(startDate, { representation: 'date' }),
-        // endDate: formatISO(endDate, { representation: 'date' }),
         startDate,
         endDate,
       });
 
-      // Response example: {"plannerId":14,"startDate":"2025-08-15","endDate":"2025-08-15"}
-      const plannerId = res?.plannerId ?? null;
-
-      // Prefer server dates if valid, else keep what user selected
-      const srvStart = res?.startDate && isValidDate(parseISO(res.startDate))
-        ? parseISO(res.startDate)
-        : startDate;
-      const srvEnd = res?.endDate && isValidDate(parseISO(res.endDate))
-        ? parseISO(res.endDate)
-        : endDate;
-
-      // Persist everything needed for next step
-      updateFormData({
-        title,
-        startDate: srvStart,
-        endDate: srvEnd,
-        projectId,
-        plannerId,     // 🔴 <- key for Step 4
-        session: res,  // optional: keep full response
-      });
-
+      updateFormData({ title, startDate, endDate, projectId });
       nextStep();
     } catch (e) {
       console.error("Failed to create PT session:", e);
@@ -97,7 +78,7 @@ const DetailPTStartPage = ({ formData, updateFormData, nextStep }) => {
           <div className="date-picker-wrapper">
             <DatePicker
               selected={startDate}
-              onChange={handleStartChange}
+              onChange={handleStartChange}    // when start changes, end -> start+7
               selectsStart
               startDate={startDate}
               endDate={endDate}
@@ -110,12 +91,12 @@ const DetailPTStartPage = ({ formData, updateFormData, nextStep }) => {
               startDate={startDate}
               endDate={endDate}
               minDate={startDate}
-              disabled
             />
           </div>
         </div>
       </div>
 
+      {/* ✅ Next */}
       <button className="project-next-button" onClick={handleNext}>
         <ProjectNextIcon />
       </button>
