@@ -1,18 +1,12 @@
 // pages/CreateCategory/PTCreatePage.jsx
 import Step1StartProject from "../../components/CreatePT/CreatePT";
 import Step2AddParticipants from "../../components/CreatePT/AddParticipants";
-import Step3CreateDetailProject from "../../components/CreatePT/CreateDetailPT";
+import Step3CreateDetailProject from "../../components/CreatePT/CreateDetailPT"; // this step should call updateFormData({ plannerId, ... })
 import Step4SelectDate from "../../components/CreatePT/SelectDate";
 import { useState, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 
-// 테스트용 표시될 날짜
-const recommendedDates = [
-  { start: new Date(2025, 7, 12), end: new Date(2025, 7, 13) }, 
-  { start: new Date(2025, 7, 24), end: new Date(2025, 7, 30) }, 
-  { start: new Date (2025, 7, 1), end: new Date(2025, 7, 1)}
-];
-
+// (optional) used elsewhere in flow
 const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 
 const PTCreatePage = () => {
@@ -29,12 +23,14 @@ const PTCreatePage = () => {
   const [step, setStep] = useState(initialStep);
 
   const [formData, setFormData] = useState({
-    title: '',
+    title: "",
     startDate: null,
     endDate: null,
     isTrainer: false,
-    project: null,
+    project: null,                 // (full server payload if you store it)
     projectId: initialProjectId ?? null,
+    plannerId: null,               // 🔑 gets set at Step 3 (addSession response)
+    session: null,                 // optional: keep addSession response
   });
 
   const nextStep = () => setStep((prev) => prev + 1);
@@ -42,7 +38,7 @@ const PTCreatePage = () => {
 
   const updateFormData = (newData) => {
     setFormData((prev) => ({ ...prev, ...newData }));
-    console.log(newData);
+    // console.log("[PTCreatePage] updateFormData:", newData);
   };
 
   return (
@@ -67,7 +63,7 @@ const PTCreatePage = () => {
       {step === 3 && (
         <Step3CreateDetailProject
           formData={formData}
-          updateFormData={updateFormData}
+          updateFormData={updateFormData} // <- this step should set { plannerId } from /addSession
           nextStep={nextStep}
           prevStep={prevStep}
         />
@@ -75,7 +71,7 @@ const PTCreatePage = () => {
 
       {step === 4 && (
         <Step4SelectDate
-          formData={formData}
+          formData={formData}          // <- SelectDate reads formData.plannerId
           updateFormData={updateFormData}
           nextStep={nextStep}
           prevStep={prevStep}

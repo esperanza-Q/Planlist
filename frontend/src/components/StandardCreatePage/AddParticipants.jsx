@@ -27,7 +27,7 @@ const normalizeFromApi = (raw) => {
   });
 
   const mapParticipant = (p, i) => {
-    // standard uses p.response; normalize to: 'accepted' | 'waiting' | 'rejected'
+    //standard uses p.response; normalize to: 'accepted' | 'waiting' | 'rejected'
     const raw = lc(p?.response ?? p?.status ?? 'waiting');
     const status =
       raw === 'accepted' ? 'accepted' :
@@ -104,17 +104,23 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
 
   // Initial load
   useEffect(() => {
-    if (!projectId) return;
-    setLoading(true);
-    (async () => {
-      await safeFetch();
-      setLoading(false);
-    })();
-  }, [projectId]);
+  if (!projectId) {
+    setLoading(false);
+    return;
+  }
+  setLoading(true);
+  (async () => {
+    await safeFetch();
+    setLoading(false);
+  })();
+}, [projectId]);
+  
 
   // Gate: allow Next when every participant is ACCEPTED or REJECTED (i.e., no WAITING)
   const pendingCount = participants.filter(p => !['accepted', 'rejected'].includes(lc(p.status))).length;
   const allResolved = pendingCount === 0;
+  console.log('pendingCount', pendingCount, 'allResolved', allResolved);
+
 
   // Live polling while unresolved + refresh on focus/visibility
   useEffect(() => {
@@ -170,28 +176,47 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
   const displayedFriends = showAllFriends ? filteredFriends : filteredFriends.slice(0, 3);
 
   const handleInvite = async (friend) => {
-    if (!projectId) { alert('Missing projectId. Create the project first.'); return; }
-    if (!friend?.email) { alert('This friend has no email; cannot invite.'); return; }
+  if (!projectId) { 
+    alert('Missing projectId. Create the project first.'); 
+    return; 
+  }
+  if (!friend?.email) { 
+    alert('This friend has no email; cannot invite.'); 
+    return; 
+  }
 
-    const key = friend.email ?? friend.id;
+  const key = friend.email ?? friend.id;
 
-    try {
-      await api.postSession(`/api/standard/inviteUser/${projectId}/invite`, {
-        email: friend.email,
-      });
+  // 🔍 URL과 Body 확인용 로그
+  console.log('=== Invite Debug ===');
+  console.log('projectId:', projectId);
+  console.log('friend:', friend);
+  console.log('POST URL:', `/api/standard/inviteUser/${projectId}/invite`);
+  console.log('POST body:', { email: friend.email });
+  console.log('===================');
 
-      // Optimistic remove from Friends immediately
-      setFriends(prev => prev.filter(f =>
-        idStr(f.id) !== idStr(friend.id) && lc(f.email) !== lc(friend.email)
-      ));
+  try {
+    await api.postSession(`/api/standard/inviteUser/${projectId}/invite`, {
+      email: friend.email,
+    });
 
-      // Server truth
-      await refetch();
-    } catch (e) {
-      console.error('Failed to invite user:', e);
-      alert('Failed to invite user. Please try again.');
-    }
-  };
+    // Optimistic remove from Friends immediately
+    setFriends(prev => prev.filter(f =>
+      idStr(f.id) !== idStr(friend.id) && lc(f.email) !== lc(friend.email)
+    ));
+
+    // Server truth
+    await refetch();
+  } catch (e) {
+    console.error('Failed to invite user:', {
+      status: e?.response?.status,
+      data: e?.response?.data,
+      message: e?.message,
+    });
+    alert('Failed to invite user. Please try again.');
+  }
+};
+
 
   // 🔧 Remove invitation using friendId (userId) from participant
   const handleRemove = async (part) => {

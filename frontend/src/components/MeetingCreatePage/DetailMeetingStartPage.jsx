@@ -14,37 +14,65 @@ const DetailMeetingStartPage = ({ formData, updateFormData, nextStep }) => {
   const [error, setError] = useState(null);
 
   const handleNext = async () => {
-    if (!title) {
+    if (!title.trim()) {
       setError('프로젝트 제목을 입력해주세요.');
       return;
     }
 
-    setLoading(true);
     setError(null);
+    setLoading(true);
 
     try {
-      // 1️⃣ 주간 반복 시작 프로젝트 생성 API 호출
-      const createResponse = await axios.post('http://localhost:8080/api/meeting/createProject', {
-        title: title,
-        start_week_date: startDate.toISOString().slice(0, 10),
-      }, {
-        withCredentials: true // 세션/쿠키 기반이면 필요
-      });
+      let projectId = formData.projectId;
 
+      // 1️⃣ 프로젝트가 없으면 생성
+      if (!projectId) {
+        const createProjectRes = await axios.post(
+          'http://localhost:8080/api/meeting/createProject',
+          { title, start_week_date: startDate.toISOString().slice(0, 10) },
+          { withCredentials: true }
+        );
 
-      console.log('Create project response:', createResponse.data);
+        console.log('프로젝트 생성 응답:', createProjectRes.data);
 
-      // 2️⃣ formData 업데이트
+        // 서버 응답에 맞는 ID 선택
+        projectId = createProjectRes.data.projectId || createProjectRes.data.plannerId;
+        if (!projectId) throw new Error('프로젝트 ID를 서버에서 받아오지 못했습니다.');
+
+        updateFormData({ ...formData, projectId });
+      }
+
+      // 2️⃣ 회차 생성 (필수 NOT NULL 필드 모두 포함)
+      const payload = {
+        projectId: projectId,
+        subtitle: title,
+        startDate: startDate.toISOString().slice(0, 10),
+        endDate: startDate.toISOString().slice(0, 10),
+        isRecurring: false,
+        recurrenceCount: 0,
+        recurrenceUnit: 'DAILY'
+      };
+      console.log('Add session payload (for server):', payload);
+
+      const addSessionRes = await axios.post(
+          'api/meeting/project/addSession',
+          payload,
+          { withCredentials: true }
+        );
+
+      console.log('회차 생성 응답:', addSessionRes.data);
       updateFormData({
-        subTitle: title,
-        startDate,
-        projectId: createResponse.data.planner_id, // 서버 응답 planner_id
+        ...formData,
+        sessionId: addSessionRes.data.plannerId || addSessionRes.data.sessionId,
+        startDate: addSessionRes.data.startDate,
+        endDate: addSessionRes.data.endDate
       });
 
-      nextStep(); // 다음 스텝으로 이동
+      nextStep();
+
     } catch (err) {
-      console.error('Failed to create project:', err);
-      setError('프로젝트 생성에 실패했습니다.');
+      console.error('회차 생성 실패:', err);
+      setError('회차 생성에 실패했습니다. 콘솔을 확인하세요.');
     } finally {
       setLoading(false);
     }
