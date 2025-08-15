@@ -7,4 +7,5 @@ public class ProjectRequestDTO {
     private Long inviteeId;
     private String projectTitle;
     private String creator;
+    private String creatorProfileImage;
 }

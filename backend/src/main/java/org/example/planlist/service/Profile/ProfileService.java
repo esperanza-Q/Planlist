@@ -73,6 +73,7 @@ public class ProfileService {
                     dto.setInviteeId(pp.getId());
                      dto.setProjectTitle(pp.getProject().getProjectTitle());
                      dto.setCreator(pp.getProject().getCreator().getName());
+                     dto.setCreatorProfileImage(pp.getProject().getCreator().getProfileImage());
                     return dto;
                 })
                 .collect(Collectors.toList());
