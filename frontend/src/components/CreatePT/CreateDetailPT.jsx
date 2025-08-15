@@ -44,6 +44,12 @@ const DetailPTStartPage = ({ formData, updateFormData, nextStep }) => {
         startDate,
         endDate,
       });
+      // try{
+      //   await api.postSession(`/api/pt/inviteUser/${projectId}/upcoming`);
+      // } catch (e) {
+      //   await api.getSession(`/api/pt/inviteUser/${projectId}/upcoming`);
+
+      // }
 
       // Response example: {"plannerId":14,"startDate":"2025-08-15","endDate":"2025-08-15"}
       const plannerId = res?.plannerId ?? null;

@@ -7,7 +7,8 @@ import arrow_long from "../../assets/arrow_long.svg";
 import bus from "../../assets/bus.svg";
 import PlaceSelectionPopup from './PlaceSelectionPopup';
 
-const TravelPlannerCard = ({ formData, setPlacesForDates }) => {
+// Add setHoveredPlace to the props
+const TravelPlannerCard = ({ formData, setPlacesForDates, setHoveredPlace }) => {
   const [itinerary, setItinerary] = useState({});
   const [dateList, setDateList] = useState([]);
   const [activeDate, setActiveDate] = useState('');
@@ -92,7 +93,12 @@ const TravelPlannerCard = ({ formData, setPlacesForDates }) => {
 
           return (
             <React.Fragment key={index}>
-              <li className={`entry ${entry.type}`}>
+              <li
+                className={`entry ${entry.type}`}
+                onMouseEnter={() => isPlace && setHoveredPlace(entry.data) 
+                }
+                onMouseLeave={() => isPlace && setHoveredPlace(null)}
+              >
                 {isPlace ? (
                   <div className='planner-containerdiv'>
                     <div className="planner-place-item">
@@ -108,7 +114,7 @@ const TravelPlannerCard = ({ formData, setPlacesForDates }) => {
                         className="place-remove-button"
                         onClick={() => handleRemoveEntry(index)}
                       >
-                        <img src={x_circle}/>
+                        <img src={x_circle} alt="Remove place" />
                       </button>
                     </div>
                     <input
@@ -123,8 +129,8 @@ const TravelPlannerCard = ({ formData, setPlacesForDates }) => {
                   </div>
                 ) : (
                   <div className="move-item">
-                    <img className="arrow" src={arrow_long}/>
-                    <img className="buts" src={bus}/>
+                    <img className="arrow" src={arrow_long} alt="arrow" />
+                    <img className="buts" src={bus} alt="bus" />
                     <div className="move-item-data">
                       <select
                         value={entry.data.kind}
@@ -152,14 +158,14 @@ const TravelPlannerCard = ({ formData, setPlacesForDates }) => {
                       className="traffic-remove-button"
                       onClick={() => handleRemoveEntry(index)}
                     >
-                      <img src={x_circle}/>
+                      <img src={x_circle} alt="Remove traffic" />
                     </button>
                   </div>
                 )}
               </li>
 
               {showAddTrafficBetween && (
-                <li >
+                <li>
                   <button className="planner-add-traffic-button" onClick={() => handleInsertTraffic(index + 1)}>Add Traffic</button>
                 </li>
               )}

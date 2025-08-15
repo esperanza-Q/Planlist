@@ -193,7 +193,7 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
 
   const handleRemove = async (part) => {
     if (!projectId) { alert('Missing projectId.'); return; }
-    const participantId = part?.projectParticipantId;
+    const participantId = part?.id;
     if (!participantId) {
       console.error('Missing projectParticipantId on participant:', part);
       alert('Cannot delete: participantId is missing from server data.');

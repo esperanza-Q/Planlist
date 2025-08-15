@@ -46,7 +46,6 @@ const PTDetailInfoCard = ({ project }) => {
         <div className="info-text">
           <div className="project-info">{timeline}</div>
           <div className="project-subinfo">
-            {repeat === "none" ? "no repeat" : `repeat every ${repeat}`}
           </div>
         </div>
       </div>

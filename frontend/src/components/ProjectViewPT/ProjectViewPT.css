@@ -23,7 +23,7 @@
 .comment-item img{
     width: 65px;
     height:65px;
-
+    border-radius:50%;
 }
 
 .comment-content{
@@ -41,6 +41,20 @@
     font-size:17px;
     color:#081F5C;
     margin-bottom:5px;
+}
+
+.delete-comment{
+    border:none;
+    padding:0px;
+}
+
+.delete-comment img{
+
+    top:0px;
+    width: 20px;
+    height: 20px;
+    border:none;
+    background-color: transparent;
 }
 
 .is-trainer{
