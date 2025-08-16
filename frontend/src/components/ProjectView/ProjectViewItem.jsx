@@ -28,32 +28,45 @@ const ProjectViewItem = ({ project }) => {
 
     const category = norm(project?.category);
 
-    // --- PT routing: when in-progress -> .
+  
     if (category === "pt") {
-      if (statusIsInProgress()) {
-              navigate(`/project/pt?projectId=${encodeURIComponent(id)}`);
-
+      if (!statusIsInProgress()) {
+             
+              navigate(`/project?category=PT&step=2&projectId=${encodeURIComponent(id)}`);
+        return;
+      }
+   
+         navigate(`/project/pt?projectId=${encodeURIComponent(id)}`);
+      return;
+    }
+    if (category === "travel") {
+      if (!statusIsInProgress()) {
+        navigate(`/project?category=Travel&step=2&projectId=${encodeURIComponent(id)}`);
 
         return;
       }
-      // otherwise keep your normal PT view
-              navigate(
-          `/project?category=pt&step=2&projectId=${encodeURIComponent(id)}`
-        );
+      navigate(`/project/travel?projectId=${encodeURIComponent(id)}`);
+      return;
+    }
+    if (category === "meeting"){
+      if (!statusIsInProgress()){
+        navigate(`/project?category=MEETING&step=2&projectId=${encodeURIComponent(id)}`);
+        return;
+      }
+      navigate(`/project/meeting?projectId=${encodeURIComponent(id)}`);
+      return;
+    }
+    if (category === "standard"){
+      if (!statusIsInProgress()){
+                navigate(`/project?category=STANDARD&step=2&projectId=${encodeURIComponent(id)}`);
+
+        return;
+      }
+      navigate(`/project/standard?projectId=${encodeURIComponent(id)}`);
       return;
     }
 
-    // --- Other categories (unchanged) ---
-    switch (category) {
-      case "travel":
-        navigate(`/project/travel?projectId=${encodeURIComponent(id)}`);
-        break;
-      case "meeting":
-        navigate(`/project/meeting?projectId=${encodeURIComponent(id)}`);
-        break;
-      default:
-        navigate(`/project/standard?projectId=${encodeURIComponent(id)}`);
-    }
+
   };
 
   return (

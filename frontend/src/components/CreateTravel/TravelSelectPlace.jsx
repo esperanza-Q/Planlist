@@ -1,5 +1,5 @@
 // src/components/CreateTravel/TravelSelectPlace.jsx
-import React, { useState, useEffect, memo } from "react";
+import React, { useState, useEffect } from "react";
 import PlaceMap from "../StandardCreatePage/PlaceMap";
 import "./TravelSelectPlace.css";
 
@@ -10,17 +10,25 @@ import { ReactComponent as SearchIcon } from "../../assets/Search.svg";
 import x_circle from "../../assets/x_circle.svg";
 import { api } from "../../api/client";
 
-// Map Google's place types to our categories
+/** Map Google's place types -> our UI category (place | restaurant | accommodation) */
 const mapGoogleTypesToCategories = (types) => {
   const lower = (types || []).map((t) => String(t || "").toLowerCase());
 
-  const accommodation = ["lodging", "hotel", "hostel", "motel", "resort"];
-  if (lower.some((t) => accommodation.includes(t))) return "accommodation";
+  // accommodation (single 'm' per requirement)
+  const accommodationTypes = ["lodging", "hotel", "hostel", "motel", "resort"];
+  if (lower.some((t) => accommodationTypes.includes(t))) return "accommodation";
 
-  const restaurant = ["restaurant", "cafe", "bar", "bakery", "meal_takeaway", "food"];
-  if (lower.some((t) => restaurant.includes(t))) return "restaurant";
+  const restaurantTypes = [
+    "restaurant",
+    "cafe",
+    "bar",
+    "bakery",
+    "meal_takeaway",
+    "food",
+  ];
+  if (lower.some((t) => restaurantTypes.includes(t))) return "restaurant";
 
-  const place = [
+  const placeTypes = [
     "tourist_attraction",
     "museum",
     "art_gallery",
@@ -32,8 +40,17 @@ const mapGoogleTypesToCategories = (types) => {
     "shopping_mall",
     "store",
   ];
-  if (lower.some((t) => place.includes(t))) return "place";
+  if (lower.some((t) => placeTypes.includes(t))) return "place";
 
+  return "place";
+};
+
+/** Normalize any incoming category to the exact route segment we must use */
+const toRouteCategory = (c) => {
+  const v = String(c || "").toLowerCase();
+  if (v === "accommodation" || v === "accommodation" || v === "stay")
+    return "accommodation";
+  if (v === "restaurant" || v === "dining") return "restaurant";
   return "place";
 };
 
@@ -47,10 +64,12 @@ const TravelSelectPlace = ({ formData, updateFormData, nextStep, prevStep }) => 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // saved list; items may include { wishlistId, routeCategory }
   const [selectedPlaces, setSelectedPlaces] = useState(formData.places || []);
   const [showSaved, setShowSaved] = useState(false);
   const [savingIds, setSavingIds] = useState(() => new Set());
 
+  // Google Places text search
   useEffect(() => {
     if (!submittedSearchTerm) {
       setSearchResults([]);
@@ -85,7 +104,7 @@ const TravelSelectPlace = ({ formData, updateFormData, nextStep, prevStep }) => 
             lat: r.geometry.location.lat(),
             lng: r.geometry.location.lng(),
             description: "",
-            category: mapGoogleTypesToCategories(r.types),
+            category: mapGoogleTypesToCategories(r.types), // "place" | "restaurant" | "accommodation"
           }));
           setSearchResults(formatted);
         } else {
@@ -106,88 +125,127 @@ const TravelSelectPlace = ({ formData, updateFormData, nextStep, prevStep }) => 
     setShowSaved(false);
   };
 
+  // Add (POST) wishlist, store wishlistId + routeCategory on success
   const handleSelectPlace = async (place) => {
     const projectId = formData.projectId;
-    const categoryName = place.category || "place";
+    const routeCategory = toRouteCategory(place.category || "place");
 
     if (!projectId) {
       console.warn("No projectId; aborting wishlist add.");
       return;
     }
 
-    // prevent double-click spamming this place
+    // prevent double post for same Google place_id while in flight
     if (savingIds.has(place.id)) return;
 
-    // optimistic add (no duplicates)
+    // if already persisted (has wishlistId), do nothing
+    const alreadySaved = selectedPlaces.find(
+      (p) => p.id === place.id && p.wishlistId
+    );
+    if (alreadySaved) {
+      setHoveredPlace(place);
+      return;
+    }
+
+    // optimistic add (avoid duplicates by place.id)
     setSelectedPlaces((prev) =>
       prev.some((p) => p.id === place.id) ? prev : [...prev, place]
     );
     setHoveredPlace(place);
     setSavingIds((s) => new Set(s).add(place.id));
-try {
-  const url = `/api/travel/${encodeURIComponent(projectId)}/wishlist/${encodeURIComponent(categoryName)}`;
-  const payload = {
-    name: place.name,
-    address: place.address,
-    latitude: place.lat,
-    longitude: place.lng,
-    memo: place.description || "",
-    cost: 0,
+
+    const url = `/api/travel/${encodeURIComponent(
+      projectId
+    )}/wishlist/${encodeURIComponent(routeCategory)}`;
+    const payload = {
+      name: place.name,
+      address: place.address,
+      latitude: place.lat,
+      longitude: place.lng,
+      memo: place.description || "",
+      cost: 0,
+    };
+
+    try {
+      console.log("[Travel] POST →", url);
+      console.log("[Travel] payload →", payload);
+
+      const res = await api.postSession(url, payload);
+      console.debug("[Travel] response ←", res);
+
+      const wishlistId = res?.wishlistId;
+
+      // merge server data back into the saved item
+      setSelectedPlaces((prev) =>
+        prev.map((p) =>
+          p.id === place.id
+            ? {
+                ...p,
+                wishlistId,
+                routeCategory, // exactly: "place" | "restaurant" | "accommodation"
+                name: res?.name ?? p.name,
+                address: res?.address ?? p.address,
+                lat: res?.latitude ?? p.lat,
+                lng: res?.longitude ?? p.lng,
+              }
+            : p
+        )
+      );
+    } catch (e) {
+      // rollback optimistic add
+      setSelectedPlaces((prev) => prev.filter((p) => p.id !== place.id));
+      console.error("[Travel] POST failed", {
+        error: e,
+        status: e?.status,
+        body: e?.body,
+      });
+      alert(e?.message || "장소 추가에 실패했습니다.");
+    } finally {
+      setSavingIds((s) => {
+        const next = new Set(s);
+        next.delete(place.id);
+        return next;
+      });
+    }
   };
 
-  // Helpful debug logs
-  console.log("[Travel] POST →", url);
-  console.log("[Travel] payload →", payload);
+  // Remove (DELETE) wishlist using stored wishlistId + routeCategory
+  const handleUnselectPlace = async (placeId) => {
+    const projectId = formData.projectId;
+    if (!projectId) {
+      console.warn("No projectId; aborting wishlist delete.");
+      return;
+    }
 
-  const res = await api.postSession(url, payload);
+    const target = selectedPlaces.find((p) => p.id === placeId);
+    if (!target) return;
 
-  console.debug("[Travel] response ←", res);
-} catch (e) {
-  // If your api client attaches status/body, this will show up here
-  console.error("[Travel] POST failed", {
-    error: e,
-    status: e?.status,
-    body: e?.body,
-  });
-}
-
-//     try {
-//       // IMPORTANT: leading slash + /api/travel/project/... matches your controller base
-//       await api.post(
-//         `/api/travel/${projectId}/wishlist/${categoryName}`,
-//         {
-//           name: place.name,
-//           address: place.address,
-//           latitude: place.lat,
-//           longitude: place.lng,
-//           memo: place.description || "",
-//           cost: 0,
-//         }
-//       );
-
-//       // If server returns a new id, you can merge it into local state here
-//       // by reloading or by updating the matching place with _serverId, etc.
-//       // (Left out because response contract wasn’t provided.)
-//     } catch (e) {
-//       // rollback on failure
-//       setSelectedPlaces((prev) => prev.filter((p) => p.id !== place.id));
-//       console.error("Error selecting place:", e);
-//       alert(e?.message || "장소 추가에 실패했습니다.");
-//     } finally {
-//       setSavingIds((s) => {
-//         const next = new Set(s);
-//         next.delete(place.id);
-//         return next;
-//       });
-//     }
-  };
-
-  const handleUnselectPlace = (placeId) => {
+    const prevList = selectedPlaces; // for rollback
     setSelectedPlaces((prev) => prev.filter((p) => p.id !== placeId));
 
-    
-    // If/when a DELETE endpoint exists, call it here using the server id.
-    // await api.deleteSession(`/api/travel/project/${projectId}/wishlist/${serverId}`)
+    // no server deletion if it wasn't saved yet
+    if (!target.wishlistId) return;
+
+    const routeCategory = toRouteCategory(target.routeCategory || target.category);
+    const url = `/api/travel/${encodeURIComponent(projectId)}/wishlist/${encodeURIComponent(
+      routeCategory
+    )}/${encodeURIComponent(target.wishlistId)}`;
+
+    try {
+      console.log("[Travel] DELETE →", url);
+      const res = await api.deleteSession(url);
+      console.debug("[Travel] delete response ←", res);
+      // 204/200 are fine
+    } catch (e) {
+      // rollback if server delete fails
+      setSelectedPlaces(prevList);
+      console.error("[Travel] DELETE failed", {
+        error: e,
+        status: e?.status,
+        body: e?.body,
+      });
+      alert(e?.message || "삭제에 실패했습니다.");
+    }
   };
 
   const handleNext = () => {
@@ -218,11 +276,7 @@ try {
 
       <div className="travel-choose-content">
         <div className="travel-map-section" style={{ height: "600px" }}>
-          <PlaceMap
-            selectedPlace={hoveredPlace}
-            selectedPlaces={selectedPlaces}
-            places={placesToDisplay}
-          />
+          <PlaceMap hoveredPlace={hoveredPlace} places={placesToDisplay} />
         </div>
 
         <div className="travel-choose-search-panel">
@@ -247,9 +301,7 @@ try {
             {["all", "place", "restaurant", "accommodation"].map((tab) => (
               <button
                 key={tab}
-                className={`category-tab ${
-                  activeTab === tab ? "active" : ""
-                }`}
+                className={`category-tab ${activeTab === tab ? "active" : ""}`}
                 onClick={() => {
                   setActiveTab(tab);
                   setHoveredPlace(null);
@@ -305,15 +357,14 @@ try {
                     onClick={() => handleSelectPlace(place)}
                     onMouseEnter={() => setHoveredPlace(place)}
                     onMouseLeave={() => setHoveredPlace(null)}
+                    aria-busy={isSaving}
+                    style={isSaving ? { opacity: 0.6, pointerEvents: "none" } : {}}
                   >
                     <div className="travel-place-title">
                       <LocationIcon
                         color={isSelected ? "#081F5C" : "#BAD6EB"}
                       />
-                      <span>
-                        {place.name}
-                        
-                      </span>
+                      <span>{place.name}</span>
                       {isSelected && (
                         <button
                           className="travel-remove-button"
@@ -328,9 +379,9 @@ try {
                       )}
                     </div>
                     <div className="travel-place-address">{place.address}</div>
-                    <div className="travel-place-desc" style={{ color: "#EEF1F6" }}>
-                      {place.description || "description about the place......"}
-                    </div>
+                    
+
+                    
                   </li>
                 );
               })}
