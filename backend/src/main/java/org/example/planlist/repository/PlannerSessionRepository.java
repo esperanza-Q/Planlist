@@ -28,8 +28,6 @@ public interface PlannerSessionRepository extends JpaRepository<PlannerSession, 
 
     List<PlannerSession> findByProject(PlannerProject project);
 
-    List<PtSession> findByProject_ProjectId(Long projectId);
-
     // 🔹 로그인 유저 포함 + 상태 필터 + 날짜 조건 + is_finalized = true
 //    @Query("SELECT ps FROM PlannerSession ps " +
 //            "JOIN ps.project.participants p " +
