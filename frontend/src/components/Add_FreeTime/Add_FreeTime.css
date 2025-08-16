@@ -30,7 +30,7 @@
   font-weight: bold;
 }
 
-button{
+.calendar-controls button{
   background-color: var(--EEF1F6);
 }
 

@@ -7,7 +7,7 @@ import java.util.List;
 // 최종 응답 DTO
 @Getter @Setter @AllArgsConstructor @NoArgsConstructor @Builder
 public class TravelProjectDetailResponseDTO {
-    private List<ProjectInfoDTO> Projects;
-    private List<ParticipantDTO> Participants;
-    private List<MemoDTO> Memo;
+    private ProjectInfoDTO project;        // 단일 객체
+    private List<ParticipantDTO> participants;
+    private List<MemoDTO> memo;
 }
