@@ -130,7 +130,7 @@ const DayCalendar = ({ currentDate }) => {
             })}
 
             {!loading && !errorMsg && events.length === 0 && (
-              <div className="day-empty-hint">이 날짜에는 일정이 없어요.</div>
+              <div className="day-empty-hint">There is no schedule on this date</div>
             )}
           </div>
         </div>

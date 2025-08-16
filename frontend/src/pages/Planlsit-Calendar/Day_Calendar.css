@@ -94,6 +94,11 @@
   text-overflow: ellipsis;
 }
 
+.day-empty-hint{
+  margin-top: 10px;
+  color: gray;
+}
+
 .event-green { background-color: #d6f5d6; border: solid 1px var(--Green-border); color: #007f00;}
 .event-blue { background-color: #cce5ff; border: solid 1px var(--Universe); color: #004a9f; }
 .event-yellow { background-color: #fff7c2; border: solid 1px var(--Yellow-border) ; color: #a68b00; }

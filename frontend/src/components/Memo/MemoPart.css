@@ -26,11 +26,11 @@
   color: var(--Planetary);
 }
 
-.note-trash-icon {
-  width: 15px;
-  height: 15px;
+.memo-note-trash-icon {
   color: gray;
   cursor: pointer;
+  border: none;
+  background-color: transparent;
 }
 
 .note-memo-desc {
