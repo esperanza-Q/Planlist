@@ -9,13 +9,11 @@ import RepeatIcon from '../../icons/RepeatIcon';
 import CalendarAltIcon from "../../icons/CalendarAltIcon";
 import CalenderCheckIcon from "../../icons/CalenderCheckIcon";
 import { api } from '../../api/client';
-
 import { useNavigate } from 'react-router-dom';
 
 // ---------- helpers ----------
 const pad2 = (n) => String(n).padStart(2, '0');
-const toISODate = (d) =>
-  `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+const toISODate = (d) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 
 const addDays = (date, n) => {
   const d = new Date(date);
@@ -23,34 +21,46 @@ const addDays = (date, n) => {
   return d;
 };
 
-// + PATCH: 
-const plusOneHour = (hhmm) => {
-  const [hStr, mStr = '00'] = String(hhmm).split(':');
-  const d = new Date(2000, 0, 1, parseInt(hStr || 0, 10), parseInt(mStr || 0, 10));
-  d.setHours(d.getHours() + 1);
-  const hh = String(d.getHours()).padStart(2, '0');
-  const mm = String(d.getMinutes()).padStart(2, '0');
-  return `${hh}:${mm}`;
+// NEW: robust time utils
+const normalizeTime = (hhmm) => {
+  const [hStr = '0', mStr = '0'] = String(hhmm).split(':');
+  const h = Math.max(0, Math.min(23, parseInt(hStr, 10) || 0));
+  const m = Math.max(0, Math.min(59, parseInt(mStr, 10) || 0));
+  return `${pad2(h)}:${pad2(m)}`;
 };
 
+const timeToMinutes = (hhmm) => {
+  const [hStr = '0', mStr = '0'] = String(hhmm).split(':');
+  return (parseInt(hStr, 10) || 0) * 60 + (parseInt(mStr, 10) || 0);
+};
+
+/** Add one hour but do NOT roll into the next day. If it would cross midnight, clamp to 23:59. */
+const safeAddHourSameDay = (hhmm) => {
+  const [hStr = '0', mStr = '0'] = normalizeTime(hhmm).split(':');
+  const h = parseInt(hStr, 10);
+  const m = parseInt(mStr, 10);
+  if (h >= 23) return '23:59';
+  const endH = h + 1;
+  if (endH >= 24) return '23:59';
+  return `${pad2(endH)}:${pad2(m)}`;
+};
+
+// If your backend prefers seconds, send HH:mm:ss
+const toHms = (hhmm) => `${normalizeTime(hhmm)}:00`;
 
 const formatLabel = (isoDate) => {
   const dt = new Date(`${isoDate}T00:00:00`);
-  const weekday = dt.toLocaleDateString('en-US', { weekday: 'long' }); // English
+  const weekday = dt.toLocaleDateString('en-US', { weekday: 'long' });
   const dayNum = dt.getDate();
   return `${weekday} ${dayNum}`;
 };
 
 // Parse server payload -> full week + availability + slotsByDate
-// If any slot on a date has allDay=true -> full-available
-// Else if date exists -> partial-available
 const parseSharePlanner = (data) => {
   const slots = Array.isArray(data?.ALL)
     ? data.ALL
     : (Array.isArray(data?.all) ? data.all : []);
 
-  // Build availability info and slotsByDate
-  // perDate[iso] = { hasAny: true, full: true|false }
   const perDate = {};
   const slotsByDate = {};
   for (const s of slots) {
@@ -69,12 +79,10 @@ const parseSharePlanner = (data) => {
     });
   }
 
-  // Derive week start (Monday) from `week`: "YYYY-MM-DD ~ YYYY-MM-DD"
   let weekStartISO = null;
   if (typeof data?.week === 'string' && data.week.includes('~')) {
     weekStartISO = data.week.split('~')[0].trim();
   } else {
-    // fallback: current week Monday
     const now = new Date();
     const dow = now.getDay();
     const monday = addDays(now, dow === 0 ? -6 : (1 - dow));
@@ -82,8 +90,6 @@ const parseSharePlanner = (data) => {
   }
 
   const start = new Date(`${weekStartISO}T00:00:00`);
-
-  // Always render Mon..Sun => 7 days
   const weekDates = Array.from({ length: 7 }, (_, i) => {
     const d = addDays(start, i);
     const iso = toISODate(d);
@@ -92,9 +98,7 @@ const parseSharePlanner = (data) => {
     return { date: iso, label, info };
   });
 
-  // Header: "Month YYYY" from the start of week (English)
   const weekHeader = start.toLocaleString('en-US', { month: 'long', year: 'numeric' });
-
   return { weekHeader, weekDates, slotsByDate };
 };
 // --------------------------------
@@ -105,9 +109,9 @@ const SelectDate = ({
   nextStep = () => {},
   prevStep = () => {},
 }) => {
-  
   const getProjectId = (fd) =>
     fd?.projectId ?? fd?.project?.id ?? fd?.project?.projectId ?? null;
+
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState(formData.selectedDate || '');
   const [weekDates, setWeekDates] = useState([]);
@@ -170,62 +174,62 @@ const SelectDate = ({
     setSelectedDate(date);
     setModalOpen(true);
   };
-// + PATCH: replace existing handleNext
-const handleNext = async () => {
-      const projectId = getProjectId(formData);
+
+  // UPDATED: safe time window construction (prevents HourOfDay=24)
+  const handleNext = async () => {
+    const projectId = getProjectId(formData);
     if (!projectId) {
       alert("Missing project id from previous step. Please start from the PT project first.");
       return;
     }
 
-  const plannerId =
-    formData?.plannerId ??
-    formData?.session?.plannerId ??
-    formData?.session?.id ??
-    null;
+    const plannerId =
+      formData?.plannerId ??
+      formData?.session?.plannerId ??
+      formData?.session?.id ??
+      null;
 
-  if (!plannerId) {
-    alert('Missing plannerId. Please create the session first.');
-    return;
-  }
-  if (!selectedDate) {
-    alert('Please select a date.');
-    return;
-  }
-
-  try {
-    // Build request body from the selected time range (or all-day fallback)
-    let body;
-    if (selectedTimeInfo && Array.isArray(selectedTimeInfo.time) && selectedTimeInfo.time.length > 0) {
-      const times = [...selectedTimeInfo.time].sort(); // ensure "HH:mm" ascending
-      const start = times[0];
-      const last = times[times.length - 1];
-      const end = plusOneHour(last); // API expects end at the hour after the last selected slot
-      body = { date: selectedDate, start, end };
-    } else {
-      body = { date: selectedDate, allDay: true };
+    if (!plannerId) {
+      alert('Missing plannerId. Please create the session first.');
+      return;
+    }
+    if (!selectedDate) {
+      alert('Please select a date.');
+      return;
     }
 
-    await api.postSession(
-      `/api/pt/project/selectTime?plannerId=${encodeURIComponent(plannerId)}`,
-      body
-    );
+    try {
+      let body;
+      if (selectedTimeInfo && Array.isArray(selectedTimeInfo.time) && selectedTimeInfo.time.length > 0) {
+        // normalize + sort times
+        const normalized = selectedTimeInfo.time.map(normalizeTime);
+        normalized.sort((a, b) => timeToMinutes(a) - timeToMinutes(b));
 
-      // Optional feedback:
-      // alert("일정을 선택 완료하였습니다!");
+        const start = normalized[0];
+        const last  = normalized[normalized.length - 1];
+        const end   = safeAddHourSameDay(last); // clamp if would roll past 24
 
-      // Persist what we submitted (handy if the next step needs it)
+        // if end <= start (shouldn't happen), clamp to 23:59
+        const finalStart = toHms(start);
+        const finalEnd   = timeToMinutes(end) <= timeToMinutes(start) ? '23:59:00' : toHms(end);
+
+        body = { date: selectedDate, start: finalStart, end: finalEnd };
+      } else {
+        body = { date: selectedDate, allDay: true };
+      }
+
+      await api.postSession(
+        `/api/pt/project/selectTime?plannerId=${encodeURIComponent(plannerId)}`,
+        body
+      );
+
       updateFormData({ selectedDate, chosenTimes, repeatConfig, selectedTimeBody: body });
-      
-      navigate(
-          `/project/pt?projectId=${encodeURIComponent(projectId)}`
-        );    
-      } catch (e) {
+      navigate(`/project/pt?projectId=${encodeURIComponent(projectId)}`);
+    } catch (e) {
       console.error('Failed to submit selected time:', e);
       alert('Failed to submit selected time. Please try again.');
     }
   };
-
 
   return (
     <div className="select-date-container">
@@ -267,25 +271,23 @@ const handleNext = async () => {
         {selectedTimeInfo && Array.isArray(selectedTimeInfo.time) && selectedTimeInfo.time.length > 0 ? (
           <>
             {selectedTimeInfo.date},{' '}
-            {selectedTimeInfo.time[0]} ~ {selectedTimeInfo.time[selectedTimeInfo.time.length - 1]}
+            {normalizeTime(selectedTimeInfo.time[0])}
+            {' ~ '}
+            {normalizeTime(selectedTimeInfo.time[selectedTimeInfo.time.length - 1])}
           </>
         ) : (
           'Please select a time.'
         )}
       </p>
 
-
-
       <button className="project2-next-button" onClick={handleNext}>
         <ProjectNextIcon />
       </button>
 
-
-
       {modalOpen && (
         <DetailTimeModal
           date={selectedDate}
-          availableSlots={slotsByDate[selectedDate] || []}   // ✅ pass server slots for that day
+          availableSlots={slotsByDate[selectedDate] || []}
           onClose={() => setModalOpen(false)}
           onSave={({ date, time, availableCount }) => {
             setChosenTimes((prev) => ({ ...prev, [date]: time }));
@@ -299,3 +301,4 @@ const handleNext = async () => {
 };
 
 export default SelectDate;
+  

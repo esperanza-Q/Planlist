@@ -20,6 +20,11 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 
+@CrossOrigin(origins = "http://localhost:3000",
+allowCredentials = "true",
+  allowedHeaders = {"Content-Type", "Authorization"},
+  methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS}
+  )
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/travel")
