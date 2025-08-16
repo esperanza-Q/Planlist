@@ -10,5 +10,5 @@ import java.util.Optional;
 public interface StandardSessionRepository extends JpaRepository<StandardSession, Long> {
     Optional<StandardSession> findById(Long id);
 
-    List<PtSession> findByProject_ProjectId(Long projectId);
+    List<StandardSession> findByProject_ProjectId(Long projectId);
 }
