@@ -1,0 +1,231 @@
+/*--layout--*/
+.screen{
+    width:1980px;
+    height:1080px;
+}
+.project-view-div{
+    position:absolute;
+    display:flex;
+    flex-direction: row;
+    top:114px;
+    left:360px;
+    margin:0px;
+
+    
+}
+
+button:hover{
+    opacity: 70%;
+}
+
+::-webkit-scrollbar{
+  display:none;
+}
+
+/*--info-card--*/
+
+.info-card{
+    position:relative;
+    width:560px;
+    height:auto;
+    padding:40px;
+    margin-right:42px;
+    margin-bottom: 52px;
+    background-color: #EEF1F6;
+    border-radius:20px;
+    border:1px solid #0A205C;
+    font-family: 'IBM Plex Sans KR', sans-serif;
+}
+
+.meeting-edit-button{ 
+    position:absolute;
+    outline:0px;
+    border:0px;
+    top:50px;
+    left:555px;
+    width:20px;
+    height:20px;
+}
+
+.card-title{
+    font-family: 'IBM Plex Sans KR', sans-serif;
+    color:#354FAE;
+    font-size: 33px;
+    margin:0px 0px 8px 0px;
+    font-weight: 600;;
+}
+
+.project-description{
+    margin:0px 0px 18px 3px;
+    color:#C5C5C5;
+}
+
+.info-container{
+    
+    display: flex;
+    top:133px;
+    left:37px;
+    flex-direction: row;
+    
+}
+
+.icon{
+    width:25px;
+    height:25px;
+    margin-top:2px;
+}
+
+.info-text{
+    margin:3px 0px 0px 10px;
+    padding:0px;
+    color:#0A205C;
+}
+
+.friends-small-list {
+    width: 397px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* 4 columns */
+    gap: 7px;
+    margin-top:18px;
+}
+
+.friend-small{
+    width:84px;
+    height:31px;
+    padding: 0px 10px 0px 10px;
+    background-color: white;
+    border-radius: 20px;
+    border:1px solid #0A205C;
+    align-content:center;
+    align-items: center;
+}
+
+.friend-small-avatar{
+    width: 23px;
+    height: 23px;
+    margin-top: 4px;
+    border-radius:50%;
+
+}
+
+.friend-small-name{
+    
+    position:absolute;
+    margin: 3px 0px 0px 5px;
+    width:50px;
+    overflow-x:hidden;
+    color:#0A205C;
+}
+
+.meet-button {
+    display:flex;
+    flex-direction: row;
+    margin-top: 30px;
+    left:37px;
+    height:50px;
+    width:562px;
+    border-radius: 30px;
+    
+    align-items: center;
+    align-content: center;
+    background-color: #354FAE;
+    border:1px solid #354FAE;
+}
+
+.meet-button img{
+    margin-left:184px;
+    margin-right:4px;
+    width:33px;
+    height:33px;
+}
+
+.meet-button p{
+    margin-top:14px;
+    font-family: 'IBM Plex Sans KR', sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    color:#FFFFFF;
+}
+
+/*--add button--*/
+.meet-button.add {
+    margin-top:0px;
+    
+}
+
+.meet-button.add p{
+    margin-left: 237px;
+    
+}
+
+
+/*--MeetingList--*/
+
+.session-list-card{
+    position:relative;
+    width:560px;
+    padding:40px;
+    height:250px;
+    background-color: #EEF1F6;
+    border: 1px solid #0A205C;
+    border-radius: 20px;
+}
+
+.add-session{
+    position:absolute;
+    top:55px;
+    left:425px;
+    width:172px;
+    height:32px;
+    background-color: white;
+    color:#0A205C;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 30px;
+
+}
+
+.session-list{
+    width:560px;
+    height:180px;
+    padding-left:0px;
+    overflow-y: scroll;
+    
+}
+
+.session-link{
+    width:540px;
+    margin-left:8px;
+    margin-top:10px;
+    padding-left: 30px;
+    height:50px;
+    border:none;
+    border-radius: 20px;
+    align-content:left;
+    font-size: 20px; 
+    color: #0A205C;
+    text-align: left;
+}
+
+.session-link:hover{
+    background-color: #BAD6EB;
+}
+
+/*--
+
+
+
+
+meetingDetailinfocard
+
+
+
+--*/
+
+
+.project-info{
+    position:relative;
+    font-size: 20px;
+    top:-3px;
+    left:-1px;
+}

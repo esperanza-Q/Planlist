@@ -1,0 +1,82 @@
+/* ViewPlannerCard */
+
+.view-planner{
+    position:relative;
+    width:556px;
+    height:730px;
+    background-color: #EEF1F6;
+    border-radius: 20px;
+    border: 1px solid #081F5C;
+    padding: 55px 50px 55px 50px;
+}
+
+.planner-tab{
+    position:absolute;
+    top:125px;
+    left:48px;
+}
+
+.planner-day-content{
+    position:absolute;
+    height:580px;
+    top:180px;
+    left:48px;
+    overflow-y:scroll;
+}
+
+.schedule-item{
+    position:relative;
+    width:520px;
+    height: 70px;
+    padding:20px;
+    margin: 10px 0px 10px 0px;
+    background-color: white;
+    border-radius:20px;
+
+}
+
+.schedule-icon{
+    position:absolute;
+    top:18px;
+    left:22px;
+}
+
+.schedule-text{
+    position:absolute;
+    top:19px;
+    left:57px;
+    color:#081F5C;
+    font-size:17px;
+}
+
+.schedule-view-time{
+    position:absolute;
+    left:420px;
+    top:1px;
+    
+}
+
+.schedule-text span{
+    font-size:13px;
+}
+
+.schedule-text p{
+    font-size:13px;
+    color:#A7A7A7;
+    margin:5px 0px 0px 0px;
+}
+
+.arrow{
+    margin: 5px 20px 5px 45px;
+}
+
+.move-item{
+    position:relative;
+    display:flex;
+    flex-direction: row;
+}
+
+.move-item p{
+    margin:27px 0px 0px 30px;
+    color:#081F5C;
+}

@@ -1,0 +1,169 @@
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.popup-box{
+    position:relative;
+
+    background-color:#EEF1F6;
+    width: 350px;
+    border-radius:20px;
+    border:1px solid #081F5C;
+    padding: 25px;
+    display:flex;
+    flex-direction: column;
+    gap:10px;
+    color:#181D27;
+}
+
+.popup-icon{
+    background-color: white;
+    width:48px;
+    height:48px;
+    border-radius: 8px;
+    border: 1px solid #081F5C;
+}
+
+.popup-icon img {
+    width:30px;
+    height:30px;
+    margin:9px;
+}
+
+.popup-title{
+    font-size:18px;
+    font-weight:600;
+    color: #181D27;
+}
+
+.popup-description{
+    font-size: 14px;
+    color: #A7A7A7;
+}
+
+.popup-search{
+    width:330px;
+    height:32px;
+    padding-left:20px;
+    border-radius:20px;
+    border: 1px solid #D9D9D9
+}
+
+input:focus{
+    outline:none;
+}
+
+
+.dropdown-name{
+    font-size:14px;
+}
+
+.dropdown ul {
+  list-style-type: none;
+}
+
+.dropdown-list {
+   
+    margin:20px 0px 0px 0px;
+    width: 350px;
+    max-height: 120px;
+    overflow-y: auto;
+    background: #ffffff;
+    
+    border-top: none;
+    border-radius: 6px;
+    padding-inline-start:0px;
+  
+}
+
+.search-bar{
+    position: relative;
+    height:32px;
+    margin-bottom:30px;
+}
+
+.search-list img{
+    height:15px;
+    width:15px;
+    margin-top:10px;
+}
+
+.search-list{
+    border:none;
+    outline:none;
+    position:absolute;
+    background:white;
+    top: 9px;
+    left: 310px;
+}
+
+.popup-search{
+    font-size:14px;
+}
+
+.dropdown-list li {
+    margin:0px;
+    padding: 10px 30px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.dropdown-list li:hover {
+  background-color: #f0f0f0;
+}
+
+.popup-row{
+    display:flex;
+    flex-direction: row;
+    width:350px;
+}
+
+.popup-row div{
+    margin-top:13px;
+    font-size:14px;
+}
+
+.popup-num-input{
+    margin-left:auto;
+    margin-right:0px;
+    height:25px;
+    width: 120px;
+    padding-left:10px;
+    border-radius: 8px;
+    font-size:15px;
+}
+
+.popup-actions{
+    display:flex;
+    flex-direction: row;
+    align-items: stretch;
+    width:350px;
+    gap:10px;
+}
+
+.popup-actions button{
+    width: fill;
+    height: 40px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.popup-save{
+    background-color: white;
+}
+
+.popup-cancel{
+    background-color: #334EAC;
+    border: 1px solid #334EAC;
+    color:white;
+}

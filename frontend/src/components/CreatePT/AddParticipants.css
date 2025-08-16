@@ -1,0 +1,186 @@
+.invite-step-container{
+    width: 1254px;
+    margin: 0px 333px;
+    margin-top: 166px;
+}
+.invite-header{
+    display: flex;
+    align-items: baseline
+}
+.prev-button{
+    background: none;
+    border: none;
+}
+
+.invite-box-wrapper {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.add-box {
+    position:relative;
+    display: flex;
+    flex-direction: column;
+  background: var(--EEF1F6);
+  padding: 4rem 2.4rem;
+  border: 1px solid var(--Galaxy);
+  border-radius: 14px;
+  width: 590px;
+}
+
+
+.friends-header{
+    display: flex;
+    justify-content: space-between;
+}
+
+.user-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 2rem;
+  margin-bottom: 1rem;
+}
+
+.friend-porifleRight{
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.PlusCircleButton{
+    background: none;
+    border: none;
+}
+
+.XCircleButton{
+    background: none;
+    border: none;
+}
+
+.see-all-btn{
+    font-size: 18px;
+    color: #7A7A7A;
+    background-color: #F6F6FD;
+    border: none;
+    padding: 16px 32px;
+    margin: 0px 150px;
+}
+
+.avatar-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.user-name {
+  font-weight: bold;
+}
+
+.user-email {
+  font-size: 0.85rem;
+  color: gray;
+}
+
+.status {
+  margin-left: auto;
+  font-size: 0.9rem;
+}
+
+.status.accepted {
+  color: #3b82f6;
+}
+
+.status.waiting {
+  color: #ef4444;
+}
+
+.bottom-right {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 2rem;
+}
+
+.XCircleButton, .PlusCircleButton{
+    cursor: pointer;
+}
+
+.scrollable-friend-list, .scrollable-participants-list {
+  max-height: 300px;
+  overflow-y: auto;
+  width: 480px;
+  
+}
+
+.scrollable-friend-list{
+    padding-left: 0px;
+}
+
+
+.search-toggle-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+
+}
+
+.search-input-wrapper input{
+    padding: 6px 130px;
+    margin: 5px 5px;
+}
+
+.avatar-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.trainer-title{
+    position:absolute;
+    top: 100px;
+    left: 370px;
+}
+
+.trainer-label{
+    font-size:13px;
+    color:#3b82f6;
+}
+
+.trainer-flag {
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  margin-left: 80px;
+  margin-top:10px;
+}
+
+.trainer-flag input {
+
+  width: 14px;
+  height: 14px;
+}
+
+
+.project2-next-button {
+  position: fixed; 
+  bottom: 84px;     
+  right: 140px;    
+  width: 43px;
+  height: 43px;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+}

@@ -1,0 +1,48 @@
+package org.example.planlist.entity;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import jakarta.persistence.*;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+
+@Entity
+@Inheritance(strategy = InheritanceType.JOINED)
+@Table(name = "planner_sessions")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@SuperBuilder
+//@Builder
+@DiscriminatorColumn(name = "session_type") // 선택사항: DTYPE 대신 이름 지정
+public abstract class PlannerSession {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "planner_id", unique = true)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_id", nullable = false)
+    @JsonBackReference
+    private PlannerProject project;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String title;
+
+    private LocalDate startWeekDay;
+    private LocalDate endWeekDay;
+
+    private LocalDate date;
+//    private LocalTime time;
+
+    private LocalTime startTime;
+    private LocalTime endTime;
+    private String location;
+
+    @Column(name = "is_finalized", nullable = false)
+    private Boolean isFinalized;
+}

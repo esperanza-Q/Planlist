@@ -1,0 +1,10 @@
+.layout-standard{
+    position:absolute;
+    display:flex;
+    flex-direction: row;
+    top:114px;
+    left:360px;
+    margin:0px;
+}
+
+/*--나머지는 MemoCard.css, ProjectViewMeeting.css에서 --*/

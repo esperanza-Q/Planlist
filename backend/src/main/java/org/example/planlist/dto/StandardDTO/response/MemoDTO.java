@@ -1,0 +1,15 @@
+package org.example.planlist.dto.StandardDTO.response;
+
+import lombok.*;
+
+// 메모 정보 DTO
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class MemoDTO {
+    private Long noteId;
+    private String title;
+    private String share; // PERSONAL / GROUP
+}

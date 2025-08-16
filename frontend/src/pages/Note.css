@@ -1,0 +1,54 @@
+.note-memo-page {
+
+  font-family: 'Montserrat', sans-serif;
+  width: 764px;
+  margin: 150px 600px;
+}
+
+.note-memo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.note-memo-header h2 {
+  font-size: 24px;
+  margin-right: auto;
+}
+
+.note-memo-search-wrapper {
+  position: relative;
+  display: flex;
+  width: 370px;
+}
+
+.note-memo-search {
+  width: 100%;
+  padding: 10px 12px 10px 36px; 
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+.note-search-icon {
+  position: absolute;
+  top: 41%;
+  left: 10px;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  pointer-events: none; 
+  opacity: 0.6;
+}
+
+.note-memo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
+  align-items: start;
+
+  max-height: 700px; 
+  overflow-y: auto;
+  padding-right: 8px;
+}

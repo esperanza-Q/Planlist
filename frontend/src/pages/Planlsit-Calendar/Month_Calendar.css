@@ -1,0 +1,78 @@
+.month-calendar {
+  display: flex;
+  flex-direction: column;
+  font-family: 'IBM Plex Sans KR', sans-serif;
+  width: 1185px;
+  margin: 0px 367px;
+}
+
+.month-header,
+.month-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.month-cell {
+  border: 1px solid #eee;
+  height: 110px;
+  padding: 4px 6px;
+  font-size: 13px;
+  position: relative;
+}
+
+.header-cell {
+  height: 20px;
+  font-size: 16px;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+
+  padding-bottom: 40px;
+  font-weight: bold;
+  text-align: center;
+  align-content: end;
+  
+}
+
+.month-date {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+
+.not-this-month {
+  background-color: #f4f4f4;
+  color: #aaa;
+}
+
+.month-event {
+  font-size: 12px;
+  margin-top: 2px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+
+
+.event-green { background-color: #d6f5d6; border: solid 1px var(--Green-border); color: #007f00;}
+.event-blue { background-color: #cce5ff; border: solid 1px var(--Universe); color: #004a9f; }
+.event-yellow { background-color: #fff7c2; border: solid 1px var(--Yellow-border) ; color: #a68b00; }
+.event-red { background-color: #ffd1d1; border: solid 1px var(--point-Red); color: #b30000;  }
+
+
+.day-event-title .day-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.day-event-title .day-dot.event-red { background-color: var(--point-Red); border: solid 1px var(--point-Red;)}
+.day-event-title .day-dot.event-blue { background-color: var(--Universe); border: solid 1px var(--Universe);}
+.day-event-title .day-dot.event-green { background-color: var(--Green-border); border:solid 1px var(--Green-border); }
+.day-event-title .day-dot.event-yellow { background-color: var(--Yellow-border); border: solid 1px var(--Yellow-border);} 

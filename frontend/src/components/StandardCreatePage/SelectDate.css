@@ -1,0 +1,145 @@
+.select-date-container {
+  width: 1028px;
+  margin: 230px 430px 0px 430px;
+
+}
+
+.select-date-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+.select-date-title-header{
+    display: flex;
+    gap: 16px;
+    align-items: baseline;
+}
+
+
+.selcet-calendar-box {
+  background: var(--EEF1F6);
+  padding: 1rem;
+  border: 1px solid var(--Galaxy);
+  border-radius: 20px;
+  margin-top: 3.8rem;
+}
+
+
+.selcet-calendar-header {
+  display: flex;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  color: var(--Planetary);
+}
+
+
+
+.selcet-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-collapse: collapse;
+}
+
+.selcet-calendar-cell {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--Galaxy);
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  text-align: center;
+  height: 100px;
+  cursor: pointer;
+}
+
+.selcet-cell-label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+}
+
+.selcet-cell-box {
+  height: 50%;
+  border-top: 1px solid var(--Galaxy);
+}
+
+.Select_second_title{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 3.5rem 0.4rem 0rem 0.4rem;
+}
+
+.selcet-recommend-text {
+  margin-top: 1rem;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.select-calendar-icon{
+    color: var(--Planetary);
+}
+
+
+.repeat-button {
+  border: 1px solid #999;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  
+}
+
+.selected-info-text {
+    margin: 1rem 0.4rem 0rem 0.4rem;
+  font-size: 1.3rem;
+  font-weight: 500;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+
+
+
+
+
+.selcet-friends-profile {
+  display: flex;
+  gap: 8px;
+  margin-left: 10px;
+}
+
+.selcet-profile-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+
+.profile-skip-icon {
+  width: 32px;
+  height: 32px;
+}
+
+
+
+.selcet-cell-box.full-available {
+  background-color: #909FD1; 
+}
+
+.selcet-cell-box.partial-available {
+  background-color: #D4E3F0;
+}
+

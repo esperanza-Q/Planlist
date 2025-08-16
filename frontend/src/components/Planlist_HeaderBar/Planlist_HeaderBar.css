@@ -1,0 +1,74 @@
+.Planlist-calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 70px 367px 60px 367px;
+  font-family: 'IBM Plex Sans KR', sans-serif;
+  font-size: 16px;
+  width: 1185px;
+}
+
+.Planlist-date-display, .Planlist-time-display{
+    display: flex;
+    align-items: center;
+    padding: 0px 12px;
+    background-color: var(--EEF1F6);
+    height: 31px;
+    border: 1px solid var(--Galaxy);
+    border-radius: 8px;
+    
+    
+}
+
+.Planlist-time-display .red-dot {
+  width: 8px;
+  height: 8px;
+  background-color: var(--point-Red);
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.Planlist-left-controls,
+.Planlist-right-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.Planlist-right-controls .nav-btn02{
+    border: solid 1px var(--Galaxy);
+    border-radius: 8px;
+    padding: 8px 17px;
+    height: 32px;
+    cursor: pointer;
+    background-color: var(--EEF1F6);
+}
+
+.nav-btn02 svg{
+  width: 15px;
+  height: 15px;
+}
+
+.Today-button {
+    display: flex;
+    align-items: center;
+    height: 32px;
+    padding: 0px 12px;
+    border: 1px solid var(--Galaxy);
+    background-color: var(--EEF1F6);
+    cursor: pointer;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+
+
+.selectPlanlist {
+  padding: 6px 10px;
+  height: 32px;
+  background-color: var(--EEF1F6);
+  border: 1px solid var(--Galaxy);
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+}

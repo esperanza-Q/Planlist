@@ -1,0 +1,166 @@
+
+
+.signup-container {
+  display: flex;
+  height: 758px;
+  width: 1522px;
+  margin-top: 140px;
+  margin-left: 150px;
+  font-family: 'IBM Plex Sans KR', sans-serif;
+}
+
+.signup-left {
+  background-color: var(--Planetary);
+  color: white;
+  border-radius: 26px;
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 0px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  width: 425px;
+
+}
+
+.signup_logo{
+    padding: 34px;
+}
+
+.branding{
+     width: 425px;
+ 
+}
+
+.branding h2 {
+    font-family: 'Ultra';
+  font-size: 36px;
+  font-weight: 100;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.branding img {
+  margin-top: 40px;
+  margin-left: 55px;
+
+}
+
+
+
+.signup-right {
+    width: 1097px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+    border-radius: 26px;
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  
+  padding:24px 250px 10px 250px;
+  
+}
+
+.signup-right h2 {
+    font-family: 'Montserrat';
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 30px;
+}
+
+
+
+.signup-form input[type="text"],
+.signup-form input[type="email"],
+.signup-form input[type="password"] {
+  width: 100%;
+  padding: 2px 0px;
+  margin-bottom: 16px;
+  border-radius: 0px;
+  border-top: 0px;
+  border-left: 0px;
+  border-right: 0px;
+  border-bottom: 0.5px solid gray;
+  font-size: 17px;
+  font-family: 'IBM Plex Sans KR';
+  margin-bottom: 23px;
+
+}
+
+.signup-form input:focus {
+  outline: none;
+  border: none;
+  border-bottom: 0.5px solid gray;
+  box-shadow: none;
+}
+
+.signup-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    
+  font-size: 14px;
+  margin-bottom: 23px;
+}
+
+.signup-checkbox input{
+    margin: 0px;
+}
+
+.signup-checkbox p{
+    margin: 0px;
+    color: gray;
+}
+
+/*Create버튼 */
+
+.signup-btn-create {
+  width: 100%;
+  background-color: #263EBE;
+  color: white;
+  padding: 11px;
+  border: none;
+  border-radius: 6px;
+
+  font-size: 16px;
+  font-family: 'Montserrat';
+  cursor: pointer;
+}
+
+.signup-divider {
+  text-align: center;
+  margin: 11px 0;
+  font-size: 14px;
+  color: gray;
+}
+
+.signup-btn-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--Galaxy);
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  width: 100%;
+  background: white;
+
+   font-size: 16px;
+  font-family: 'Montserrat';
+}
+
+.signup-btn-google img {
+  width: 23px;
+}
+
+.signup-login-link {
+  font-size: 16px;
+  text-align: center;
+  margin-top: 40px;
+}
+
+.signup-login-link a{
+    color: var(--Planetary);
+    font-weight: bold;
+}
