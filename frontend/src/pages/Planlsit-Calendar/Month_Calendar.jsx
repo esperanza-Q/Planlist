@@ -1,3 +1,4 @@
+// src/components/Calendar/Month_Calendar.jsx
 import React, { useMemo, useEffect, useState } from 'react';
 import {
   startOfMonth,
@@ -23,11 +24,11 @@ const CATEGORY_COLOR_MAP = {
 const MonthCalendar = ({ currentDate }) => {
   const navigate = useNavigate();
 
-  // 달력 범위(월요일 시작)
+  // 월력 범위(월요일 시작)
   const monthStart = useMemo(() => startOfMonth(currentDate), [currentDate]);
-  const monthEnd = useMemo(() => endOfMonth(currentDate), [currentDate]);
-  const start = useMemo(() => startOfWeek(monthStart, { weekStartsOn: 1 }), [monthStart]);
-  const end = useMemo(() => endOfWeek(monthEnd, { weekStartsOn: 1 }), [monthEnd]);
+  const monthEnd   = useMemo(() => endOfMonth(currentDate),  [currentDate]);
+  const start      = useMemo(() => startOfWeek(monthStart, { weekStartsOn: 1 }), [monthStart]);
+  const end        = useMemo(() => endOfWeek(monthEnd,   { weekStartsOn: 1 }), [monthEnd]);
 
   const days = useMemo(() => eachDayOfInterval({ start, end }), [start, end]);
   const weeks = useMemo(() => {
@@ -37,7 +38,7 @@ const MonthCalendar = ({ currentDate }) => {
   }, [days]);
 
   // API 상태
-  const [events, setEvents] = useState([]); // {id, title, date, startTime, endTime, color, ...}
+  const [eventsByDate, setEventsByDate] = useState(new Map()); // key: 'YYYY-MM-DD' -> Array<event>
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -46,35 +47,41 @@ const MonthCalendar = ({ currentDate }) => {
 
   useEffect(() => {
     const controller = new AbortController();
+
     const fetchMonth = async () => {
       setLoading(true);
       setErrorMsg('');
       try {
-        const { data } = await api.get('/api/planlistCalendar/month', {
+        const res = await api.get('/api/planlistCalendar/month', {
           params: { mon: monStr },
           signal: controller.signal,
           timeout: 10000,
         });
 
-        // data: [{ date, planlistCalendar: [...] }]
-        const mapped = (Array.isArray(data) ? data : []).flatMap((dayBlock) => {
+        const payload = res?.data ?? res; // 인터셉터 유무 모두 대응
+        // payload: Array<{ date: 'YYYY-MM-DD', planlistCalendar: Array<...> }>
+        const map = new Map();
+
+        (Array.isArray(payload) ? payload : []).forEach((dayBlock) => {
           const date = dayBlock?.date;
           const list = dayBlock?.planlistCalendar ?? [];
-          return list.map((it) => ({
+          const mapped = list.map((it) => ({
             id: it.sessionId,
             projectId: it.projectId,
             sessionId: it.sessionId,
             title: it.title,
-            date,                       // 'YYYY-MM-DD'
-            startTime: it.start,        // 'HH:mm'
-            endTime: it.end,            // 'HH:mm'
+            date,                 // 'YYYY-MM-DD'
+            startTime: it.start,  // 'HH:mm'
+            endTime: it.end,      // 'HH:mm'
             color: CATEGORY_COLOR_MAP[it.category] || CATEGORY_COLOR_MAP.DEFAULT,
             category: it.category,
           }));
+          map.set(date, mapped);
         });
 
-        setEvents(mapped);
+        setEventsByDate(map);
       } catch (err) {
+        // 요청 취소는 무시
         if (err.name === 'CanceledError' || err.code === 'ERR_CANCELED') return;
         const status = err?.response?.status;
         const body = err?.response?.data;
@@ -116,8 +123,7 @@ const MonthCalendar = ({ currentDate }) => {
         <div className="month-row" key={weekIndex}>
           {week.map((day) => {
             const dayStr = format(day, 'yyyy-MM-dd');
-
-            const dayEvents = events.filter(ev => ev.date === dayStr);
+            const dayEvents = eventsByDate.get(dayStr) ?? [];
 
             return (
               <div
@@ -128,7 +134,7 @@ const MonthCalendar = ({ currentDate }) => {
 
                 {dayEvents.map((event) => (
                   <div
-                    key={event.id}
+                    key={`${event.id}-${event.startTime}-${event.endTime}`}
                     className={`month-event event-${event.color || 'blue'}`}
                     onClick={() => navigate(`/event/${event.id}`)}
                     title={`${event.title} (${event.startTime}–${event.endTime})`}

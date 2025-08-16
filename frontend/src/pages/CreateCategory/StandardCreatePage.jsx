@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import Step1StartProject from "../../components/StandardCreatePage/StartProject";
 import Step2AddParticipants from "../../components/StandardCreatePage/AddParticipants";
-import Step3SelectDate from "../../components/StandardCreatePage/SelectDate";
-import Step4ChoosePlace from "../../components/StandardCreatePage/ChoosePlace";
-import Step5SaveProject from "../../components/StandardCreatePage/SaveProject";
+import Step3Subtitlte from "../../components/StandardCreatePage/DetailStandardStartPage"
+import Step4SelectDate from "../../components/StandardCreatePage/SelectDate";
+import Step5ChoosePlace from "../../components/StandardCreatePage/StandaraSelectPlace";
+import Step6SaveProject from "../../components/StandardCreatePage/SaveProject";
 
 
 const StandardCreatePage = () => {
@@ -40,15 +41,15 @@ const StandardCreatePage = () => {
         />
       )}
       {step === 3 && (
-        <Step3SelectDate
+        <Step3Subtitlte
             formData={formData}
             updateFormData={updateFormData}
             nextStep={nextStep}
             prevStep={prevStep}
         />
         )}
-        {step === 4 && (
-        <Step4ChoosePlace
+      {step === 4 && (
+        <Step4SelectDate
             formData={formData}
             updateFormData={updateFormData}
             nextStep={nextStep}
@@ -56,7 +57,15 @@ const StandardCreatePage = () => {
         />
         )}
         {step === 5 && (
-        <Step5SaveProject
+        <Step5ChoosePlace
+            formData={formData}
+            updateFormData={updateFormData}
+            nextStep={nextStep}
+            prevStep={prevStep}
+        />
+        )}
+        {step === 6 && (
+        <Step6SaveProject
             formData={formData}
             updateFormData={updateFormData}
             prevStep={prevStep}

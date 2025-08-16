@@ -14,18 +14,28 @@ const NextEventCard = () => {
     const fetchNextEvent = async () => {
       setLoading(true);
       try {
-        const { data } = await api.get('/api/sidebar', { timeout: 10000 });
+        const response = await api.get('/api/sidebar');
+
+        // axios 원형(AxiosResponse)과 인터셉터로 언랩된 형태를 모두 지원
+        const data = response?.data ?? response;
+
+        console.log('Sidebar API response:', response);
+        console.log('Sidebar data:', data);
+
         if (!cancelled) {
-          setEvent(data && Object.keys(data).length > 0 ? data : null);
+          const nextEvent = Array.isArray(data)
+            ? (data[0] ?? null)
+            : (data && typeof data === 'object' && Object.keys(data).length > 0 ? data : null);
+
+          setEvent(nextEvent);
         }
       } catch (err) {
-        if (!cancelled) {
-          console.error('Failed to fetch event:', err);
-          setEvent(null);
-        }
+        console.error('Failed to fetch event:', err);
+        if (!cancelled) setEvent(null);
       } finally {
         if (!cancelled) setLoading(false);
       }
+
     };
 
     fetchNextEvent();
@@ -45,6 +55,7 @@ const NextEventCard = () => {
     return { time: `${hour}:${m}`, ampm };
   };
 
+  // 로딩 중 표시
   if (loading) {
     return (
       <div className="event-card">
@@ -61,6 +72,7 @@ const NextEventCard = () => {
     );
   }
 
+  // 이벤트 없을 때 표시
   if (!event) {
     return (
       <div className="event-card">
@@ -87,7 +99,7 @@ const NextEventCard = () => {
         <div className="event-title">
           <p className="event-label">Today's Next Event</p>
           <p className="event-name">
-            <span className="event-dot" /> {event.title}
+            <span className="event-dot" /> {event.title || 'Untitled Event'}
           </p>
         </div>
       </div>

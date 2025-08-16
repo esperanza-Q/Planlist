@@ -1,7 +1,9 @@
 package org.example.planlist.repository;
 
+import org.example.planlist.entity.PlannerProject;
 import org.example.planlist.entity.PlannerSession;
 import org.example.planlist.entity.ProjectParticipant;
+import org.example.planlist.entity.PtSession;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -23,6 +25,8 @@ public interface PlannerSessionRepository extends JpaRepository<PlannerSession, 
     );
 
     Optional<PlannerSession> findById(Long plannerId);
+
+    List<PlannerSession> findByProject(PlannerProject project);
 
     // 🔹 로그인 유저 포함 + 상태 필터 + 날짜 조건 + is_finalized = true
 //    @Query("SELECT ps FROM PlannerSession ps " +

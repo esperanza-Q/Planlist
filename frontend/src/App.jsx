@@ -96,8 +96,9 @@ function App() {
                 isAuthenticated ? <Navigate to="/home" replace /> : <LandingPage />
               }
             />
-            <Route path="/login" element={<LoginPage />} />
+            <Route path="/login" element={<LoginPage setIsAuthenticated={setIsAuthenticated} />} />
             <Route path="/signup" element={<SignupPage />} />
+
 
 
             {/* 보호된 페이지들 */}
@@ -128,6 +129,8 @@ function App() {
                 <Route path="/project/pt/details" element={<ProjectViewPTDetails />}/>
                 <Route path="/project/travel" element={<ProjectViewTravel/>}/>
                 <Route path="/project/travel/:projectId" element={<ProjectViewTravel />} />
+                
+                <Route path="/project/:projectId" element={<ProjectViewStandard />} />
               </>
             ) : (
               // 인증 안 된 사용자가 보호된 경로로 접근하면 로그인 페이지로 보냄
