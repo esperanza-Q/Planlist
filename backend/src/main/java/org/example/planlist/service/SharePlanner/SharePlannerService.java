@@ -34,12 +34,18 @@ public class SharePlannerService {
                 .getProject()
                 .getProjectId();
 
-        PtSession ptSession = ptSessionRepository.findById(plannerId).orElseThrow();
+//        PtSession ptSession = ptSessionRepository.findById(plannerId).orElseThrow();
+//
+//        LocalDate startDate = ptSession.getStartWeekDay();
+//        LocalDate endDate = ptSession.getEndWeekDay();
 
-        LocalDate startDate = ptSession.getStartWeekDay();
-        LocalDate endDate = ptSession.getEndWeekDay();
+        PlannerSession plannerSession = plannerSessionRepository.findById(plannerId).orElseThrow();
 
-        // 1. ACCEPTED 참여자 조회
+        LocalDate startDate = plannerSession.getStartWeekDay();
+        LocalDate endDate = plannerSession.getEndWeekDay();
+
+
+            // 1. ACCEPTED 참여자 조회
         List<ProjectParticipant> participants = projectParticipantRepository.findByProject_ProjectIdAndResponse(
                 projectId, ProjectParticipant.Response.ACCEPTED);
         List<Long> userIds = participants.stream()
@@ -215,7 +221,10 @@ public class SharePlannerService {
     @Transactional
     public PlannerSession updateSelectTime(Long plannerId, SelectTimeRequestDTO dto) {
         // 1. 기존 세션 찾기
-        PtSession session = ptSessionRepository.findById(plannerId)
+//        PtSession session = ptSessionRepository.findById(plannerId)
+//                .orElseThrow(() -> new IllegalArgumentException("Invalid plannerId: " + plannerId));
+
+        PlannerSession session = plannerSessionRepository.findById(plannerId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid plannerId: " + plannerId));
 
         // 2. 날짜/시간 파싱
@@ -316,17 +325,19 @@ public class SharePlannerService {
         }
 
         // 5. 프로젝트 startDate / endDate 재계산
-        List<PtSession> allSessions = ptSessionRepository.findByProject(project);
+//        List<PtSession> allSessions = ptSessionRepository.findByProject(project);
+
+        List<PlannerSession> allSessions = plannerSessionRepository.findByProject(project);
 
         LocalDate minDate = allSessions.stream()
-                .filter(PtSession::getIsFinalized)
-                .map(PtSession::getDate)
+                .filter(PlannerSession::getIsFinalized) // 바꿈
+                .map(PlannerSession::getDate) // 바꿈
                 .min(LocalDate::compareTo)
                 .orElse(null);
 
         LocalDate maxDate = allSessions.stream()
-                .filter(PtSession::getIsFinalized)
-                .map(PtSession::getDate)
+                .filter(PlannerSession::getIsFinalized) // 바꿈
+                .map(PlannerSession::getDate) // 바꿈
                 .max(LocalDate::compareTo)
                 .orElse(null);
 
@@ -335,6 +346,6 @@ public class SharePlannerService {
         plannerProjectRepository.save(project);
 
         // 6. 세션 저장 후 반환
-        return ptSessionRepository.save(session);
+        return plannerSessionRepository.save(session);
     }
 }
