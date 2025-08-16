@@ -2,15 +2,15 @@
 import React, { useState } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import './DetailMeetingStartPage.css';
+import '../MeetingCreatePage/DetailMeetingStartPage.css';
 
 import { api } from '../../api/client';
 
-import DiscussionIcon from '../../icons/DiscussionIcon';
+import CubeAltIcon from '../../icons/CubeAltIcon';
 import { ReactComponent as ProjectNextIcon } from "../../assets/Project_next_button.svg";
 import { addDays, parseISO, isValid as isValidDate } from 'date-fns';
 
-const DetailmeetingStartPage = ({ formData, updateFormData, nextStep }) => {
+const DetailstandardStartPage = ({ formData, updateFormData, nextStep }) => {
   const [title, setTitle] = useState(formData.title || '');
   const [startDate, setStartDate] = useState(formData.startDate || new Date());
   const [endDate, setEndDate] = useState(formData.endDate || addDays(new Date(), 7));
@@ -25,49 +25,40 @@ const DetailmeetingStartPage = ({ formData, updateFormData, nextStep }) => {
 
   const handleNext = async () => {
     if (!title.trim()) {
-      alert("Please enter a title for your meeting project.");
+      alert("Please enter a title for your standard project.");
       return;
     }
 
     const projectId = getProjectId(formData);
     if (!projectId) {
-      alert("Missing project id from previous step. Please start from the meeting project first.");
+      alert("Missing project id from previous step. Please start from the standard project first.");
       return;
     }
 
-    const toYMD = (d) =>
-      d instanceof Date
-        ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
-            d.getDate()
-          ).padStart(2, '0')}`
-        : d;
-
     try {
-      // ✅ res를 변수에 담기
-      const res = await api.postSession("/api/meeting/project/addSession", {
+      const res = await api.postSession("/api/standard/project/addSession", {
         projectId,
         title,
-        startDate: toYMD(startDate),
-        endDate: toYMD(endDate),
-        isRecurring: 1,
-        recurrenceUnit: "WEEKLY",
-        recurrenceCount: 1,
+        startDate,
+        endDate,
+        isRecurring : 1,
+        recurrenceUnit : "WEEKLY",
+        recurrenceCount:1
       });
 
-      // ✅ 응답 파싱
-      const data = res?.data ?? res;
-      const plannerId = data?.plannerId ?? null;
+      const plannerId = res?.plannerId ?? null;
 
       // 세션 생성 성공 후 → 초대 API 호출
-      await api.post(`/api/meeting/inviteUser/${projectId}/invite`, {
-        email: "test@example.com", // 실제 값으로 교체
-      });
+      try {
+        await api.post(`/api/standard/inviteUser/${projectId}/invite`, {
+          email: "test@example.com" // 실제 초대 대상
+        });
+      } catch (e) {
+        console.error("유저 초대 실패:", e);
+      }
 
-      // 상태 조회 (GET)
-      const inprogress = await api.get(
-        `/api/meeting/inviteUser/${projectId}/inprogress`
-      );
-      console.log("inprogress:", inprogress);
+      // 조회하고 싶다면 GET 사용
+      // const confirm = await api.get(`/api/standard/inviteUser/${projectId}/inprogress`);
 
       updateFormData({
         title,
@@ -80,17 +71,17 @@ const DetailmeetingStartPage = ({ formData, updateFormData, nextStep }) => {
 
       nextStep();
     } catch (e) {
-      console.error("Failed to create meeting session:", e);
-      alert("Failed to create meeting session. Please try again.");
+      console.error("Failed to create standard session:", e);
+      alert("Failed to create standard session. Please try again.");
     }
   };
 
   return (
     <div className="form-container">
       <div className="form-box">
-        <div className="form-icon"><DiscussionIcon/></div>
+        <div className="form-icon"><CubeAltIcon/></div>
 
-        <h2>Start meeting session</h2>
+        <h2>Start Standard session</h2>
         <p className="form-description">
           Enter a specific topic under the main project.
         </p>
@@ -135,4 +126,4 @@ const DetailmeetingStartPage = ({ formData, updateFormData, nextStep }) => {
   );
 };
 
-export default DetailmeetingStartPage;
+export default DetailstandardStartPage;

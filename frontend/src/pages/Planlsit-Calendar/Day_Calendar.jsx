@@ -30,16 +30,14 @@ const DayCalendar = ({ currentDate }) => {
       setLoading(true);
       setErrorMsg('');
       try {
-        
+        const currentDate = new Date('2025-08-10'); // API에 있는 날짜
+
         const { data } = await api.get('/api/planlistCalendar/day', { params: { date: ymd } });
 
-        const dayItem =
-          Array.isArray(data) && data.find((d) => d.date === ymd)
-            ? data.find((d) => d.date === ymd)
-            : Array.isArray(data) && data.length > 0
-            ? data[0]
-            : null;
+        const dayItem = Array.isArray(data) && data.length > 0 ? data[0] : null;
 
+
+          console.log('Selected dayItem:', dayItem);
         const list = dayItem?.planlistCalendar ?? [];
 
         const mapped = list.map((it) => ({

@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 const API_BASE_URL =
   import.meta?.env?.VITE_API_BASE_URL || process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 
-const LoginPage = () => {
+const LoginPage = ({ setIsAuthenticated }) => {
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
@@ -48,13 +48,19 @@ const LoginPage = () => {
       credentials: 'include',
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
+    const meData = await meRes.json();
+    console.log("me 응답:", meRes.status, meData);
+
 
     if (!meRes.ok) {
       const meData = await meRes.json(); // ✅ 한 번만 읽기
       throw new Error(meData.message || '로그인 상태 확인에 실패했습니다.');
     }
+    
+    console.log("me 응답:", meData);
 
     // 성공하면 홈으로
+    setIsAuthenticated(true); 
     navigate('/home');
   } catch (e) {
     setErr(e.message || '로그인 중 오류가 발생했습니다.');

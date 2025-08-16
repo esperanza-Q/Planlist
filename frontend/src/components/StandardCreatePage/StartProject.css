@@ -27,6 +27,11 @@
     align-items: center;
     justify-content: center;
 }
+.form-icon svg{
+  width: 40px;
+  height: 40px;
+  color: var(--Planetary);
+}
 
 .start-project-icon {
   width: 33px;
@@ -74,10 +79,11 @@ input {
   margin-bottom: 1rem;
 }
 
-.date-picker-wrapper {
+.standard-date-picker-wrapper {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+      width: 616px;
+    gap: 0.4rem;
 }
 
 .project-next-button {

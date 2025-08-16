@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import './AddParticipants.css';
 import { ReactComponent as BackIcon } from '../../assets/prev_arrow.svg';
@@ -27,7 +28,7 @@ const normalizeFromApi = (raw) => {
   });
 
   const mapParticipant = (p, i) => {
-    //standard uses p.response; normalize to: 'accepted' | 'waiting' | 'rejected'
+    // standard uses p.response; normalize to: 'accepted' | 'waiting' | 'rejected'
     const raw = lc(p?.response ?? p?.status ?? 'waiting');
     const status =
       raw === 'accepted' ? 'accepted' :
@@ -35,8 +36,7 @@ const normalizeFromApi = (raw) => {
       'waiting';
 
     return {
-      id: p?.userId ?? `participant-${i}`,          // user id (friendId)
-      friendId: p?.userId ?? p?.id ?? null,         // explicit friendId for deletes
+      id: p?.userId ?? `participant-${i}`,
       name: p?.name ?? `User ${i}`,
       status,
       profileImage: p?.profileImage ?? p?.profile_image ?? ProfilePic,
@@ -55,24 +55,6 @@ const normalizeFromApi = (raw) => {
     participants: participants.map(mapParticipant),
   };
 };
-
-const Avatar = ({ profileImage }) => (
-  <div className="avatar-circle">
-    <img
-      className="avatar-image"
-      alt="Profile"
-      src={profileImage || ProfilePic}
-      loading="lazy"
-      referrerPolicy="no-referrer"
-      onError={(e) => {
-        if (e.currentTarget.src !== ProfilePic) {
-          e.currentTarget.onerror = null;
-          e.currentTarget.src = ProfilePic;
-        }
-      }}
-    />
-  </div>
-);
 
 const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
   const [friends, setFriends] = useState([]);
@@ -104,23 +86,17 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
 
   // Initial load
   useEffect(() => {
-  if (!projectId) {
-    setLoading(false);
-    return;
-  }
-  setLoading(true);
-  (async () => {
-    await safeFetch();
-    setLoading(false);
-  })();
-}, [projectId]);
-  
+    if (!projectId) return;
+    setLoading(true);
+    (async () => {
+      await safeFetch();
+      setLoading(false);
+    })();
+  }, [projectId]);
 
   // Gate: allow Next when every participant is ACCEPTED or REJECTED (i.e., no WAITING)
   const pendingCount = participants.filter(p => !['accepted', 'rejected'].includes(lc(p.status))).length;
   const allResolved = pendingCount === 0;
-  console.log('pendingCount', pendingCount, 'allResolved', allResolved);
-
 
   // Live polling while unresolved + refresh on focus/visibility
   useEffect(() => {
@@ -146,6 +122,7 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
       if (intervalId) clearInterval(intervalId);
     };
   }, [projectId, allResolved]);
+
 
   const refetch = async () => { await safeFetch(); };
 
@@ -175,37 +152,42 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
 
   const displayedFriends = showAllFriends ? filteredFriends : filteredFriends.slice(0, 3);
 
-  const handleInvite = async (friend) => {
+const handleInvite = async (friend) => {
   if (!projectId) { 
     alert('Missing projectId. Create the project first.'); 
     return; 
   }
-  if (!friend?.email) { 
-    alert('This friend has no email; cannot invite.'); 
-    return; 
+
+  // 서버 요구에 따라 userId 또는 email 사용
+  const payload = {};
+  if (friend?.userId) {
+    payload.userId = friend.userId; // 서버가 userId를 요구하면
+  } else if (friend?.email) {
+    payload.email = friend.email;   // 서버가 email을 요구하면
+  } else {
+    alert('Cannot invite: no userId or email available.');
+    return;
   }
 
-  const key = friend.email ?? friend.id;
-
-  // 🔍 URL과 Body 확인용 로그
   console.log('=== Invite Debug ===');
   console.log('projectId:', projectId);
   console.log('friend:', friend);
   console.log('POST URL:', `/api/standard/inviteUser/${projectId}/invite`);
-  console.log('POST body:', { email: friend.email });
+  console.log('POST body:', payload);
   console.log('===================');
 
   try {
-    await api.postSession(`/api/standard/inviteUser/${projectId}/invite`, {
-      email: friend.email,
-    });
+    await api.postSession(
+      `/api/standard/inviteUser/${projectId}/invite`,
+      payload
+    );
 
-    // Optimistic remove from Friends immediately
+    // 초대 성공 시 friends 리스트에서 제거
     setFriends(prev => prev.filter(f =>
       idStr(f.id) !== idStr(friend.id) && lc(f.email) !== lc(friend.email)
     ));
 
-    // Server truth
+    // 서버 상태 갱신
     await refetch();
   } catch (e) {
     console.error('Failed to invite user:', {
@@ -213,31 +195,21 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
       data: e?.response?.data,
       message: e?.message,
     });
-    alert('Failed to invite user. Please try again.');
+    alert('Failed to invite user. Please check email or userId.');
   }
 };
 
-
-  // 🔧 Remove invitation using friendId (userId) from participant
   const handleRemove = async (part) => {
-    if (!projectId) { alert('Missing projectId.'); return; }
-
-    // Prefer friendId/userId; fallback to matching friend by email to get its id.
-    let friendId = part?.friendId ?? part?.userId ?? part?.id ?? null;
-    if (!friendId && part?.email) {
-      const match = friends.find(f => lc(f.email) === lc(part.email));
-      if (match) friendId = match.id;
-    }
-
-    if (!friendId) {
-      console.error('Cannot resolve friendId from participant:', part);
-      alert('Cannot delete: friendId is missing.');
+    if (!formData?.projectId) { alert('Missing projectId.'); return; }
+    const participantId = part?.id;
+    if (!participantId) {
+      console.error('Missing projectParticipantId on participant:', part);
+      alert('Cannot delete: participantId is missing from server data.');
       return;
     }
-
     try {
       await api.deleteSession(
-        `/api/standard/inviteUser/${projectId}/deleteRequest/${friendId}`
+        `/api/standard/inviteUser/${formData.projectId}/deleteRequest/${participantId}`
       );
       await refetch(); // friend shows up again automatically
     } catch (e) {
@@ -297,6 +269,7 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
                       <div className="user-email">{friend.email ?? friend.displayEmail}</div>
                     </div>
                   </div>
+
                   <button className="PlusCircleButton" onClick={() => handleInvite(friend)}>
                     <PlusCircle />
                   </button>
@@ -348,7 +321,7 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
           try {
             // Hit in-progress endpoint (POST then fallback to GET)
             try {
-              await api.postSession(`/api/standard/inviteUser/${projectId}/inprogress`, {});
+              await api.getSession(`/api/standard/inviteUser/${projectId}/inprogress`);
             } catch {
               await api.getSession(`/api/standard/inviteUser/${projectId}/inprogress`);
             }
@@ -367,5 +340,23 @@ const AddParticipants = ({ formData, updateFormData, nextStep, prevStep }) => {
     </div>
   );
 };
+
+const Avatar = ({ profileImage }) => (
+  <div className="avatar-circle">
+    <img
+      className="avatar-image"
+      alt="Profile"
+      src={profileImage || ProfilePic}
+      loading="lazy"
+      referrerPolicy="no-referrer"
+      onError={(e) => {
+        if (e.currentTarget.src !== ProfilePic) {
+          e.currentTarget.onerror = null;
+          e.currentTarget.src = ProfilePic;
+        }
+      }}
+    />
+  </div>
+);
 
 export default AddParticipants;
