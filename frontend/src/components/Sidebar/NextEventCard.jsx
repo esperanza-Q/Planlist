@@ -15,19 +15,18 @@ const NextEventCard = () => {
       setLoading(true);
       try {
         const response = await api.get('/api/sidebar');
-        console.log('Sidebar API response:', response);
-        console.log('Sidebar data:', response.data);
 
-        const data = response.data; // 실제 데이터
-        console.log('Fetched data:', data);
+        // axios 원형(AxiosResponse)과 인터셉터로 언랩된 형태를 모두 지원
+        const data = response?.data ?? response;
+
+        console.log('Sidebar API response:', response);
+        console.log('Sidebar data:', data);
 
         if (!cancelled) {
-          // 서버 데이터가 배열이면 첫 번째 요소 사용, 객체면 그대로
           const nextEvent = Array.isArray(data)
-            ? data[0] || null
-            : data && Object.keys(data).length > 0
-            ? data
-            : null;
+            ? (data[0] ?? null)
+            : (data && typeof data === 'object' && Object.keys(data).length > 0 ? data : null);
+
           setEvent(nextEvent);
         }
       } catch (err) {
@@ -36,6 +35,7 @@ const NextEventCard = () => {
       } finally {
         if (!cancelled) setLoading(false);
       }
+
     };
 
     fetchNextEvent();
