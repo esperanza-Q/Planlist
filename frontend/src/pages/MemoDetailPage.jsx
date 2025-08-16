@@ -8,6 +8,8 @@ import SaveIcon from '../icons/SaveIcon';
 import PrinterIcon from '../icons/PrinterIcon';
 import { api } from '../api/client'; // axios 인스턴스
 
+import XCircleIcon from '../icons/XCircleIcon'
+
 const MemoDetailPage = () => {
   const { id } = useParams();
   const memoId = useMemo(() => {
@@ -209,23 +211,28 @@ const MemoDetailPage = () => {
         placeholder="Enter content..."
       />
 
-      {/* 기존 이미지 목록 (삭제 체크 가능) */}
+     {/* 기존 이미지 목록 (삭제 XCircleIcon 토글) */}
       {imageUrls.length > 0 && (
         <div className="memo-detail-images">
           {imageUrls.map((src, i) => {
             const checked = deleteImages.includes(src);
             return (
-              <label key={i} className={`memo-image-item ${checked ? 'to-delete' : ''}`}>
+              <div
+                key={i}
+                className={`memo-image-item ${checked ? 'to-delete' : ''}`}
+              >
                 <img src={src} alt={`img-${i}`} className="memo-detail-image" />
                 <div className="memo-image-actions">
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={() => toggleDeleteImage(src)}
-                  />
-                  <span>삭제</span>
+                  <button
+                    type="button"
+                    className="memo-delete-btn"
+                    onClick={() => toggleDeleteImage(src)}
+                    title={checked ? "삭제 취소" : "삭제"}
+                  >
+                    <XCircleIcon />
+                  </button>
                 </div>
-              </label>
+              </div>
             );
           })}
         </div>
