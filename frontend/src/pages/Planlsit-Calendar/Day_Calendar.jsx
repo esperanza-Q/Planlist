@@ -30,14 +30,23 @@ const DayCalendar = ({ currentDate }) => {
       setLoading(true);
       setErrorMsg('');
       try {
-        const currentDate = new Date('2025-08-10'); // API에 있는 날짜
 
-        const { data } = await api.get('/api/planlistCalendar/day', { params: { date: ymd } });
+        const res = await api.get('/api/planlistCalendar/day', { params: { date: ymd } });
+        const payload = res?.data ?? res; // 인터셉터 유무 모두 대응
+        console.log('Day API payload:', payload);
 
-        const dayItem = Array.isArray(data) && data.length > 0 ? data[0] : null;
-
-
-          console.log('Selected dayItem:', dayItem);
+         // payload가 배열인 경우(여러 day), 객체 한 건인 경우(단일 day) 모두 대응
+        let dayItem = null;
+         if (Array.isArray(payload)) {
+           // 날짜가 맞는 걸 찾고, 없으면 첫 번째
+           dayItem = payload.find(it => it?.date === ymd) ?? payload[0] ?? null;
+         } else if (payload && typeof payload === 'object') {
+           // 서버가 day객체를 바로 주는 케이스
+           dayItem = payload;
+         }
+        
+        
+        console.log('Selected dayItem:', dayItem);
         const list = dayItem?.planlistCalendar ?? [];
 
         const mapped = list.map((it) => ({

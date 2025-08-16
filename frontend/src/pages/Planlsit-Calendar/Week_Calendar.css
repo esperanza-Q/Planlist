@@ -1,3 +1,8 @@
+:root {
+  --hour-height: 60px; /* HOUR_PX와 일치 */
+}
+
+
 .week-calendar {
   font-family: 'IBM Plex Sans KR', sans-serif;
   width: 1185px;
@@ -14,14 +19,52 @@
 }
 
 .week-calendar-grid {
-  display: flex;
-  flex-direction: column;
-}
-
-.header-row,
-.row {
   display: grid;
   grid-template-columns: 80px repeat(7, 1fr);
+  column-gap: 8px;
+}
+
+.header-row, .row { grid-column: 1 / -1; 
+  display: grid; 
+  grid-template-columns: 80px repeat(7, 1fr); 
+}
+
+  
+
+.body-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 80px repeat(7, 1fr);
+  align-items: start;
+}
+
+.time-column {
+  display: grid;
+  grid-template-rows: repeat(24, var(--hour-height));
+}
+
+/* 각 요일 컬럼 */
+.week-day-column {
+  position: relative;
+  height: calc(24 * var(--hour-height));
+  border-left: 1px solid #eee;
+}
+
+.week-day-grid {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: repeat(24, var(--hour-height));
+}
+.grid-hour {
+  border-top: 1px solid #f0f0f0;
+}
+
+.time-slot {
+  font-size: 12px;
+  padding-right: 6px;
+  text-align: right;
+  color: #666;
 }
 
 .time-cell {
@@ -47,6 +90,25 @@
   padding: 2px;
 }
 
+
+/* 이벤트 블록 */
+.week-event-block {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  overflow: hidden;
+}
+.week-event-block .event-title {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.week-event-block .event-time {
+  font-size: 11px; opacity: 0.75;
+}
 
 
 
