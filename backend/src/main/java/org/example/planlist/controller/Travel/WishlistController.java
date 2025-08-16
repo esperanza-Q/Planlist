@@ -7,6 +7,7 @@ import org.example.planlist.service.WishlistService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -20,11 +21,16 @@ public class WishlistController {
 
     /** 카테고리별 wishlist 항목 추가 (URL: /api/travel/{projectId}/wishlist/{category}) */
     @PostMapping("/{category}")
-    public ResponseEntity<String> addWishlistItem(@PathVariable Long projectId,
-                                                  @PathVariable String category,
-                                                  @Valid @RequestBody WishlistRequestDTO requestDTO) {
-        wishlistService.addItem(projectId, category, requestDTO);
-        return ResponseEntity.ok(category + " 카테고리에 항목이 추가되었습니다.");
+    public ResponseEntity<WishlistResponseDTO> addWishlistItem(@PathVariable Long projectId,
+                                                               @PathVariable String category,
+                                                               @Valid @RequestBody WishlistRequestDTO requestDTO) {
+        WishlistResponseDTO created = wishlistService.addItem(projectId, category, requestDTO);
+
+        // Location 헤더(선택): /api/travel/{projectId}/wishlist/{category}/{wishlistId}
+        URI location = URI.create(String.format("/api/travel/%d/wishlist/%s/%d",
+                projectId, category, created.getWishlistId()));
+
+        return ResponseEntity.created(location).body(created);
     }
 
     /** 카테고리별 목록 조회 (ALL 지원) */
