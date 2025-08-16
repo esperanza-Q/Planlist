@@ -28,16 +28,18 @@ const ProjectViewItem = ({ project }) => {
 
     const category = norm(project?.category);
 
-    // --- PT routing: when in-progress -> /project?category=pt&step=3&projectId=...
+    // --- PT routing: when in-progress -> .
     if (category === "pt") {
       if (statusIsInProgress()) {
-        navigate(
-          `/project?category=pt&step=3&projectId=${encodeURIComponent(id)}`
-        );
+              navigate(`/project/pt?projectId=${encodeURIComponent(id)}`);
+
+
         return;
       }
       // otherwise keep your normal PT view
-      navigate(`/project/pt?projectId=${encodeURIComponent(id)}`);
+              navigate(
+          `/project?category=pt&step=2&projectId=${encodeURIComponent(id)}`
+        );
       return;
     }
 

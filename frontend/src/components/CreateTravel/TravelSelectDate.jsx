@@ -1,4 +1,4 @@
-// TravelSelectDate.jsx — fetch current & next month for the visible window, cache by YYYY-MM
+// TravelSelectDate.jsx — fetch current & next month by startdate/enddate, cache by range
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import calendar_icon from "../../assets/calendar_icon.svg";
@@ -15,13 +15,6 @@ import rightArrow from "../../assets/arrow_down_right.svg";
 import { api } from "../../api/client";
 
 // ---- helpers ----
-const ymKey = (d) => {
-  const y = d.getFullYear();
-  const m = d.getMonth() + 1;          // 1..12
-  return `${y}-${String(m).padStart(2, "0")}`;
-};
-const getYearMonth = (d) => ({ year: d.getFullYear(), month: d.getMonth() + 1 });
-
 const groupConsecutiveDates = (isoDates = []) => {
   const sorted = [...isoDates]
     .filter(Boolean)
@@ -70,89 +63,75 @@ const TravelSelectDate = ({
   // which two months to show (offset 0 and 1 from anchor)
   const [currentMonthOffset, setCurrentMonthOffset] = useState(0);
 
-  // Anchor: "now" (so Aug 2025 shows Aug+Sep 2025 initially)
+  // Anchor: fixed "now" so initial shows current + next month
   const anchorRef = useRef(new Date());
 
-  // month cache: { 'YYYY-MM': string[] /*commonDates*/ }
-  const [monthCache, setMonthCache] = useState(() => ({}));
-  const inFlightRef = useRef(new Set()); // track 'YYYY-MM' currently fetching
+  // range cache: { 'YYYY-MM-DD_YYYY-MM-DD': string[] /*commonDates*/ }
+  const [rangeCache, setRangeCache] = useState(() => ({}));
+  const inFlightRef = useRef(new Set()); // track range keys currently fetching
 
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState(null);
 
-  // visible months keys (e.g., ['2025-08','2025-09'])
-  const visibleKeys = useMemo(() => {
-    const cur = addMonths(anchorRef.current, currentMonthOffset);
-    const next = addMonths(anchorRef.current, currentMonthOffset + 1);
-    return [ymKey(cur), ymKey(next)];
+  // visible 2-month range (start of month for offset, end of next month)
+  const visibleRange = useMemo(() => {
+    const start = startOfMonth(addMonths(anchorRef.current, currentMonthOffset));
+    const end = endOfMonth(addMonths(anchorRef.current, currentMonthOffset + 1));
+    const startISO = format(start, "yyyy-MM-dd");
+    const endISO = format(end, "yyyy-MM-dd");
+    return { start, end, startISO, endISO, key: `${startISO}_${endISO}` };
   }, [currentMonthOffset]);
 
   // fetch helper (idempotent via inFlightRef + cache)
-  const fetchMonth = async (d) => {
-    const key = ymKey(d);
-    if (monthCache[key] !== undefined) return; // already cached
+  const fetchRange = async (startISO, endISO, key) => {
+    if (rangeCache[key] !== undefined) return; // already cached
     if (inFlightRef.current.has(key)) return;  // already fetching
 
     inFlightRef.current.add(key);
+          // await api.postSession("/api/settings/friend/acceptRequest", {
+          //   requestEmail: req.email,
+          // });
     try {
-      const { year, month } = getYearMonth(d);
-      // GET /Travel/{projectId}/SharedCalendar?year=YYYY&month=M
-      const res = await api.getSession(`/Travel/${projectId}/SharedCalendar`, {
-        params: { year, month },
-      });
-
-      // client.getSession: 204 => returns null; 200 => parsed body
+      // ✅ send startdate & enddate (lowercase) as requested
+      const res = await api.getSession(
+        `/travel/project/${projectId}/travelSharedCalendar`,
+        { startDate: startISO, endDate: endISO  }
+      );
       const commonDates = Array.isArray(res?.commonDates) ? res.commonDates : [];
-      setMonthCache((prev) => {
-        if (prev[key] !== undefined) return prev; // avoid re-set loops
-        return { ...prev, [key]: commonDates };
-      });
+      setRangeCache((prev) => (prev[key] !== undefined ? prev : { ...prev, [key]: commonDates }));
     } catch (e) {
-      // On error, cache empty to avoid re-spam; surface lightweight error
-      setMonthCache((prev) => (prev[key] !== undefined ? prev : { ...prev, [key]: [] }));
+      setRangeCache((prev) => (prev[key] !== undefined ? prev : { ...prev, [key]: [] }));
       setErr("Failed to load shared calendar.");
     } finally {
       inFlightRef.current.delete(key);
     }
   };
 
-  // fetch for current & next month when projectId or offset changes
+  // fetch for the current 2-month window when projectId or offset changes
   useEffect(() => {
     if (!projectId) return;
     let active = true;
 
-    const run = async () => {
+    (async () => {
       setErr(null);
-      // Decide if we need to show loading spinner (only if something missing)
-      const missing = visibleKeys.some((k) => monthCache[k] === undefined);
-      if (missing) setLoading(true);
-
+      if (rangeCache[visibleRange.key] === undefined) setLoading(true);
       try {
-        const [curKey, nextKey] = visibleKeys;
-        const curDate = parseISO(`${curKey}-01`);
-        const nextDate = parseISO(`${nextKey}-01`);
-        await Promise.all([fetchMonth(curDate), fetchMonth(nextDate)]);
+        await fetchRange(visibleRange.startISO, visibleRange.endISO, visibleRange.key);
       } finally {
         if (active) setLoading(false);
       }
-    };
+    })();
 
-    run();
     return () => { active = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectId, currentMonthOffset, /* visibleKeys is derived */]);
+  }, [projectId, visibleRange.key]);
 
-  // build the ranges for ONLY the two visible months
-  const visibleCommonDates = useMemo(() => {
-    const all = visibleKeys.flatMap((k) => monthCache[k] || []);
-    return all;
-  }, [monthCache, visibleKeys]);
-
+  // build ranges for ONLY the visible window
+  const visibleCommonDates = rangeCache[visibleRange.key] || [];
   const serverRanges = useMemo(
     () => groupConsecutiveDates(visibleCommonDates),
     [visibleCommonDates]
   );
-
   const allRecommended = useMemo(
     () => unionRanges(serverRanges, recommendedDates || []),
     [serverRanges, recommendedDates]
