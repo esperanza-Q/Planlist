@@ -111,7 +111,12 @@ const ProjectViewPT = () => {
           <PTInfoCard project={view} />
           <PTList project={view} />
         </div>
-        <MemoCard initialMemos={view.memos} />
+         <MemoCard
+           initialMemos={view.memos}
+           key={`memo-${projectId}`}
+           projectId={projectId}
+           projectName={view.title}  
+         />
       </div>
     </div>
   );
