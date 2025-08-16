@@ -1,18 +1,57 @@
-import React, { useState, useRef, useEffect } from 'react';
-import '../StandardCreatePage/DetailTimeModal.css';
-import { format, parseISO } from 'date-fns';
-import axios from 'axios';
 
-const DetailTimeModal = ({ date, plannerId, onClose, onSave }) => {
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import '../StandardCreatePage/DetailTimeModal.css';
+import { format, parseISO, isValid as isValidDate } from 'date-fns';
+
+const clampHour = (h) => Math.max(0, Math.min(24, Number.parseInt(h, 10) || 0));
+const hourFromHHmm = (hhmm) => clampHour(String(hhmm || '').split(':')[0]);
+
+const DetailTimeModal = ({
+  date,
+  availableSlots = [],          // ⬅️ NEW: slots for THIS date (from SelectDate)
+  totalParticipants = 6,         // optional override
+  onClose,
+  onSave,
+}) => {
   const [selectedTimes, setSelectedTimes] = useState([]);
-  const [availabilityMap, setAvailabilityMap] = useState({});
+  const [availabilityMap, setAvailabilityMap] = useState({}); // { 0..23: count }
   const isDragging = useRef(false);
   const startIndex = useRef(null);
 
-  const totalParticipants = 6; // 필요시 부모에서 전달받도록 변경 가능
+  // Build availability per hour from availableSlots
+  useEffect(() => {
+    // init all 0
+    const map = {};
+    for (let h = 0; h < 24; h++) map[h] = 0;
 
-  const parsedDate = parseISO(date);
-  const dayLabel = format(parsedDate, 'EEE');
+    if (Array.isArray(availableSlots) && availableSlots.length > 0) {
+      // If ANY allDay → everything full
+      const hasAllDay = availableSlots.some(s => s?.allDay === true);
+      if (hasAllDay) {
+        for (let h = 0; h < 24; h++) map[h] = totalParticipants; // full
+      } else {
+        // Mark provided ranges as partial (we don't have per-hour counts from API)
+        const partialCount = Math.max(1, Math.floor(totalParticipants / 2));
+        for (const s of availableSlots) {
+          if (!s?.start || !s?.end) continue;
+          const sh = hourFromHHmm(s.start);
+          const eh = hourFromHHmm(s.end);
+          for (let h = sh; h < eh; h++) {
+            map[h] = Math.max(map[h], partialCount); // ensure partial shading
+          }
+        }
+      }
+    }
+
+    setAvailabilityMap(map);
+  }, [availableSlots, totalParticipants]);
+
+  const parsedDate = useMemo(() => {
+    const d = parseISO(date);
+    return isValidDate(d) ? d : new Date();
+  }, [date]);
+
+  const dayLabel = format(parsedDate, 'EEE'); // Mon, Tue...
   const dayNumber = format(parsedDate, 'd');
 
   const formatHourLabel = (h) => {
@@ -30,32 +69,22 @@ const DetailTimeModal = ({ date, plannerId, onClose, onSave }) => {
 
   const handleMouseEnter = (index) => {
     if (!isDragging.current || startIndex.current === null) return;
-    const [min, max] = [Math.min(startIndex.current, index), Math.max(startIndex.current, index)];
-    setSelectedTimes(Array.from({ length: max - min + 1 }, (_, i) => min + i));
+    const range = getRange(startIndex.current, index);
+    setSelectedTimes(range);
   };
 
-  const handleMouseUp = async () => {
+  const handleMouseUp = () => {
     isDragging.current = false;
-    if (selectedTimes.length === 0) return;
-
-    const start = `${String(selectedTimes[0]).padStart(2, '0')}:00`;
-    const end = `${String(selectedTimes[selectedTimes.length - 1] + 1).padStart(2, '0')}:00`;
-
-    // 선택된 시간 POST 요청
-    try {
-      const payload = selectedTimes.length === 24
-        ? { date, allDay: true }
-        : { date, start, end };
-
-      const res = await axios.post('/api/meeting/project/selectTime', payload, {
-        params: { plannerId }
-      });
-
-      console.log(res.data); // "일정을 선택 완료하였습니다!"
-      onSave({ date, time: selectedTimes.map(i => `${String(i).padStart(2, '0')}:00`) });
-    } catch (err) {
-      console.error('시간 선택 전송 실패:', err);
+    if (selectedTimes.length > 0) {
+      const times = selectedTimes.map(i => `${String(i).padStart(2, '0')}:00`);
+      const maxAvailable = Math.max(...selectedTimes.map(i => availabilityMap[i] || 0));
+      onSave({ date, time: times, availableCount: maxAvailable });
     }
+  };
+
+  const getRange = (start, end) => {
+    const [min, max] = [Math.min(start, end), Math.max(start, end)];
+    return Array.from({ length: max - min + 1 }, (_, i) => min + i);
   };
 
   return (

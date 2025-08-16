@@ -1,95 +1,83 @@
 import React, { useState } from 'react';
-import DatePicker from 'react-datepicker';
+import axios from 'axios';
 import 'react-datepicker/dist/react-datepicker.css';
-import './StartProject.css';
+import '../MeetingCreatePage/BigMeetingStartProject.css';
 
 import CubeAltIcon from '../../icons/CubeAltIcon';
 import { ReactComponent as ProjectNextIcon } from "../../assets/Project_next_button.svg";
 
-import { api } from "../../api/client";
-
-function formatDateYYYYMMDD(date) {
-  // 로컬 기준으로 YYYY-MM-DD 문자열 만들기 (타임존 밀림 방지)
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
-
 const StartProject = ({ formData, updateFormData, nextStep }) => {
-  const [title, setTitle] = useState(formData.title || '');
-  const [startDate, setStartDate] = useState(formData.startDate || new Date());
+  const [title, setTitle] = useState(formData.bigTitle || ''); // Big 프로젝트용
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
+  
   const handleNext = async () => {
     if (!title.trim()) {
       setError('Please enter the project title');
       return;
     }
-    if (!startDate) {
-      setError('시작 주에 포함될 날짜를 선택해주세요.');
-      return;
-    }
     setError('');
-    setLoading(true);
 
     try {
-      const payload = {
-        title: title.trim(),
-        start_week_date: formatDateYYYYMMDD(startDate),
-      };
-      
-      const data = await api.post('/api/standard/createProject', payload);
+      setLoading(true);
+
+      const res = await axios.post('/api/standard/createProject', {
+        title
+      });
+
+      console.log('프로젝트 생성 응답:', res.data);
+
+      // Big title로 저장
       updateFormData({
-        title: data.title,
-        startDate: startDate,                      // 사용자가 고른 기준일
-        weekRange: data.start_week_date,           // { start: 'YYYY-MM-DD', end: 'YYYY-MM-DD' }
-        plannerId: data.planner_id,
-        serverMessage: data.message,
+        bigTitle: title,
+        projectId: res.data.projectId,
+        creatorId: res.data.creator_id,
+        category: res.data.category,
+        status: res.data.status,
+        createdAt: res.data.created_at
       });
 
       nextStep();
-    } catch (e) {
-      setError(e.message || '서버 통신 중 오류가 발생했습니다.');
+    } catch (err) {
+      console.error('프로젝트 생성 실패:', err);
+      alert('프로젝트 생성에 실패했습니다.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="form-container">
-      <div className="form-box">
-        <div className="form-icon"><CubeAltIcon className="start-project-icon" /></div>
+    <div className="BigMeeting-Start-form-container">
+      <div className="BigMeeting-Start-form-box">
+        <div className="BigMeeting-Start-form-icon">
+          <CubeAltIcon className="BigMeeting-Start-start-project-icon" />
+        </div>
 
-        <h2>Start Standard Project</h2>
-        <p className="form-description">Welcome Project! Please enter your details.</p>
+        <h2>Start Meeting Project</h2>
+        <p className="BigMeeting-Start-orm-description">
+          Welcome Project! Please enter your details.
+        </p>
 
-        <div className="underSection">
+        <div className="BigMeeting-Start-underSection">
           <label>Project Title</label>
           <input
             type="text"
-            className="title-box"
+            className='BigMeeting-Start-title-box'
             placeholder="Enter your title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
-
-          <label>Choose a date to start the schedule</label>
-          <div className="date-picker-wrapper">
-            <DatePicker
-              selected={startDate}
-              onChange={(date) => setStartDate(date)}
-              dateFormat="yyyy-MM-dd"
-            />
-          </div>
-
-          {error && <div className="error-text">{error}</div>}
+          {error && <div className="error-message">{error}</div>}
         </div>
       </div>
 
-      <button className="project-next-button" onClick={handleNext} disabled={loading}>
-        <ProjectNextIcon />
+      <button
+        className="project-next-button"
+        onClick={handleNext}
+        disabled={loading}
+      >
+        {loading ? 'Loading...' : <ProjectNextIcon />}
       </button>
     </div>
   );
