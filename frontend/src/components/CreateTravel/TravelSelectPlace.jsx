@@ -184,6 +184,8 @@ try {
 
   const handleUnselectPlace = (placeId) => {
     setSelectedPlaces((prev) => prev.filter((p) => p.id !== placeId));
+
+    
     // If/when a DELETE endpoint exists, call it here using the server id.
     // await api.deleteSession(`/api/travel/project/${projectId}/wishlist/${serverId}`)
   };
@@ -310,7 +312,7 @@ try {
                       />
                       <span>
                         {place.name}
-                        {isSaving ? " (saving…)" : ""}
+                        
                       </span>
                       {isSelected && (
                         <button
