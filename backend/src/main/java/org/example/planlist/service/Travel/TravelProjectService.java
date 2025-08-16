@@ -31,14 +31,16 @@ public class TravelProjectService {
         PlannerProject project = projectRepo.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("프로젝트를 찾을 수 없습니다."));
 
-        // Projects
-        List<ProjectInfoDTO> projectInfo = List.of(
-                ProjectInfoDTO.builder()
-                        .projectId(project.getProjectId())
-                        .projectName(project.getProjectTitle())
-                        .category(project.getCategory().name())
-                        .build()
-        );
+        // Project
+        ProjectInfoDTO projectInfo = ProjectInfoDTO.builder()
+                .projectId(project.getProjectId())
+                .projectName(project.getProjectTitle())
+                .category(project.getCategory().name())
+                .status(project.getStatus().name())
+                .startDate(project.getStartDate())
+                .endDate(project.getEndDate())
+                .confirmedAt(project.getConfirmedAt())
+                .build();
 
         // Participants
         List<ParticipantDTO> participants = participantRepo.findByProject_ProjectId(projectId)
@@ -51,13 +53,10 @@ public class TravelProjectService {
 
         // Memo
         User user = SecurityUtil.getCurrentUser();
-
         List<MemoDTO> memos = noteRepo.findByProject_ProjectId(projectId)
                 .stream()
-                .filter(n ->
-                        n.getUser().getId().equals(user.getId()) // 내가 작성한 노트
-                                || n.getShare() == Note.Share.GROUP     // 남이 작성했지만 GROUP인 노트
-                )
+                .filter(n -> n.getUser().getId().equals(user.getId())
+                        || n.getShare() == Note.Share.GROUP)
                 .map(n -> MemoDTO.builder()
                         .noteId(n.getNoteId())
                         .title(n.getTitle())
@@ -66,10 +65,11 @@ public class TravelProjectService {
                 .toList();
 
         return TravelProjectDetailResponseDTO.builder()
-                .Projects(projectInfo)
-                .Participants(participants)
-                .Memo(memos)
+                .project(projectInfo)   // ✅ 단일 객체로
+                .participants(participants)
+                .memo(memos)
                 .build();
     }
+
 }
 
