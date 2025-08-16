@@ -46,8 +46,7 @@ public class WishlistService {
         }
         Object principal = auth.getPrincipal();
 
-        // 1) OAuth2 흐름: CustomOAuth2User → User 엔티티의 PK 사용
-        if (principal instanceof CustomOAuth2User o) {
+        if (principal instanceof CustomOAuth2User o) { // OAuth2
             User u = o.getUser();
             if (u == null || u.getId() == null) {
                 throw new IllegalStateException("OAuth2 사용자 정보를 확인할 수 없습니다.");
@@ -55,16 +54,14 @@ public class WishlistService {
             return u.getId();
         }
 
-        // 2) JWT 흐름: UserDetails → username(대개 이메일)로 조회
-        if (principal instanceof UserDetails ud) {
+        if (principal instanceof UserDetails ud) { // JWT(UserDetails)
             String email = ud.getUsername();
             return userRepository.findByEmail(email)
                     .map(User::getId)
                     .orElseThrow(() -> new IllegalStateException("이메일로 사용자를 찾을 수 없습니다: " + email));
         }
 
-        // 3) 문자열 principal (anonymousUser 제외) → 이메일로 조회
-        if (principal instanceof String s && !"anonymousUser".equals(s)) {
+        if (principal instanceof String s && !"anonymousUser".equals(s)) { // 문자열 principal
             String email = s;
             return userRepository.findByEmail(email)
                     .map(User::getId)
@@ -74,38 +71,27 @@ public class WishlistService {
         throw new IllegalStateException("지원하지 않는 Principal 타입: " + principal.getClass());
     }
 
-    /** 위시리스트 항목 추가 */
+    /** 위시리스트 항목 추가 → 저장된 ID를 담아 반환 (함수명/경로/로직 형태 유지) */
     @Transactional
-    public void addItem(Long projectId, String categoryStr, WishlistRequestDTO dto) {
-        // 0) 현재 사용자
+    public WishlistResponseDTO addItem(Long projectId, String categoryStr, WishlistRequestDTO dto) {
         Long currentUserId = getCurrentUserIdOrThrow();
 
-        // 1) 프로젝트 존재 체크
         PlannerProject project = plannerProjectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 프로젝트입니다."));
 
-        // 2) (projectId, userId)로 참여자 검증 (레포는 그대로, 서비스에서 감싸기)
         ProjectParticipant participant = Optional
                 .ofNullable(projectParticipantRepository.findByProject_ProjectIdAndUserId(projectId, currentUserId))
                 .orElseThrow(() -> new EntityNotFoundException("프로젝트 참여자가 아닙니다."));
 
-        // 승인된 멤버만 허용하려면 주석 해제
-        // if (participant.getResponse() != ProjectParticipant.Response.ACCEPTED) {
-        //     throw new IllegalStateException("승인된 참여자만 추가할 수 있습니다.");
-        // }
-
-        // 3) 카테고리 변환 (PathVariable)
         Wishlist.Category category = java.util.Arrays.stream(Wishlist.Category.values())
                 .filter(c -> c.name().equalsIgnoreCase(categoryStr))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("잘못된 카테고리 값입니다: " + categoryStr));
 
-        // 4) 중복 검사 (프로젝트 내 동일 카테고리+이름)
         if (wishlistRepository.existsByProject_ProjectIdAndCategoryAndName(projectId, category, dto.getName())) {
             throw new IllegalStateException("이미 존재하는 항목입니다.");
         }
 
-        // 5) 저장
         Wishlist wishlist = Wishlist.builder()
                 .name(dto.getName())
                 .address(dto.getAddress())
@@ -115,20 +101,31 @@ public class WishlistService {
                 .memo(dto.getMemo())
                 .cost(dto.getCost() == null ? null : dto.getCost().longValue())
                 .project(project)
-                .participant(participant)
+                .participant(participant) // 참여자(Participant) 저장
                 .build();
 
-        wishlistRepository.save(wishlist);
+        Wishlist saved = wishlistRepository.save(wishlist); // ★ 여기서 ID 채워짐
+
+        return WishlistResponseDTO.builder()
+                .wishlistId(saved.getWishlistId())
+                .name(saved.getName())
+                .address(saved.getAddress())
+                .latitude(saved.getLatitude())
+                .longitude(saved.getLongitude())
+                .category(saved.getCategory().name())
+                .memo(saved.getMemo())
+                .cost(saved.getCost())
+                .projectId(saved.getProject().getProjectId())
+                .inviteeId(saved.getParticipant() != null ? saved.getParticipant().getId() : null) // Participant PK
+                .build();
     }
 
-    /** 카테고리별/전체 조회 */
+    /** 카테고리별/전체 조회 (형태 유지 + wishlistId 누락 보강) */
     @Transactional
     public List<WishlistResponseDTO> getWishlistItems(Long projectId, String categoryStr) {
-        // 1) 프로젝트 존재 체크
         plannerProjectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 프로젝트입니다."));
 
-        // 2) "ALL" 전체 조회
         if (categoryStr.equalsIgnoreCase("ALL")) {
             return wishlistRepository.findByProject_ProjectId(projectId)
                     .stream()
@@ -142,21 +139,20 @@ public class WishlistService {
                             .memo(w.getMemo())
                             .cost(w.getCost())
                             .projectId(w.getProject().getProjectId())
-                            .inviteeId(w.getParticipant().getId()) // participant PK
+                            .inviteeId(w.getParticipant() != null ? w.getParticipant().getId() : null)
                             .build())
                     .toList();
         }
 
-        // 3) 카테고리 변환
         Wishlist.Category category = java.util.Arrays.stream(Wishlist.Category.values())
                 .filter(c -> c.name().equalsIgnoreCase(categoryStr))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("잘못된 카테고리 값입니다: " + categoryStr));
 
-        // 4) 카테고리별 조회
         return wishlistRepository.findByProject_ProjectIdAndCategory(projectId, category)
                 .stream()
                 .map(w -> WishlistResponseDTO.builder()
+                        .wishlistId(w.getWishlistId()) // ← 보강
                         .name(w.getName())
                         .address(w.getAddress())
                         .latitude(w.getLatitude())
@@ -165,32 +161,23 @@ public class WishlistService {
                         .memo(w.getMemo())
                         .cost(w.getCost())
                         .projectId(w.getProject().getProjectId())
-                        .inviteeId(w.getParticipant().getId())
+                        .inviteeId(w.getParticipant() != null ? w.getParticipant().getId() : null)
                         .build())
                 .toList();
     }
 
-    /** 항목 삭제(권한 체크 포함, 시그니처 유지) */
+    /** 항목 삭제(권한 체크 포함, 시그니처/경로 유지) */
     @Transactional
     public void deleteItem(Long wishlistId) {
-        // 0) 현재 사용자
         Long currentUserId = getCurrentUserIdOrThrow();
 
-        // 1) 항목 존재 확인
         Wishlist target = wishlistRepository.findById(wishlistId)
                 .orElseThrow(() -> new EntityNotFoundException("삭제할 위시리스트 항목이 없습니다."));
 
-        // 2) 요청자가 해당 프로젝트 참여자인지 검증
         Long projectId = target.getProject().getProjectId();
         Optional.ofNullable(projectParticipantRepository.findByProject_ProjectIdAndUserId(projectId, currentUserId))
                 .orElseThrow(() -> new EntityNotFoundException("프로젝트 참여자가 아닙니다."));
 
-        // 필요 시 승인 상태 확인
-        // if (participant.getResponse() != ProjectParticipant.Response.ACCEPTED) {
-        //     throw new IllegalStateException("승인된 참여자만 삭제할 수 있습니다.");
-        // }
-
-        // 3) 삭제
         wishlistRepository.deleteById(wishlistId);
     }
 }
