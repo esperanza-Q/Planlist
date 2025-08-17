@@ -64,6 +64,6 @@ public interface DatePlannerRepository extends JpaRepository<DatePlanner, Long> 
        WHERE dp.project.projectId = :projectId
        ORDER BY dp.date ASC, dp.visitTime ASC
     """)
-    List<DatePlanner> findAllByProjectId(@Param("projectId") Long projectId);
+    List<DatePlanner> findAllByProject_ProjectId(Long projectId);
 
 }

@@ -77,7 +77,7 @@ public class TravelProjectService {
                 .toList();
 
         // 4) 날짜별 플래너
-        List<DatePlanner> planners = datePlannerRepository.findAllByProjectId(projectId);
+        List<DatePlanner> planners = datePlannerRepository.findAllByProject_ProjectId(projectId);
         if (planners.isEmpty()) {
             return TravelProjectDetailResponseDTO.builder()
                     .project(projectInfo)
