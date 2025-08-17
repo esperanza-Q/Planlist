@@ -146,7 +146,10 @@ const handleSave = async (weekStart = currentWeekStart, selectedCellsSet = null,
       dayHourMap[day].add(hour);
     });
 
-    const hh = h => `${String(h).padStart(2, "0")}:00`;
+    const hh = (h, isEnd = false) => {
+      if (isEnd && h === 24) return "23:59";
+      return `${String(h).padStart(2, "0")}:${isEnd ? "00" : "00"}`;
+    };
 
     // 여기서만 freeTimeCalendar 생성
     const freeTimeCalendar = Object.entries(dayHourMap).flatMap(([dayStr, hourSet]) => {
@@ -164,7 +167,9 @@ const handleSave = async (weekStart = currentWeekStart, selectedCellsSet = null,
       const hours = Array.from(hourSet).sort((a, b) => a - b);
 
       // 하루 전체 선택
-      if (hours.length === 24) return [{ date: dateStr, allDay: true }];
+      if (hours.length === 24) {
+        return [{ date: dateStr, start: "00:00", end: "23:59" }];
+      }
 
       // 연속 시간대 병합
       const ranges = [];
@@ -183,10 +188,10 @@ const handleSave = async (weekStart = currentWeekStart, selectedCellsSet = null,
 
       return ranges.map(([s, e]) => ({
         date: dateStr,
-        start: hh(s),
-        end: hh(e),
-      }));
-    });
+        start: hh(s, false),              // 예: 09 -> "09:00"
+        end: e === 24 ? "23:59" : hh(e, true), // 예: 24 -> "23:59", 그 외 → "HH:00"
+        }));
+      });
 
     const week = `${format(weekStart, "yyyy-MM-dd")} ~ ${format(
       new Date(weekStart.getTime() + 6 * 24 * 60 * 60 * 1000),

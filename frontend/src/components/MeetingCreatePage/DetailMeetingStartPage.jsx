@@ -41,47 +41,83 @@ const DetailmeetingStartPage = ({ formData, updateFormData, nextStep }) => {
             d.getDate()
           ).padStart(2, '0')}`
         : d;
+    
+    const getInviteEmails = () => {
+    // 프로젝트에서 실제 보유한 필드명으로 수정하세요
+    const list = formData?.participants || formData?.invitedFriends || [];
+    return list
+      .map(p => p?.email || p?.user?.email)
+      .filter(Boolean);
+  };
 
-    try {
-      // ✅ res를 변수에 담기
+     try {
+      // 1) 세션 생성
       const res = await api.postSession("/api/meeting/project/addSession", {
         projectId,
         title,
         startDate: toYMD(startDate),
         endDate: toYMD(endDate),
-        isRecurring: 1,
-        recurrenceUnit: "WEEKLY",
+        isRecurring: 1,          // 서버가 snake_case만 받는다면 is_recurring로 변경 필요
+        recurrenceUnit: "WEEKLY",// 서버와 스펙 확인(ENUM/대소문자)
         recurrenceCount: 1,
       });
 
-      // ✅ 응답 파싱
       const data = res?.data ?? res;
       const plannerId = data?.plannerId ?? null;
+      if (!plannerId) {
+        throw new Error("No plannerId returned from addSession");
+      }
 
-      // 세션 생성 성공 후 → 초대 API 호출
-      await api.post(`/api/meeting/inviteUser/${projectId}/invite`, {
-        email: "test@example.com", // 실제 값으로 교체
-      });
+      // 2) 초대 (있는 사람만)
+      const emails = getInviteEmails();
+      if (emails.length > 0) {
+        const results = await Promise.allSettled(
+          emails.map(email =>
+            api.post(`/api/meeting/inviteUser/${projectId}/invite`, { email })
+          )
+        );
 
-      // 상태 조회 (GET)
-      const inprogress = await api.get(
-        `/api/meeting/inviteUser/${projectId}/inprogress`
-      );
-      console.log("inprogress:", inprogress);
+        const failed = results
+          .map((r, i) => (r.status === 'rejected' ? emails[i] : null))
+          .filter(Boolean);
 
+        if (failed.length) {
+          console.warn("초대 실패 이메일:", failed);
+          // 실패한 사람은 건너뛰고 진행 (필요하면 alert로 알려주기)
+          alert(`초대에 실패한 이메일: ${failed.join(', ')}`);
+        }
+      } else {
+        console.log("초대할 이메일이 없습니다. 초대 단계는 건너뜁니다.");
+      }
+
+      // 3) 상태 조회(선택)
+      try {
+        const inprogress = await api.get(`/api/meeting/inviteUser/${projectId}/inprogress`);
+        console.log("inprogress:", inprogress?.data ?? inprogress);
+      } catch (e) {
+        console.warn("inprogress 조회 실패(무시 가능):", e);
+      }
+
+      // 4) 폼 업데이트 & 다음 단계
       updateFormData({
         title,
         startDate,
         endDate,
         projectId,
         plannerId,
-        session: res,
+        session: data,
       });
-
       nextStep();
+
     } catch (e) {
+      // 서버 에러 메시지 보여주기 (가능하면)
+      const msg =
+        e?.response?.data?.message ||
+        e?.response?.data?.detail ||
+        e?.message ||
+        "Unknown error";
       console.error("Failed to create meeting session:", e);
-      alert("Failed to create meeting session. Please try again.");
+      alert(`Failed to create meeting session.\n${msg}`);
     }
   };
 
