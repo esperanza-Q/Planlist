@@ -7,8 +7,7 @@ import PlaceMap from "../StandardCreatePage/PlaceMap";
 import TravelPlannerCard from "./TravelPlannerCard";
 import { api } from "../../api/client";
 import "./TravelCreatePlanner.css";
-import MemoCard from "../ProjectView/MemoCard";
-
+import TravelMemoCard from "../ProjectViewTravel/TravelMemoCard";
 // ---------- Helpers ----------
 const toApiCategory = (c) => {
   const v = String(c || "").trim().toLowerCase();
@@ -266,7 +265,7 @@ const TravelPlannerCreate = ({ formData, updateFormData, nextStep, prevStep }) =
         <div className="map-section">
           <PlaceMap selectedPlace={hoveredPlace} places={selectedPlaces} />
         </div>
-        <MemoCard/>
+        <TravelMemoCard/>
       </div>
 
       <button className="project2-next-button" onClick={handleNext} disabled={posting}>

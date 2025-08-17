@@ -221,7 +221,11 @@ const ProjectViewTravel = () => {
           {/* 전체 trip 데이터(정규화)를 플래너 카드에 전달 */}
           <ViewPlannerCard project={trip} />
 
-          <button className="meet-button addfinish">
+          <button className="meet-button addfinish"
+          // onClick={
+
+          // }
+          >
             mark as finished
           </button>
         </div>
