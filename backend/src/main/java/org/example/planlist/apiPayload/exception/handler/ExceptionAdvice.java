@@ -5,6 +5,7 @@ import org.example.planlist.apiPayload.code.ErrorStatus;
 import org.example.planlist.apiPayload.dto.ApiResponse;
 import org.example.planlist.apiPayload.dto.ErrorReasonDTO;
 import org.example.planlist.apiPayload.exception.GeneralException;
+import org.example.planlist.apiPayload.exception.NotProjectParticipantException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -27,6 +28,7 @@ public class ExceptionAdvice extends ResponseEntityExceptionHandler {
         ErrorReasonDTO reason = e.getErrorReasonHttpStatus();
         return new ResponseEntity<>(ApiResponse.onFailure(reason.getCode(), reason.getMessage(), null), reason.getHttpStatus());
     }
+
     // @Valid 유효성 검사 실패 처리
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException e, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
@@ -34,6 +36,7 @@ public class ExceptionAdvice extends ResponseEntityExceptionHandler {
         e.getBindingResult().getFieldErrors().forEach(err -> errors.put(err.getField(), err.getDefaultMessage()));
         return new ResponseEntity<>(ApiResponse.onFailure(ErrorStatus._BAD_REQUEST.getCode(), "Validation Error", errors), HttpStatus.BAD_REQUEST);
     }
+
     // 그 외 모든 예외 처리
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleException(Exception e) {
@@ -47,4 +50,13 @@ public class ExceptionAdvice extends ResponseEntityExceptionHandler {
 //        ErrorReasonDTO reason = e.getErrorReasonHttpStatus();
 //        return new ResponseEntity<>(ApiResponse.onFailure(ErrorStatus.USERNAME_ALREADY_EXISTS.getCode(), reason.getMessage(), null), reason.getHttpStatus());
 //    }
+
+    @ExceptionHandler(NotProjectParticipantException.class)
+    public ResponseEntity<ApiResponse<Object>> handleNotProjectParticipant(NotProjectParticipantException e) {
+        // ApiResponse 포맷에 맞춰서 실패 응답 반환
+        return new ResponseEntity<>(
+                ApiResponse.onFailure("FORBIDDEN_NOT_PARTICIPANT", e.getMessage(), null),
+                HttpStatus.FORBIDDEN
+        );
+    }
 }
