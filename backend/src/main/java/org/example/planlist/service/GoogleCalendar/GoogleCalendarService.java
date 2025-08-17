@@ -18,10 +18,10 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 //@Service
 //public class GoogleCalendarService {
@@ -129,5 +129,106 @@ public class GoogleCalendarService {
         Event createdEvent = calendar.events().insert("primary", event).execute();
 
         return createdEvent.getHtmlLink();
+    }
+
+    private Calendar buildCalendar(String accessToken, String refreshToken) throws Exception {
+        GoogleCredential credential = new GoogleCredential.Builder()
+                .setTransport(GoogleNetHttpTransport.newTrustedTransport())
+                .setJsonFactory(GsonFactory.getDefaultInstance())
+                .setClientSecrets(clientId, clientSecret)
+                .build();
+        credential.setAccessToken(accessToken);
+        credential.setRefreshToken(refreshToken);
+
+        // 만료 임박 시 자동 갱신
+        if (credential.getExpiresInSeconds() != null && credential.getExpiresInSeconds() <= 60) {
+            if (!credential.refreshToken()) {
+                throw new IllegalStateException("구글 토큰 갱신 실패, 다시 로그인 필요");
+            }
+        }
+
+        return new Calendar.Builder(
+                GoogleNetHttpTransport.newTrustedTransport(),
+                GsonFactory.getDefaultInstance(),
+                credential
+        ).setApplicationName("Planner App").build();
+    }
+
+    /**
+     * [추가] 여행 프로젝트 기간을 올데이 멀티데이 1건으로 업서트.
+     * - DB 수정 없이, 구글 이벤트의 private extendedProperties에 projectId 저장
+     * - 다음 호출에서 같은 projectId로 검색 → 있으면 update, 없으면 insert
+     */
+    public String upsertTripAllDayEventByProject(
+            String accessToken,
+            String refreshToken,
+            Long projectId,
+            String projectTitle,
+            LocalDate startDateInclusive,
+            LocalDate endDateInclusive,
+            String calendarId // 일반적으로 "primary"
+    ) throws Exception {
+
+        Calendar svc = buildCalendar(accessToken, refreshToken);
+
+        // 구글 규칙: 올데이는 end가 '다음날(배타)'
+        DateTime start = new DateTime(startDateInclusive.toString());
+        DateTime endExcl = new DateTime(endDateInclusive.plusDays(1).toString());
+
+        // 기존 이벤트 존재 여부 조회 (extendedProperties로 필터)
+        Events list = svc.events().list(calendarId)
+                .setSingleEvents(true)
+                .setPrivateExtendedProperty(
+                        Collections.singletonList("projectId=" + projectId)
+                )
+                .execute();
+
+        // 이벤트 바디 구성
+        Event event = new Event()
+                .setSummary("여행: " + projectTitle)
+                .setStart(new EventDateTime().setDate(start))
+                .setEnd(new EventDateTime().setDate(endExcl));
+
+        // 필요하면 설명/위치 세팅
+        // event.setDescription(...); event.setLocation(...);
+
+        // private extended properties에 projectId 심기
+        Map<String, String> priv = new HashMap<>();
+        priv.put("projectId", String.valueOf(projectId));
+        event.setExtendedProperties(new Event.ExtendedProperties().setPrivate(priv));
+
+        if (list.getItems() != null && !list.getItems().isEmpty()) {
+            // 업데이트
+            String existingEventId = list.getItems().get(0).getId();
+            Event updated = svc.events().update(calendarId, existingEventId, event).execute();
+            return updated.getHtmlLink(); // 참고용
+        } else {
+            // 새로 생성
+            Event created = svc.events().insert(calendarId, event).execute();
+            return created.getHtmlLink();
+        }
+    }
+
+    /** [추가] projectId로 저장된 여행 이벤트 삭제 */
+    public void deleteTripEventByProject(
+            String accessToken,
+            String refreshToken,
+            Long projectId,
+            String calendarId // "primary"
+    ) throws Exception {
+        Calendar svc = buildCalendar(accessToken, refreshToken);
+        Events list = svc.events().list(calendarId)
+                .setSingleEvents(true)
+                .setPrivateExtendedProperty(
+                        Collections.singletonList("projectId=" + projectId)
+                )
+                .execute();
+
+
+        if (list.getItems() == null || list.getItems().isEmpty()) return;
+
+        for (Event e : list.getItems()) {
+            svc.events().delete(calendarId, e.getId()).execute();
+        }
     }
 }

@@ -53,4 +53,26 @@ public class CalendarController {
 
         return ResponseEntity.ok(eventLink);
     }
+
+    @PostMapping("/project/{projectId}/travel")
+    public ResponseEntity<String> upsertTrip(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long projectId
+    ) throws Exception {
+        String link = plannerCalendarService.upsertTravelPeriodEventByProject(
+                userDetails.getUser().getId(), projectId
+        );
+        return ResponseEntity.ok(link);
+    }
+
+    @DeleteMapping("/project/{projectId}/travel")
+    public ResponseEntity<Void> deleteTrip(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long projectId
+    ) throws Exception {
+        plannerCalendarService.deleteTravelPeriodEventByProject(
+                userDetails.getUser().getId(), projectId
+        );
+        return ResponseEntity.noContent().build();
+    }
 }
