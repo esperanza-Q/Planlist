@@ -96,4 +96,10 @@
   color: #555;
 }
 
+.overview-empty{
+  color: gray;
+  display: flex;
+  flex-direction: row-reverse;
+  margin-right: 30px;
+}
 
