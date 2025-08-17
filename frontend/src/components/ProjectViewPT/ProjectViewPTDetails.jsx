@@ -107,6 +107,10 @@ const normalizeSession = (raw, plannerId) => {
 
 const ProjectViewPTDetails = () => {
   const { search } = useLocation();
+  const query = useMemo(() => new URLSearchParams(search), [search]);
+
+
+const projectId = query.get("projectId");   // ✅ now you have it
   const plannerId = useMemo(
     () => new URLSearchParams(search).get("plannerId") ?? "23",
     [search]
@@ -120,6 +124,21 @@ const ProjectViewPTDetails = () => {
   const [goal, setGoal] = useState("");
   const [exercises, setExercises] = useState([]);
   const [myExercises, setMyExercises] = useState([]);
+
+const addGoogleCalendar = async () => {
+  try {
+    console.log(`projectid: ${projectId}, sessionID: ${plannerId}`);
+    const res = await api.post(
+      `/api/google-calendar/add`,
+      { params: { projectId: projectId, sessionId: plannerId } }
+    );
+    alert("Project added to Google Calendar");
+    console.log("Calendar link:", res.data); // this is the event URL
+
+  } catch (e) {
+    console.error(e);
+  }
+};
 
   useEffect(() => {
     (async () => {
@@ -157,6 +176,9 @@ const ProjectViewPTDetails = () => {
       <div className="project-view-div detail">
         <div className="layout ProjectViewDiv">
           <PTDetailInfoCard project={project || { users: [] }} />
+          <button className="meet-button addfinish"
+            onClick={addGoogleCalendar}
+          >add to google calendar</button>
           <CommentCard initialComments={comments} sessionId={plannerId} />
         </div>
 

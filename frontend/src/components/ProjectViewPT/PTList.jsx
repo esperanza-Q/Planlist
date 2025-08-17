@@ -47,7 +47,7 @@ const PTList = ({ project = {} }) => {
 
     if (finalized) {
       // Finalized → details page
-      navigate(`/project/pt/details?plannerId=${encodeURIComponent(plannerId)}`);
+      navigate(`/project/pt/details?plannerId=${encodeURIComponent(plannerId)}&projectId=${encodeURIComponent(project.id)}`);
     } else {
       // Not finalized → calendar/step3 page (edit flow)
       if (!project.id) {
