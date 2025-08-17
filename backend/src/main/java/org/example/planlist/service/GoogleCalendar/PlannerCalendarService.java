@@ -81,4 +81,39 @@ public class PlannerCalendarService {
 
         return googleCalendarService.addEvent(accessToken, refreshToken, title, startDateTime, endDateTime);
     }
+
+    public String upsertTravelPeriodEventByProject(Long userId, Long projectId) throws Exception {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
+        String accessToken = user.getGoogleAccessToken();
+        String refreshToken = user.getGoogleRefreshToken();
+        if (accessToken == null) throw new IllegalStateException("Google 토큰이 없습니다. 다시 로그인 해주세요.");
+
+        PlannerProject project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new IllegalArgumentException("프로젝트를 찾을 수 없습니다."));
+        if (project.getCategory() != PlannerProject.Category.Travel) {
+            throw new IllegalArgumentException("여행 카테고리만 저장할 수 있습니다.");
+        }
+
+        return googleCalendarService.upsertTripAllDayEventByProject(
+                accessToken, refreshToken,
+                projectId,
+                project.getProjectTitle(),
+                project.getStartDate(),
+                project.getEndDate(),
+                "primary"
+        );
+    }
+
+    public void deleteTravelPeriodEventByProject(Long userId, Long projectId) throws Exception {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
+        String accessToken = user.getGoogleAccessToken();
+        String refreshToken = user.getGoogleRefreshToken();
+        if (accessToken == null) return;
+
+        googleCalendarService.deleteTripEventByProject(
+                accessToken, refreshToken, projectId, "primary"
+        );
+    }
 }
