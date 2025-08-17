@@ -106,12 +106,19 @@ const ProjectViewTravel = () => {
           {/* Use the mapped project for your info card */}
           <TravelInfoCard project={infoProject} />
 
+
           {/* Memos as before */}
           <TravelMemoCard initialMemos={exampleMemos} />
         </div>
-
-        {/* Pass the FULL trip object to the planner view */}
+    <div className="layout">
+              {/* Pass the FULL trip object to the planner view */}
         <ViewPlannerCard project={exampleTrip} />
+            <button className="meet-button addfinish"
+            // onClick={handleFinished}
+            >mark as finished</button>
+
+    </div>
+
       </div>
     </div>
   );

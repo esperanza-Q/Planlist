@@ -86,6 +86,10 @@ const ProjectViewMeeting = () => {
       <div className="layout ProjectViewMeeting">
         <MeetingInfoCard project={sampleProject}/>
         <MeetingList project={sampleProject}/>
+
+                    <button className="meet-button addfinish"
+            // onClick={handleFinished}
+            >mark as finished</button>
       </div>
       
       <MemoCard initialMemos={exampleMemos}/>

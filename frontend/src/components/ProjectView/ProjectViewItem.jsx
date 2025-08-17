@@ -19,6 +19,11 @@ const ProjectViewItem = ({ project }) => {
     return s === "in progress" || s.includes("in progress");
   };
 
+    const statusIsFinished = () => {
+    const s = norm(project?.status).replace(/[_-]/g, " ");
+    return s === "finished" || s.includes("finished");
+  };
+
   const handleClick = () => {
     const id = project?.id ?? project?.projectId;
     if (!id) {
@@ -28,30 +33,45 @@ const ProjectViewItem = ({ project }) => {
 
     const category = norm(project?.category);
 
-    // --- PT routing: when in-progress -> /project?category=pt&step=3&projectId=...
+  
     if (category === "pt") {
-      if (statusIsInProgress()) {
-        navigate(
-          `/project?category=pt&step=3&projectId=${encodeURIComponent(id)}`
-        );
+      if (statusIsInProgress() || statusIsFinished()) {
+            navigate(`/project/pt?projectId=${encodeURIComponent(id)}`);
+
         return;
       }
-      // otherwise keep your normal PT view
-      navigate(`/project/pt?projectId=${encodeURIComponent(id)}`);
+          navigate(`/project?category=PT&step=2&projectId=${encodeURIComponent(id)}`);
+
+      return;
+    }
+    if (category === "travel") {
+      if (!statusIsInProgress()) {
+        navigate(`/project?category=Travel&step=2&projectId=${encodeURIComponent(id)}`);
+
+        return;
+      }
+      navigate(`/project/travel?projectId=${encodeURIComponent(id)}`);
+      return;
+    }
+    if (category === "meeting"){
+      if (!statusIsInProgress()){
+        navigate(`/project?category=MEETING&step=2&projectId=${encodeURIComponent(id)}`);
+        return;
+      }
+      navigate(`/project/meeting?projectId=${encodeURIComponent(id)}`);
+      return;
+    }
+    if (category === "standard"){
+      if (!statusIsInProgress()){
+                navigate(`/project?category=STANDARD&step=2&projectId=${encodeURIComponent(id)}`);
+
+        return;
+      }
+      navigate(`/project/standard?projectId=${encodeURIComponent(id)}`);
       return;
     }
 
-    // --- Other categories (unchanged) ---
-    switch (category) {
-      case "travel":
-        navigate(`/project/travel?projectId=${encodeURIComponent(id)}`);
-        break;
-      case "meeting":
-        navigate(`/project/meeting?projectId=${encodeURIComponent(id)}`);
-        break;
-      default:
-        navigate(`/project/standard?projectId=${encodeURIComponent(id)}`);
-    }
+
   };
 
   return (
@@ -84,7 +104,12 @@ const ProjectViewItem = ({ project }) => {
       </div>
 
       <div className="category">{project.category}</div>
-      <div className="dates">{project.startDate} ~ {project.endDate}</div>
+      <div className="dates">
+  {project?.startDate
+    ? (project?.endDate ? `${project.startDate} ~ ${project.endDate}` : project.startDate)
+    : (project?.endDate || "date not selected")}
+</div>
+
     </div>
   );
 };

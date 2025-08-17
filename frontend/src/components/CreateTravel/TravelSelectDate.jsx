@@ -1,10 +1,22 @@
-// TravelSelectDate.jsx — fetch current & next month for the visible window, cache by YYYY-MM
-import React, { useEffect, useMemo, useRef, useState } from "react";
+// src/components/CreateTravel/TravelSelectDate.jsx
+// Fetch current & next month by startDate/endDate, cache by range,
+// highlight ONLY dates common across all invitees,
+// allow selecting ONLY those dates (full span must be recommended),
+// and POST the selection on Next.
+
+import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import calendar_icon from "../../assets/calendar_icon.svg";
 import {
-  startOfMonth, endOfMonth, eachDayOfInterval, addMonths, format,
-  isSameDay, isAfter, isBefore, parseISO,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  addMonths,
+  format,
+  isSameDay,
+  isAfter,
+  isBefore,
+  parseISO,
 } from "date-fns";
 import "./TwoMonthCalendar.css";
 import { ReactComponent as ProjectNextIcon } from "../../assets/Project_next_button.svg";
@@ -15,13 +27,6 @@ import rightArrow from "../../assets/arrow_down_right.svg";
 import { api } from "../../api/client";
 
 // ---- helpers ----
-const ymKey = (d) => {
-  const y = d.getFullYear();
-  const m = d.getMonth() + 1;          // 1..12
-  return `${y}-${String(m).padStart(2, "0")}`;
-};
-const getYearMonth = (d) => ({ year: d.getFullYear(), month: d.getMonth() + 1 });
-
 const groupConsecutiveDates = (isoDates = []) => {
   const sorted = [...isoDates]
     .filter(Boolean)
@@ -44,12 +49,36 @@ const groupConsecutiveDates = (isoDates = []) => {
   return ranges;
 };
 
-const unionRanges = (a = [], b = []) => [...a, ...b];
+/** Intersection of invitees' commonDates -> ["YYYY-MM-DD", ...] */
+const extractCommonDatesFromAPI = (res) => {
+  if (!Array.isArray(res) || res.length === 0) return [];
+
+  const perInviteeSets = res
+    // If you only want ACCEPTED participants, uncomment:
+    // .filter((inv) => inv?.response === "ACCEPTED")
+    .map((invitee) => {
+      const dates = (invitee?.commonDates || [])
+        .filter((d) => d?.date && (d?.allDay === true || d?.allDay == null))
+        .map((d) => d.date);
+      return new Set(dates);
+    })
+    .filter((s) => s.size > 0);
+
+  if (perInviteeSets.length === 0) return [];
+
+  let intersection = new Set(perInviteeSets[0]);
+  for (let i = 1; i < perInviteeSets.length; i++) {
+    const next = perInviteeSets[i];
+    intersection = new Set([...intersection].filter((d) => next.has(d)));
+    if (intersection.size === 0) break;
+  }
+
+  return [...intersection].sort((a, b) => a.localeCompare(b));
+};
 
 const TravelSelectDate = ({
   formData,
   updateFormData,
-  recommendedDates = [],
   nextStep,
   prevStep,
 }) => {
@@ -67,110 +96,109 @@ const TravelSelectDate = ({
   const [startDate, setStartDate] = useState(formData.startDate || null);
   const [endDate, setEndDate] = useState(formData.endDate || null);
 
-  // which two months to show (offset 0 and 1 from anchor)
   const [currentMonthOffset, setCurrentMonthOffset] = useState(0);
+  const anchorRef = useRef(new Date()); // fixed anchor "now"
 
-  // Anchor: "now" (so Aug 2025 shows Aug+Sep 2025 initially)
-  const anchorRef = useRef(new Date());
-
-  // month cache: { 'YYYY-MM': string[] /*commonDates*/ }
-  const [monthCache, setMonthCache] = useState(() => ({}));
-  const inFlightRef = useRef(new Set()); // track 'YYYY-MM' currently fetching
+  // cache: { 'YYYY-MM-DD_YYYY-MM-DD': string[] /*commonDates*/ }
+  const [rangeCache, setRangeCache] = useState(() => ({}));
+  const inFlightRef = useRef(new Set());
 
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState(null);
+  const [saving, setSaving] = useState(false);
 
-  // visible months keys (e.g., ['2025-08','2025-09'])
-  const visibleKeys = useMemo(() => {
-    const cur = addMonths(anchorRef.current, currentMonthOffset);
-    const next = addMonths(anchorRef.current, currentMonthOffset + 1);
-    return [ymKey(cur), ymKey(next)];
+  // visible 2-month range (start of month for offset, end of next month)
+  const visibleRange = useMemo(() => {
+    const start = startOfMonth(addMonths(anchorRef.current, currentMonthOffset));
+    const end = endOfMonth(addMonths(anchorRef.current, currentMonthOffset + 1));
+    const startISO = format(start, "yyyy-MM-dd");
+    const endISO = format(end, "yyyy-MM-dd");
+    return { start, end, startISO, endISO, key: `${startISO}_${endISO}` };
   }, [currentMonthOffset]);
 
-  // fetch helper (idempotent via inFlightRef + cache)
-  const fetchMonth = async (d) => {
-    const key = ymKey(d);
-    if (monthCache[key] !== undefined) return; // already cached
-    if (inFlightRef.current.has(key)) return;  // already fetching
+  // fetch helper (idempotent)
+  const fetchRange = async (startISO, endISO, key) => {
+    if (rangeCache[key] !== undefined) return; // cached
+    if (inFlightRef.current.has(key)) return;  // fetching
 
     inFlightRef.current.add(key);
     try {
-      const { year, month } = getYearMonth(d);
-      // GET /Travel/{projectId}/SharedCalendar?year=YYYY&month=M
-      const res = await api.getSession(`/Travel/${projectId}/SharedCalendar`, {
-        params: { year, month },
-      });
-
-      // client.getSession: 204 => returns null; 200 => parsed body
-      const commonDates = Array.isArray(res?.commonDates) ? res.commonDates : [];
-      setMonthCache((prev) => {
-        if (prev[key] !== undefined) return prev; // avoid re-set loops
-        return { ...prev, [key]: commonDates };
-      });
+      const res = await api.getSession(
+        `/api/travel/project/${projectId}/travelSharedCalendar`,
+        { params: { startDate: startISO, endDate: endISO } }
+      );
+      const commonDates = extractCommonDatesFromAPI(res);
+      setRangeCache((prev) =>
+        prev[key] !== undefined ? prev : { ...prev, [key]: commonDates }
+      );
     } catch (e) {
-      // On error, cache empty to avoid re-spam; surface lightweight error
-      setMonthCache((prev) => (prev[key] !== undefined ? prev : { ...prev, [key]: [] }));
+      setRangeCache((prev) =>
+        prev[key] !== undefined ? prev : { ...prev, [key]: [] }
+      );
       setErr("Failed to load shared calendar.");
     } finally {
       inFlightRef.current.delete(key);
     }
   };
 
-  // fetch for current & next month when projectId or offset changes
   useEffect(() => {
     if (!projectId) return;
     let active = true;
 
-    const run = async () => {
+    (async () => {
       setErr(null);
-      // Decide if we need to show loading spinner (only if something missing)
-      const missing = visibleKeys.some((k) => monthCache[k] === undefined);
-      if (missing) setLoading(true);
-
+      if (rangeCache[visibleRange.key] === undefined) setLoading(true);
       try {
-        const [curKey, nextKey] = visibleKeys;
-        const curDate = parseISO(`${curKey}-01`);
-        const nextDate = parseISO(`${nextKey}-01`);
-        await Promise.all([fetchMonth(curDate), fetchMonth(nextDate)]);
+        await fetchRange(visibleRange.startISO, visibleRange.endISO, visibleRange.key);
       } finally {
         if (active) setLoading(false);
       }
-    };
+    })();
 
-    run();
     return () => { active = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectId, currentMonthOffset, /* visibleKeys is derived */]);
+  }, [projectId, visibleRange.key]);
 
-  // build the ranges for ONLY the two visible months
-  const visibleCommonDates = useMemo(() => {
-    const all = visibleKeys.flatMap((k) => monthCache[k] || []);
-    return all;
-  }, [monthCache, visibleKeys]);
-
-  const serverRanges = useMemo(
+  // ONLY server's common dates for the visible window
+  const visibleCommonDates = rangeCache[visibleRange.key] || [];
+  const allowedDatesSet = useMemo(
+    () => new Set(visibleCommonDates), [visibleCommonDates]
+  );
+  const recommendedRangesFromServer = useMemo(
     () => groupConsecutiveDates(visibleCommonDates),
     [visibleCommonDates]
   );
 
-  const allRecommended = useMemo(
-    () => unionRanges(serverRanges, recommendedDates || []),
-    [serverRanges, recommendedDates]
-  );
-
-  const handleNext = () => {
-    updateFormData({ title, startDate, endDate, projectId });
-    nextStep();
-  };
+  // span must be fully allowed (every day between start and end is common)
+  const isSpanFullyRecommended = useCallback((a, b) => {
+    if (!a || !b) return false;
+    const start = isBefore(a, b) ? a : b;
+    const end   = isAfter(a, b) ? a : b;
+    const days = eachDayOfInterval({ start, end });
+    for (const d of days) {
+      const key = format(d, "yyyy-MM-dd");
+      if (!allowedDatesSet.has(key)) return false;
+    }
+    return true;
+  }, [allowedDatesSet]);
 
   const handleClick = (date) => {
+    const iso = format(date, "yyyy-MM-dd");
+    // ignore clicks on non-recommended dates
+    if (!allowedDatesSet.has(iso)) return;
+
     if (!startDate) {
       setStartDate(date);
       setEndDate(null);
     } else if (!endDate) {
-      if (isSameDay(date, startDate)) setEndDate(date);
-      else if (isBefore(date, startDate)) { setStartDate(date); setEndDate(null); }
-      else setEndDate(date);
+      if (isSpanFullyRecommended(startDate, date)) {
+        if (isSameDay(date, startDate)) setEndDate(date);
+        else if (isBefore(date, startDate)) { setStartDate(date); setEndDate(null); }
+        else setEndDate(date);
+      } else {
+        setStartDate(date);
+        setEndDate(null);
+      }
     } else {
       setStartDate(date);
       setEndDate(null);
@@ -178,20 +206,89 @@ const TravelSelectDate = ({
   };
 
   const getDateClass = (date) => {
+    const iso = format(date, "yyyy-MM-dd");
+    const isAllowed = allowedDatesSet.has(iso);
+
+    // recommended styling
     let recommendedClass = "";
-    for (let range of allRecommended) {
-      if (isSameDay(date, range.start) && isSameDay(date, range.end)) { recommendedClass = "recommended-single"; break; }
-      else if (isSameDay(date, range.start)) { recommendedClass = "recommended-start"; break; }
-      else if (isSameDay(date, range.end)) { recommendedClass = "recommended-end"; break; }
-      else if (isAfter(date, range.start) && isBefore(date, range.end)) { recommendedClass = "recommended-in-range"; break; }
+    if (isAllowed) {
+      for (let range of recommendedRangesFromServer) {
+        if (isSameDay(date, range.start) && isSameDay(date, range.end)) {
+          recommendedClass = "recommended-single"; break;
+        } else if (isSameDay(date, range.start)) {
+          recommendedClass = "recommended-start"; break;
+        } else if (isSameDay(date, range.end)) {
+          recommendedClass = "recommended-end"; break;
+        } else if (isAfter(date, range.start) && isBefore(date, range.end)) {
+          recommendedClass = "recommended-in-range"; break;
+        }
+      }
     }
-    if (startDate && !endDate && isSameDay(date, startDate)) return "start-only " + recommendedClass;
-    if (isSameDay(date, startDate) && isSameDay(date, endDate)) return "start-only " + recommendedClass;
-    if (startDate && isSameDay(date, startDate)) return "start " + recommendedClass;
-    if (endDate && isSameDay(date, endDate)) return "end " + recommendedClass;
-    if (startDate && endDate && isAfter(date, startDate) && isBefore(date, endDate)) return "in-range " + recommendedClass;
-    return recommendedClass;
+
+    // selection styling (only on allowed days)
+    let selectionClass = "";
+    if (isAllowed) {
+      if (startDate && !endDate && isSameDay(date, startDate)) {
+        selectionClass = "start-only";
+      } else if (startDate && endDate) {
+        if (isSameDay(date, startDate) && isSameDay(date, endDate)) {
+          selectionClass = "start-only";
+        } else if (isSameDay(date, startDate)) {
+          selectionClass = "start";
+        } else if (isSameDay(date, endDate)) {
+          selectionClass = "end";
+        } else if (isAfter(date, startDate) && isBefore(date, endDate)) {
+          if (isSpanFullyRecommended(startDate, endDate)) {
+            selectionClass = "in-range";
+          }
+        }
+      }
+    }
+
+    const disabledClass = isAllowed ? "" : "disabled";
+    return [recommendedClass, selectionClass, disabledClass].filter(Boolean).join(" ");
   };
+
+  // ---- Next (POST confirm) ----
+  const canSubmit = useMemo(() => {
+    if (!projectId || !startDate) return false;
+    const effectiveEnd = endDate || startDate; // allow single-day selection
+    return isSpanFullyRecommended(startDate, effectiveEnd);
+  }, [projectId, startDate, endDate, isSpanFullyRecommended]);
+
+const handleNext = async () => {
+  if (!canSubmit) {
+    alert("Please select a date (or range) entirely within the recommended dates.");
+    return;
+  }
+  const startISO = format(startDate, "yyyy-MM-dd");
+  const endISO = format(endDate || startDate, "yyyy-MM-dd");
+
+  setSaving(true);
+  try {
+    // NOTE: append query params directly to the URL for POST
+    const url = `/api/travel/project/${encodeURIComponent(projectId)}/travelSelectDate` +
+                `?startDate=${encodeURIComponent(startISO)}&endDate=${encodeURIComponent(endISO)}`;
+
+    const res = await api.postSession(url); // body X, query only
+
+    // keep local state + advance
+    updateFormData({
+      title,
+      startDate,
+      endDate: endDate || startDate,
+      projectId,
+      confirmResponse: res,
+    });
+    nextStep();
+  } catch (e) {
+    console.error("Confirm travel dates failed:", e);
+    alert(e?.message || "여행 날짜 확정에 실패했습니다.");
+  } finally {
+    setSaving(false);
+  }
+};
+
 
   return (
     <div>
@@ -207,6 +304,7 @@ const TravelSelectDate = ({
               className="navigate-left"
               onClick={() => setCurrentMonthOffset((p) => p - 1)}
               aria-label="previous month"
+              disabled={loading || saving}
             >
               <img src={leftArrow} alt="prev" />
             </button>
@@ -214,6 +312,7 @@ const TravelSelectDate = ({
               className="navigate-right"
               onClick={() => setCurrentMonthOffset((p) => p + 1)}
               aria-label="next month"
+              disabled={loading || saving}
             >
               <img src={rightArrow} alt="next" />
             </button>
@@ -237,16 +336,24 @@ const TravelSelectDate = ({
                       .fill("")
                       .map((_, i) => (<div className="calendar-empty" key={`pad-${offset}-${i}`} />))}
 
-                    {days.map((date) => (
-                      <div className="date-wrapper" key={date.toISOString()}>
-                        <div
-                          onClick={() => handleClick(date)}
-                          className={`calendar-date ${getDateClass(date)}`}
-                        >
-                          {format(date, "d")}
+                    {days.map((date) => {
+                      const iso = format(date, "yyyy-MM-dd");
+                      const isAllowed = allowedDatesSet.has(iso);
+                      return (
+                        <div className="date-wrapper" key={date.toISOString()}>
+                          <div
+                            onClick={() => isAllowed && !saving && handleClick(date)}
+                            className={`calendar-date ${getDateClass(date)}`}
+                            title={isAllowed ? "" : "Not a common date"}
+                            role="button"
+                            aria-disabled={!isAllowed || saving}
+                            style={{ cursor: isAllowed && !saving ? "pointer" : "not-allowed" }}
+                          >
+                            {format(date, "d")}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               );
@@ -266,7 +373,7 @@ const TravelSelectDate = ({
             <div>
               <span>end: </span>
               <span className="calendar-selected-date">
-                {endDate ? format(endDate, "MM/dd") : "--"}
+                {endDate ? format(endDate, "MM/dd") : startDate ? format(startDate, "MM/dd") : "--"}
               </span>
             </div>
             {loading && <span style={{ marginLeft: 8, fontSize: 12, opacity: 0.7 }}>loading…</span>}
@@ -275,11 +382,17 @@ const TravelSelectDate = ({
         </div>
       </div>
 
-      <button className="project-next-button" onClick={handleNext}>
-        <ProjectNextIcon />
+      <button
+        className="project-next-button"
+        onClick={handleNext}
+        disabled={!canSubmit || saving}
+        title={!canSubmit ? "Select a recommended date or range" : ""}
+      >
+        {saving ? "Saving…" : <ProjectNextIcon />}
       </button>
     </div>
   );
 };
 
 export default TravelSelectDate;
+

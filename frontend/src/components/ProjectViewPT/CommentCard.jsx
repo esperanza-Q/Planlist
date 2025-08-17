@@ -60,6 +60,7 @@ const CommentCard = ({ initialComments, sessionId }) => {
       if (typeof result !== "string") {
         // no-op; still fine
       }
+      window.location.reload();
     } catch (e) {
       // rollback optimistic on error
       setComments((prev) => prev.filter((c) => c.id !== tempId));

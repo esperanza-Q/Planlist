@@ -96,6 +96,7 @@ const TravelPlannerCard = ({ formData, setPlacesForDates, setHoveredPlace }) => 
               <li
                 className={`entry ${entry.type}`}
                 onMouseEnter={() => isPlace && setHoveredPlace(entry.data) 
+
                 }
                 onMouseLeave={() => isPlace && setHoveredPlace(null)}
               >
