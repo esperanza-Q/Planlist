@@ -21,6 +21,8 @@ public class WishlistController {
 
     /** 카테고리별 wishlist 항목 추가 (URL: /api/travel/{projectId}/wishlist/{category}) */
     @PostMapping("/{category}")
+
+
     public ResponseEntity<WishlistResponseDTO> addWishlistItem(@PathVariable Long projectId,
                                                                @PathVariable String category,
                                                                @Valid @RequestBody WishlistRequestDTO requestDTO) {
