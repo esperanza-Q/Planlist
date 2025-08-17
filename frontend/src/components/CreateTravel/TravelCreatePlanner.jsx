@@ -94,88 +94,86 @@ const TravelPlannerCreate = ({ formData, updateFormData, nextStep, prevStep }) =
   //   teamMemo: string,
   //   notes: [{ noteId?, type, title, content }, ...]   // <-- added (non-breaking; server can ignore if unused)
   // }
-  const buildPayload = () => {
-    const items = (scheduledPlaces || []).map((p) => {
-      const dateISO = toISODate(p.date, dateLabelToIso);
+// inside src/components/CreateTravel/TravelCreatePlanner.jsx
 
-      // normalize transport rows
-      const transportsSrc = Array.isArray(p.transportations)
-        ? p.transportations
-        : Array.isArray(p.moves)
-          ? p.moves
-          : [];
+const buildPayload = () => {
+  const items = (scheduledPlaces || []).map((p) => {
+    const dateISO = toISODate(p.date, dateLabelToIso); // "yyyy-MM-dd"
 
-      const transport = transportsSrc.map((t) => {
-        const kind =
-          t.transportation ??
-          t.kind ??
-          t.type ??
-          toApiTransportation(t.key ?? t.mode ?? t.name);
+    // normalize transport rows gathered from TravelPlannerCard
+    const transportsSrc = Array.isArray(p.transportations)
+      ? p.transportations
+      : Array.isArray(p.moves)
+        ? p.moves
+        : [];
 
-        const durationMin =
-          t.durationMin ?? t.duration_min ?? t.minutes ?? t.duration ?? 0;
+    const transportations = transportsSrc.map((t) => {
+      const kind =
+        t.transportation ??
+        t.kind ??
+        t.type ??
+        toApiTransportation(t.key ?? t.mode ?? t.name);
 
-        // travelDate: ISO "yyyy-MM-ddTHH:mm:ss"
-        let travelDate = t.travelDate ?? t.dateTime ?? t.when ?? null;
-        if (!travelDate) {
-          const tt = (t.time || "").trim(); // "HH:mm"
-          if (dateISO && tt) travelDate = `${dateISO}T${tt}:00`;
-        }
+      const durationMin =
+        t.durationMin ?? t.duration_min ?? t.minutes ?? t.duration ?? 0;
 
-        return {
-          transportation: toApiTransportation(kind),
-          durationMin: asNumber(durationMin, 0),
-          travelDate: travelDate || null,
-        };
-      });
-
-      // visitTime ISO
-      let visitTime = (p.time || p.visitTime || "").trim(); // "HH:mm"
-      if (dateISO && visitTime) {
-        visitTime = `${dateISO}T${visitTime}:00`;
-      } else {
-        visitTime = "";
-      }
-
-      const latitude = p.latitude ?? p.lat ?? p.y ?? null;
-      const longitude = p.longitude ?? p.lng ?? p.lon ?? p.x ?? null;
+      // DTO requires LocalDate → send just the date (yyyy-MM-dd)
+      const travelDate = dateISO || null;
 
       return {
-        inviteeId: p.inviteeId ?? formData.inviteeId ?? null,
-        date: dateISO,
-        category: toApiCategory(p.category),
-        wishlistId: p.wishlistId ?? p.id ?? null,
-        memo: p.memo ?? "",
-        cost: asNumber(p.cost, 0),
-        address: p.address ?? "",
-        latitude: latitude != null ? Number(latitude) : null,
-        longitude: longitude != null ? Number(longitude) : null,
-        visitTime,
-        transport,
+        transportation: toApiTransportation(kind),
+        durationMin: asNumber(durationMin, 0),
+        travelDate, // LocalDate only
       };
     });
 
-    // validations
-    for (const it of items) {
-      if (!it.date) throw new Error("날짜가 비었습니다.");
-      if (!it.category) throw new Error("카테고리가 비었습니다.");
-      if (!it.visitTime) throw new Error("시간(visitTime)이 비었습니다.");
+    // visitTime ISO (this one *is* LocalDateTime on server)
+    let visitTime = (p.time || p.visitTime || "").trim(); // "HH:mm"
+    if (dateISO && visitTime) {
+      visitTime = `${dateISO}T${visitTime}:00`;
+    } else {
+      visitTime = "";
     }
 
-    // include memos (non-breaking; server can ignore safely)
-    const notes = (memos || []).map((m) => ({
-      noteId: m.noteId ?? null,
-      type: m.type,            // 'personal' | 'group'
-      title: m.title ?? m.project ?? "",
-      content: m.content ?? "",
-    }));
+    const latitude = p.latitude ?? p.lat ?? p.y ?? null;
+    const longitude = p.longitude ?? p.lng ?? p.lon ?? p.x ?? null;
 
     return {
-      items,
-      teamMemo: formData.teamMemo || "",
-      notes, // <-- added
+      inviteeId: p.inviteeId ?? formData.inviteeId ?? null,
+      date: dateISO,
+      category: toApiCategory(p.category),
+      wishlistId: p.wishlistId ?? p.id ?? null,
+      memo: p.memo ?? "",
+      cost: asNumber(p.cost, 0),
+      address: p.address ?? "",
+      latitude: latitude != null ? Number(latitude) : null,
+      longitude: longitude != null ? Number(longitude) : null,
+      visitTime,
+      transportations, // ✅ correct key name
     };
+  });
+
+  // validations
+  for (const it of items) {
+    if (!it.date) throw new Error("날짜가 비었습니다.");
+    if (!it.category) throw new Error("카테고리가 비었습니다.");
+    if (!it.visitTime) throw new Error("시간(visitTime)이 비었습니다.");
+  }
+
+  // include memos (server may ignore)
+  const notes = (memos || []).map((m) => ({
+    noteId: m.noteId ?? null,
+    type: m.type,
+    title: m.title ?? m.project ?? "",
+    content: m.content ?? "",
+  }));
+
+  return {
+    items,
+    teamMemo: formData.teamMemo || "",
+    notes,
   };
+};
 
   const handleNext = async () => {
     if (!formData.projectId) {
@@ -253,7 +251,7 @@ const TravelPlannerCreate = ({ formData, updateFormData, nextStep, prevStep }) =
   return (
     <div className="planner-home-container">
       <div className="planner-section-div">
-        <div className="choose-title">
+        <div className="choose-title choose-title-plan">
           <button onClick={prevStep} className="prev-button"><BackIcon /></button>
           <h2>{formData.title}</h2>
         </div>

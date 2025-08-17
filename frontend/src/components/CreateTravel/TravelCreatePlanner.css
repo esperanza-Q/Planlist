@@ -10,10 +10,16 @@
 .planner-home-container{
   display: flex;
   flex-direction: row;  
- 
+  margin-left: 320px;
   width: 1920px;
   height: 1080px;
   gap:60px;
+}
+
+.choose-title-plan{
+  display:flex;
+  flex-direction: row;
+  margin-bottom: 10px;
 }
 
 .planner-home-container-div{
