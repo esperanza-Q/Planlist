@@ -56,4 +56,17 @@ public interface ProjectParticipantRepository extends JpaRepository<ProjectParti
 //    int countByUserAndProject_Status(User user, PlannerProject.Status.INPROGRESS);
 
 //    int countByUserAndProject_Status(User user, PlannerProject.Status.FINISHED);
+
+    /** 로그인 사용자(유저ID)가 해당 프로젝트의 참가자인지 존재 여부만 빠르게 확인 */
+    boolean existsByProject_ProjectIdAndUserId(Long projectId, Long userId);
+
+    /** (선택) 프로젝트 생성자를 참가자로도 인정하려면 사용
+     *  PlannerProject 엔티티의 PK 필드명이 'id'라고 가정 (현재 레포 JPQL과 일치)
+     */
+    @Query("""
+       select (case when p.creator.id = :userId then true else false end)
+       from PlannerProject p
+       where p.id = :projectId
+       """)
+    boolean isProjectCreator(@Param("projectId") Long projectId, @Param("userId") Long userId);
 }

@@ -1,17 +1,24 @@
-package org.example.planlist.service;
+package org.example.planlist.service.Travel;
 
-import jakarta.persistence.*;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import org.example.planlist.apiPayload.exception.NotProjectParticipantException;
 import org.example.planlist.dto.DatePlannerDTO.DatePlannerRequestDTO;
 import org.example.planlist.dto.DatePlannerDTO.DatePlannerResponseDTO;
 import org.example.planlist.entity.DatePlanner;
 import org.example.planlist.entity.PlannerProject;
 import org.example.planlist.entity.ProjectParticipant;
+import org.example.planlist.entity.User;
 import org.example.planlist.entity.Wishlist;
 import org.example.planlist.repository.DatePlannerRepository;
 import org.example.planlist.repository.PlannerProjectRepository;
 import org.example.planlist.repository.ProjectParticipantRepository;
+import org.example.planlist.repository.UserRepository;
 import org.example.planlist.repository.WishlistRepository;
+import org.example.planlist.security.CustomOAuth2User;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -20,19 +27,23 @@ import java.util.List;
 
 @Service
 public class DatePlannerService {
+
     private final DatePlannerRepository datePlannerRepository;
     private final PlannerProjectRepository plannerProjectRepository;
     private final ProjectParticipantRepository projectParticipantRepository;
     private final WishlistRepository wishlistRepository;
+    private final UserRepository userRepository;  // ★ 추가
 
     public DatePlannerService(DatePlannerRepository datePlannerRepository,
                               PlannerProjectRepository plannerProjectRepository,
                               ProjectParticipantRepository projectParticipantRepository,
-                              WishlistRepository wishlistRepository) {
+                              WishlistRepository wishlistRepository,
+                              UserRepository userRepository) {
         this.datePlannerRepository = datePlannerRepository;
         this.plannerProjectRepository = plannerProjectRepository;
         this.projectParticipantRepository = projectParticipantRepository;
         this.wishlistRepository = wishlistRepository;
+        this.userRepository = userRepository;  // ★ 추가
     }
 
     @Transactional
@@ -41,10 +52,13 @@ public class DatePlannerService {
         PlannerProject project = plannerProjectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 프로젝트입니다."));
 
-        // 2) 참여자 체크
-        ProjectParticipant participant = projectParticipantRepository
-                .findByIdAndProject_ProjectId(dto.getInviteeId(), projectId)
-                .orElseThrow(() -> new EntityNotFoundException("프로젝트 참여자가 아닙니다."));
+        // 2) 로그인 사용자 → 참가자 검증 (inviteeId 사용 안 함)
+        Long userId = getCurrentUserIdOrThrow();
+        boolean isParticipant = projectParticipantRepository.existsByProject_ProjectIdAndUserId(projectId, userId);
+        if (!isParticipant) throw new NotProjectParticipantException();
+
+        ProjectParticipant participant =
+                projectParticipantRepository.findByProject_ProjectIdAndUserId(projectId, userId);
 
         // 3) 날짜 체크
         if (dto.getDate() == null) {
@@ -78,7 +92,7 @@ public class DatePlannerService {
             throw new IllegalStateException("이미 존재하는 항목입니다.");
         }
 
-        // 7) 저장
+        // 7) 저장 (participant = 로그인 사용자)
         DatePlanner datePlanner = DatePlanner.builder()
                 .date(dto.getDate())
                 .category(category)
@@ -92,7 +106,6 @@ public class DatePlannerService {
                 .participant(participant)
                 .wishlist(wishlist) // null 가능
                 .build();
-
         datePlannerRepository.save(datePlanner);
     }
 
@@ -102,7 +115,13 @@ public class DatePlannerService {
         plannerProjectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 프로젝트입니다."));
 
-        // 2) 전체 조회 (date가 null이면 모든 날짜 조회)
+        // 2) 로그인 사용자 → 참가자 검증
+        Long userId = getCurrentUserIdOrThrow();
+        if (!projectParticipantRepository.existsByProject_ProjectIdAndUserId(projectId, userId)) {
+            throw new NotProjectParticipantException();
+        }
+
+        // 3) 조회
         if (date == null) {
             return datePlannerRepository.findByProject_ProjectId(projectId)
                     .stream()
@@ -124,7 +143,6 @@ public class DatePlannerService {
                     .toList();
         }
 
-        // 3) 특정 날짜 조회
         return datePlannerRepository.findByProject_ProjectIdAndDate(projectId, date)
                 .stream()
                 .map(dp -> DatePlannerResponseDTO.builder()
@@ -145,12 +163,51 @@ public class DatePlannerService {
                 .toList();
     }
 
-
     @Transactional
     public void deleteItem(Long calendarId) {
-        if (!datePlannerRepository.existsById(calendarId)) {
-            throw new EntityNotFoundException("해당 날짜에 삭제할 항목이 없습니다.");
+        DatePlanner target = datePlannerRepository.findById(calendarId)
+                .orElseThrow(() -> new EntityNotFoundException("해당 날짜에 삭제할 항목이 없습니다."));
+
+        // ★ 삭제 권한: 로그인 사용자가 해당 프로젝트 참가자인지 확인
+        Long userId = getCurrentUserIdOrThrow();
+        Long projectId = target.getProject().getProjectId();
+        if (!projectParticipantRepository.existsByProject_ProjectIdAndUserId(projectId, userId)) {
+            throw new NotProjectParticipantException();
         }
-        datePlannerRepository.deleteById(calendarId);
+
+        datePlannerRepository.delete(target);
+    }
+
+    /* ==== 로그인 사용자 PK(userId) 추출: OAuth2 / JWT / String principal 대응 ==== */
+    private Long getCurrentUserIdOrThrow() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getPrincipal() == null) {
+            throw new IllegalStateException("인증 정보가 없습니다.");
+        }
+        Object principal = auth.getPrincipal();
+
+        if (principal instanceof CustomOAuth2User o) {
+            User u = o.getUser();
+            if (u == null || u.getId() == null) {
+                throw new IllegalStateException("OAuth2 사용자 정보를 확인할 수 없습니다.");
+            }
+            return u.getId();
+        }
+
+        if (principal instanceof UserDetails ud) {
+            String email = ud.getUsername();
+            return userRepository.findByEmail(email)
+                    .map(User::getId)
+                    .orElseThrow(() -> new IllegalStateException("이메일로 사용자를 찾을 수 없습니다: " + email));
+        }
+
+        if (principal instanceof String s && !"anonymousUser".equals(s)) {
+            String email = s;
+            return userRepository.findByEmail(email)
+                    .map(User::getId)
+                    .orElseThrow(() -> new IllegalStateException("이메일로 사용자를 찾을 수 없습니다: " + email));
+        }
+
+        throw new IllegalStateException("지원하지 않는 Principal 타입: " + principal.getClass());
     }
 }

@@ -14,7 +14,7 @@ public class DatePlannerBatchController {
 
     private final DatePlannerBatchService datePlannerBatchService;
 
-    @PostMapping("/batch")
+    @PostMapping("/save")
     public ResponseEntity<DatePlannerBatchSaveResultDTO> saveBatch(
             @PathVariable Long projectId,
             @RequestBody DatePlannerBatchRequestDTO batchRequest) {

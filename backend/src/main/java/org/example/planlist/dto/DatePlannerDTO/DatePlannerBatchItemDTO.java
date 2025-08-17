@@ -10,6 +10,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+// 프론트엔드에서 보내는 여러 항목을 한 번에 담아서 보내는 배치 아이템 DTO
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -29,14 +31,9 @@ public class DatePlannerBatchItemDTO {
     private Float longitude;
     private LocalDateTime visitTime;
 
-    // createdAt은 서버에서 @PrePersist로 자동 설정되므로 요청 DTO에는 불필요
-    // private LocalDateTime createdAt;
-
-    // projectId는 이미 @PathVariable로 받는 경우가 많아서 request body에는 보통 불필요
-    // private Long projectId;
-
     private Long wishlistId;
-    private Long inviteeId; // participantId로 명확히 변경 가능
+
+    // inviteeId 대신 현재 로그인한 유저의 토큰을 이용해 검증할 예정이라 지웠습니다!
 
     private List<MoveBetweenPlacesRequestDTO> transportations;
 
