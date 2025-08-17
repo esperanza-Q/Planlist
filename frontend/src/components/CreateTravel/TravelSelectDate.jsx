@@ -3,6 +3,7 @@
 // highlight ONLY dates common across all invitees,
 // allow selecting ONLY those dates (full span must be recommended),
 // and POST the selection on Next.
+// Now with polling + focus/visibility refresh.
 
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useLocation } from "react-router-dom";
@@ -27,6 +28,16 @@ import rightArrow from "../../assets/arrow_down_right.svg";
 import { api } from "../../api/client";
 
 // ---- helpers ----
+const POLL_MS = 8000;
+
+const shallowEqualArray = (a, b) => {
+  if (a === b) return true;
+  if (!Array.isArray(a) || !Array.isArray(b)) return false;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+  return true;
+};
+
 const groupConsecutiveDates = (isoDates = []) => {
   const sorted = [...isoDates]
     .filter(Boolean)
@@ -104,6 +115,7 @@ const TravelSelectDate = ({
   const inFlightRef = useRef(new Set());
 
   const [loading, setLoading] = useState(false);
+  const [syncing, setSyncing] = useState(false); // lightweight spinner text during polling
   const [err, setErr] = useState(null);
   const [saving, setSaving] = useState(false);
 
@@ -116,31 +128,41 @@ const TravelSelectDate = ({
     return { start, end, startISO, endISO, key: `${startISO}_${endISO}` };
   }, [currentMonthOffset]);
 
-  // fetch helper (idempotent)
-  const fetchRange = async (startISO, endISO, key) => {
-    if (rangeCache[key] !== undefined) return; // cached
-    if (inFlightRef.current.has(key)) return;  // fetching
+  // fetch helper (idempotent; can force)
+  const fetchRange = useCallback(
+    async (startISO, endISO, key, { force = false } = {}) => {
+      if (!projectId) return;
+      if (!force && rangeCache[key] !== undefined) return; // cached and not forced
+      if (inFlightRef.current.has(key)) return; // already fetching
 
-    inFlightRef.current.add(key);
-    try {
-      const res = await api.getSession(
-        `/api/travel/project/${projectId}/travelSharedCalendar`,
-        { params: { startDate: startISO, endDate: endISO } }
-      );
-      const commonDates = extractCommonDatesFromAPI(res);
-      setRangeCache((prev) =>
-        prev[key] !== undefined ? prev : { ...prev, [key]: commonDates }
-      );
-    } catch (e) {
-      setRangeCache((prev) =>
-        prev[key] !== undefined ? prev : { ...prev, [key]: [] }
-      );
-      setErr("Failed to load shared calendar.");
-    } finally {
-      inFlightRef.current.delete(key);
-    }
-  };
+      inFlightRef.current.add(key);
+      try {
+        const res = await api.getSession(
+          `/api/travel/project/${projectId}/travelSharedCalendar`,
+          { params: { startDate: startISO, endDate: endISO } }
+        );
+        const commonDates = extractCommonDatesFromAPI(res);
 
+        setRangeCache((prev) => {
+          const prevArr = prev[key];
+          // Only update if different to avoid re-renders
+          if (prevArr !== undefined && shallowEqualArray(prevArr, commonDates)) return prev;
+          return { ...prev, [key]: commonDates };
+        });
+        setErr(null);
+      } catch (e) {
+        setRangeCache((prev) =>
+          prev[key] !== undefined ? prev : { ...prev, [key]: [] }
+        );
+        setErr("Failed to load shared calendar.");
+      } finally {
+        inFlightRef.current.delete(key);
+      }
+    },
+    [projectId, rangeCache]
+  );
+
+  // Initial + on visible window change
   useEffect(() => {
     if (!projectId) return;
     let active = true;
@@ -149,15 +171,44 @@ const TravelSelectDate = ({
       setErr(null);
       if (rangeCache[visibleRange.key] === undefined) setLoading(true);
       try {
-        await fetchRange(visibleRange.startISO, visibleRange.endISO, visibleRange.key);
+        await fetchRange(visibleRange.startISO, visibleRange.endISO, visibleRange.key, { force: false });
       } finally {
         if (active) setLoading(false);
       }
     })();
 
     return () => { active = false; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectId, visibleRange.key]);
+  }, [projectId, visibleRange.key, visibleRange.startISO, visibleRange.endISO, fetchRange, rangeCache]);
+
+  // Polling + focus/visibility refresh
+  useEffect(() => {
+    if (!projectId) return;
+
+    const doForceRefresh = async () => {
+      setSyncing(true);
+      try {
+        await fetchRange(visibleRange.startISO, visibleRange.endISO, visibleRange.key, { force: true });
+      } finally {
+        setSyncing(false);
+      }
+    };
+
+    // Poll
+    const id = setInterval(doForceRefresh, POLL_MS);
+
+    // Immediate refresh on focus / when tab becomes visible
+    const onFocus = () => { void doForceRefresh(); };
+    const onVis = () => { if (!document.hidden) void doForceRefresh(); };
+
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVis);
+
+    return () => {
+      clearInterval(id);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, [projectId, visibleRange.key, visibleRange.startISO, visibleRange.endISO, fetchRange]);
 
   // ONLY server's common dates for the visible window
   const visibleCommonDates = rangeCache[visibleRange.key] || [];
@@ -256,46 +307,45 @@ const TravelSelectDate = ({
     return isSpanFullyRecommended(startDate, effectiveEnd);
   }, [projectId, startDate, endDate, isSpanFullyRecommended]);
 
-const handleNext = async () => {
-  if (!canSubmit) {
-    alert("Please select a date (or range) entirely within the recommended dates.");
-    return;
-  }
-  const startISO = format(startDate, "yyyy-MM-dd");
-  const endISO = format(endDate || startDate, "yyyy-MM-dd");
+  const handleNext = async () => {
+    if (!canSubmit) {
+      alert("Please select a date (or range) entirely within the recommended dates.");
+      return;
+    }
+    const startISO = format(startDate, "yyyy-MM-dd");
+    const endISO = format(endDate || startDate, "yyyy-MM-dd");
 
-  setSaving(true);
-  try {
-    // NOTE: append query params directly to the URL for POST
-    const url = `/api/travel/project/${encodeURIComponent(projectId)}/travelSelectDate` +
-                `?startDate=${encodeURIComponent(startISO)}&endDate=${encodeURIComponent(endISO)}`;
+    setSaving(true);
+    try {
+      // NOTE: append query params directly to the URL for POST
+      const url =
+        `/api/travel/project/${encodeURIComponent(projectId)}/travelSelectDate` +
+        `?startDate=${encodeURIComponent(startISO)}&endDate=${encodeURIComponent(endISO)}`;
 
-    const res = await api.postSession(url); // body X, query only
+      const res = await api.postSession(url); // body X, query only
 
-    // keep local state + advance
-    updateFormData({
-      title,
-      startDate,
-      endDate: endDate || startDate,
-      projectId,
-      confirmResponse: res,
-    });
-    nextStep();
-  } catch (e) {
-    console.error("Confirm travel dates failed:", e);
-    alert(e?.message || "여행 날짜 확정에 실패했습니다.");
-  } finally {
-    setSaving(false);
-  }
-};
-
+      // keep local state + advance
+      updateFormData({
+        title,
+        startDate,
+        endDate: endDate || startDate,
+        projectId,
+        confirmResponse: res,
+      });
+      nextStep();
+    } catch (e) {
+      console.error("Confirm travel dates failed:", e);
+      alert(e?.message || "여행 날짜 확정에 실패했습니다.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div>
       <div className="calendar-wrapper">
         <div className="choose-title">
-          <button onClick={prevStep} className="prev-button"><BackIcon /></button>
-          <h3 className="calendar-title">Project name</h3>
+          <h3 className="calendar-title">{formData.title}</h3>
         </div>
 
         <div className="calendar-card">
@@ -377,6 +427,7 @@ const handleNext = async () => {
               </span>
             </div>
             {loading && <span style={{ marginLeft: 8, fontSize: 12, opacity: 0.7 }}>loading…</span>}
+            {syncing && !loading && <span style={{ marginLeft: 8, fontSize: 12, opacity: 0.6 }}>syncing…</span>}
             {err && <span style={{ marginLeft: 8, fontSize: 12, color: "crimson" }}>failed to load</span>}
           </div>
         </div>
@@ -385,14 +436,13 @@ const handleNext = async () => {
       <button
         className="project-next-button"
         onClick={handleNext}
-        disabled={!canSubmit || saving}
         title={!canSubmit ? "Select a recommended date or range" : ""}
       >
         {saving ? "Saving…" : <ProjectNextIcon />}
+        <></>
       </button>
     </div>
   );
 };
 
 export default TravelSelectDate;
-

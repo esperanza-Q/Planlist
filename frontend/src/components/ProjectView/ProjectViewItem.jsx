@@ -14,14 +14,29 @@ const ProjectViewItem = ({ project }) => {
   };
 
   const norm = (v) => (v ?? "").toString().trim().toLowerCase();
+  const statusText = () => norm(project?.status).replace(/[_-]/g, " ");
+
   const statusIsInProgress = () => {
-    const s = norm(project?.status).replace(/[_-]/g, " ");
+    const s = statusText();
     return s === "in progress" || s.includes("in progress");
   };
 
-    const statusIsFinished = () => {
-    const s = norm(project?.status).replace(/[_-]/g, " ");
+  const statusIsFinished = () => {
+    const s = statusText();
     return s === "finished" || s.includes("finished");
+  };
+
+  // NEW: treat "upcoming" (and common synonyms) as Upcoming
+  const statusIsUpcoming = () => {
+    const s = statusText();
+    return (
+      s === "upcoming" ||
+      s.includes("upcoming") ||
+      s === "scheduled" ||
+      s.includes("scheduled") ||
+      s === "planned" ||
+      s.includes("planned")
+    );
   };
 
   const handleClick = () => {
@@ -33,45 +48,42 @@ const ProjectViewItem = ({ project }) => {
 
     const category = norm(project?.category);
 
-  
     if (category === "pt") {
       if (statusIsInProgress() || statusIsFinished()) {
-            navigate(`/project/pt?projectId=${encodeURIComponent(id)}`);
-
+        navigate(`/project/pt?projectId=${encodeURIComponent(id)}`);
         return;
       }
-          navigate(`/project?category=PT&step=2&projectId=${encodeURIComponent(id)}`);
-
+      navigate(`/project?category=PT&step=2&projectId=${encodeURIComponent(id)}`);
       return;
     }
+
     if (category === "travel") {
       if (!statusIsInProgress()) {
         navigate(`/project?category=Travel&step=2&projectId=${encodeURIComponent(id)}`);
-
         return;
       }
       navigate(`/project/travel?projectId=${encodeURIComponent(id)}`);
       return;
     }
-    if (category === "meeting"){
-      if (!statusIsInProgress()){
-        navigate(`/project?category=MEETING&step=2&projectId=${encodeURIComponent(id)}`);
+
+    if (category === "meeting") {
+      if (statusIsInProgress() || statusIsFinished()) {
+        navigate(`/project/meeting?projectId=${encodeURIComponent(id)}`);
         return;
       }
-      navigate(`/project/meeting?projectId=${encodeURIComponent(id)}`);
+      // NEW: Upcoming (or anything not in-progress/finished) → MeetingCreatePage step 2
+      navigate(`/project/create/meeting?step=2&projectId=${encodeURIComponent(id)}`);
       return;
     }
-    if (category === "standard"){
-      if (!statusIsInProgress()){
-                navigate(`/project?category=STANDARD&step=2&projectId=${encodeURIComponent(id)}`);
 
+    if (category === "standard") {
+      if (!statusIsInProgress()) {
+        navigate(`/project?category=STANDARD&step=2&projectId=${encodeURIComponent(id)}`);
         return;
       }
       navigate(`/project/standard?projectId=${encodeURIComponent(id)}`);
       return;
     }
-
-
   };
 
   return (
@@ -105,11 +117,10 @@ const ProjectViewItem = ({ project }) => {
 
       <div className="category">{project.category}</div>
       <div className="dates">
-  {project?.startDate
-    ? (project?.endDate ? `${project.startDate} ~ ${project.endDate}` : project.startDate)
-    : (project?.endDate || "date not selected")}
-</div>
-
+        {project?.startDate
+          ? (project?.endDate ? `${project.startDate} ~ ${project.endDate}` : project.startDate)
+          : (project?.endDate || "date not selected")}
+      </div>
     </div>
   );
 };

@@ -8,13 +8,15 @@ import TravelPlannerCard from "./TravelPlannerCard";
 import { api } from "../../api/client";
 import "./TravelCreatePlanner.css";
 import TravelMemoCard from "../ProjectViewTravel/TravelMemoCard";
+import MemoModal from "../../components/StandardCreatePage/MemoModal";
+
 // ---------- Helpers ----------
 const toApiCategory = (c) => {
   const v = String(c || "").trim().toLowerCase();
   if (["place", "장소", "spot", "poi"].includes(v)) return "PLACE";
   if (["restaurant", "food", "식당", "맛집"].includes(v)) return "RESTAURANT";
   if (["accommodation", "accomodation", "숙소", "hotel", "stay", "lodge"].includes(v)) {
-    return "ACCOMMODATION"; // if backend expects single 'm', we'll flip on retry below
+    return "ACCOMMODATION";
   }
   return "PLACE";
 };
@@ -30,7 +32,7 @@ const toApiTransportation = (k) => {
 
 const toISODate = (labelOrIso, dateLabelToIso) => {
   const v = String(labelOrIso || "");
-  return dateLabelToIso[v] || v; // supports "MM/dd" labels or already ISO "yyyy-MM-dd"
+  return dateLabelToIso[v] || v;
 };
 
 const asNumber = (v, fallback = 0) => {
@@ -54,23 +56,25 @@ const toDisplayPlace = (p, i) => ({
   name: p.name ?? "",
   address: p.address ?? "",
   description: p.description ?? "",
-  category: p.category ?? "place", // keep original label from Step 4
-  date: p.date || "",              // keep "MM/dd" for FinalMap tabs
+  category: p.category ?? "place",
+  date: p.date || "",
   time: p.time || "",
   latitude: p.latitude ?? p.lat ?? null,
   longitude: p.longitude ?? p.lng ?? null,
 });
 
-// ---------- Component ----------
 const TravelPlannerCreate = ({ formData, updateFormData, nextStep, prevStep }) => {
   // scheduledPlaces come from TravelPlannerCard via setPlacesForDates
-  // shape: { name, address, time, category, date:'MM/dd'|'yyyy-MM-dd', wishlistId?, inviteeId?, cost?, latitude?, longitude?, transportations?[]|moves?[] }
   const [scheduledPlaces, setScheduledPlaces] = useState([]);
-  const [selectedPlaces] = useState(formData.places || []); // wishlist for right map (from previous step)
+  const [selectedPlaces] = useState(formData.places || []); // from previous step
   const [hoveredPlace, setHoveredPlace] = useState(null);
   const [posting, setPosting] = useState(false);
 
-  // Map "MM/dd" → "yyyy-MM-dd" for the chosen date range
+  // NEW: memos state + modal
+  const [memos, setMemos] = useState(formData.memos || []);
+  const [showMemoModal, setShowMemoModal] = useState(false);
+
+  // "MM/dd" → "yyyy-MM-dd"
   const dateLabelToIso = useMemo(() => {
     if (!formData.startDate || !formData.endDate) return {};
     const days = eachDayOfInterval({
@@ -86,20 +90,15 @@ const TravelPlannerCreate = ({ formData, updateFormData, nextStep, prevStep }) =
 
   // Build payload expected by backend:
   // {
-  //   items: [
-  //     {
-  //       inviteeId, date, category, wishlistId, memo, cost, address,
-  //       latitude, longitude, visitTime(ISO),
-  //       transport: [{ transportation, durationMin, travelDate }]
-  //     }, ...
-  //   ],
-  //   teamMemo: "..."
+  //   items: [{ ... visitTime=ISO, transport=[...] }, ...],
+  //   teamMemo: string,
+  //   notes: [{ noteId?, type, title, content }, ...]   // <-- added (non-breaking; server can ignore if unused)
   // }
   const buildPayload = () => {
     const items = (scheduledPlaces || []).map((p) => {
       const dateISO = toISODate(p.date, dateLabelToIso);
 
-      // normalize transport rows from either p.transportations or p.moves
+      // normalize transport rows
       const transportsSrc = Array.isArray(p.transportations)
         ? p.transportations
         : Array.isArray(p.moves)
@@ -130,12 +129,12 @@ const TravelPlannerCreate = ({ formData, updateFormData, nextStep, prevStep }) =
         };
       });
 
-      // visitTime: ISO "yyyy-MM-ddTHH:mm:ss"
+      // visitTime ISO
       let visitTime = (p.time || p.visitTime || "").trim(); // "HH:mm"
       if (dateISO && visitTime) {
-        visitTime = `${dateISO}T${visitTime}:00`; // e.g. "2025-08-13T12:02:00"
+        visitTime = `${dateISO}T${visitTime}:00`;
       } else {
-        visitTime = ""; // fallback: empty string triggers validation error
+        visitTime = "";
       }
 
       const latitude = p.latitude ?? p.lat ?? p.y ?? null;
@@ -144,30 +143,37 @@ const TravelPlannerCreate = ({ formData, updateFormData, nextStep, prevStep }) =
       return {
         inviteeId: p.inviteeId ?? formData.inviteeId ?? null,
         date: dateISO,
-        category: toApiCategory(p.category), // "PLACE" | "RESTAURANT" | "ACCOMMODATION"
+        category: toApiCategory(p.category),
         wishlistId: p.wishlistId ?? p.id ?? null,
         memo: p.memo ?? "",
         cost: asNumber(p.cost, 0),
         address: p.address ?? "",
         latitude: latitude != null ? Number(latitude) : null,
         longitude: longitude != null ? Number(longitude) : null,
-        visitTime, // ISO datetime
-        // backend expects "transport" (not "transportations")
+        visitTime,
         transport,
       };
     });
 
-    // minimal validations (surface 400s early)
+    // validations
     for (const it of items) {
       if (!it.date) throw new Error("날짜가 비었습니다.");
       if (!it.category) throw new Error("카테고리가 비었습니다.");
       if (!it.visitTime) throw new Error("시간(visitTime)이 비었습니다.");
     }
 
+    // include memos (non-breaking; server can ignore safely)
+    const notes = (memos || []).map((m) => ({
+      noteId: m.noteId ?? null,
+      type: m.type,            // 'personal' | 'group'
+      title: m.title ?? m.project ?? "",
+      content: m.content ?? "",
+    }));
+
     return {
       items,
-      // backend expects a plain string here
       teamMemo: formData.teamMemo || "",
+      notes, // <-- added
     };
   };
 
@@ -180,7 +186,7 @@ const TravelPlannerCreate = ({ formData, updateFormData, nextStep, prevStep }) =
       if (!window.confirm("아직 일정이 비어 있습니다. 그대로 진행할까요?")) return;
     }
 
-    // Prepare scheduled places for FinalMap (DO NOT overwrite formData.places)
+    // Prepare scheduled places for FinalMap (do NOT overwrite formData.places)
     const scheduledForNext = (scheduledPlaces || []).map(toDisplayPlace);
 
     let payload;
@@ -200,9 +206,8 @@ const TravelPlannerCreate = ({ formData, updateFormData, nextStep, prevStep }) =
         const res = await api.postSession(url, body);
         console.debug("[TravelPlanner] response ←", res);
 
-        // Pass scheduled places to next step without touching formData.places
-        updateFormData({ planned: body, scheduledPlaces: scheduledForNext });
-
+        // persist memos + scheduled for next step
+        updateFormData({ planned: body, scheduledPlaces: scheduledForNext, memos });
         nextStep();
         return { ok: true, res };
       } catch (err) {
@@ -216,7 +221,7 @@ const TravelPlannerCreate = ({ formData, updateFormData, nextStep, prevStep }) =
     let { ok, err } = await postOnce(payload);
     if (ok) return;
 
-    // If 400 and category-related, auto-toggle ACCOMMODATION↔ACCOMODATION once and retry
+    // Category spelling flip retry for "accommodation"
     const status = err?.status;
     const msg = err?.body?.message || err?.message || "";
     const categoryError = status === 400 && /카테고리|category/i.test(msg);
@@ -265,12 +270,38 @@ const TravelPlannerCreate = ({ formData, updateFormData, nextStep, prevStep }) =
         <div className="map-section">
           <PlaceMap selectedPlace={hoveredPlace} places={selectedPlaces} />
         </div>
-        <TravelMemoCard/>
+
+        {/* Controlled TravelMemoCard */}
+        <TravelMemoCard
+          memos={memos}
+          onChange={(next) => {
+            setMemos(next);
+            updateFormData({ memos: next }); // keep in wizard state
+          }}
+          onAddClick={() => setShowMemoModal(true)}
+        />
       </div>
 
       <button className="project2-next-button" onClick={handleNext} disabled={posting}>
         <ProjectNextIcon />
       </button>
+
+      {showMemoModal && (
+        <MemoModal
+          onClose={() => setShowMemoModal(false)}
+          onSave={(newMemo) => {
+            setMemos((prev) => {
+              const next = [newMemo, ...prev];
+              updateFormData({ memos: next });
+              return next;
+            });
+            setShowMemoModal(false);
+          }}
+          projectId={formData.projectId}
+          projectName={formData.title}
+          formData={formData}
+        />
+      )}
     </div>
   );
 };
