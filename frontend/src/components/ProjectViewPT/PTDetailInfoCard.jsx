@@ -37,7 +37,7 @@ const PTDetailInfoCard = ({ project }) => {
   }, [startDate, startTime, endTime]);
 
   return (
-    <div className="info-card">
+    <div className="info-card" style={{marginBottom:"0px"}}>
       <h2 className="card-title">{title}</h2>
       {description && <p className="project-description">{description}</p>}
 
