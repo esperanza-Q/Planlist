@@ -90,8 +90,9 @@
     margin-right: 8px;
 }
 
-.memo-image-actions button{
+.memo-delete-btn{
   background-color: transparent;
   border: none;
   color: var(--point-Red);
+  cursor: pointer;
 }
