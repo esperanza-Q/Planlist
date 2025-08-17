@@ -89,3 +89,10 @@
     height: 16px;
     margin-right: 8px;
 }
+
+.memo-delete-btn{
+  background-color: transparent;
+  border: none;
+  color: var(--point-Red);
+  cursor: pointer;
+}
