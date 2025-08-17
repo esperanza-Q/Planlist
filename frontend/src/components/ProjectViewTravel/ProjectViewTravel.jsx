@@ -1,74 +1,56 @@
-// src/components/Travel/ProjectViewTravel.jsx
+// src/components/ProjectViewTravel/ProjectViewTravel.jsx
+import React, { useEffect, useMemo, useState } from "react";
+import { useParams, useLocation } from "react-router-dom";
+import { api } from "../../api/client";
+
 import ViewPlannerCard from "./ViewPlannerCard";
 import "./ProjectViewTravel.css";
 import TravelInfoCard from "./TravelInfoCard";
 import ProfilePic from "../../assets/ProfilePic.png";
+import MemoCard from "../../components/ProjectView/MemoCard"
 import TravelMemoCard from "./TravelMemoCard";
 
-// ---------- your trip mock ----------
-const exampleTrip = {
-  "project_id": 99,
-  "project_name": "Seoul 2-Day Cultural Trip",
-  "description": "Exploring iconic Seoul landmarks and enjoying a comfortable stay.",
-  "start_date": "2025-08-27T09:00:00",
-  "end_date": "2025-08-28T20:00:00",
-  "location": "Seoul",
-
-  "creator": { "id": 7, "username": "haemin" },
-  "participants": [
-    { "id": 7, "username": "alice" },
-    { "id": 8, "username": "bob" },
-    { "id": 9, "username": "michael" }
-  ],
-
-  "datePlanners": [
-    {
-      "date": "2025-08-27",
-      "schedules": [
-        { "placeName": "Namsan Tower", "category": "place", "address": "Seoul, Yongsan-gu", "description": "Famous tower offering panoramic views of Seoul.", "startTime": "10:00" },
-        { "placeName": "Lotte Hotel", "category": "accomodation", "address": "Seoul, Jung-gu", "description": "Luxury hotel in the heart of Seoul.", "startTime": "18:00" }
-      ],
-      "moves": [
-        { "transportation": "지하철", "duration_min": 25 },
-        { "transportation": "도보", "duration_min": 10 }
-      ]
-    },
-    {
-      "date": "2025-08-28",
-      "schedules": [
-        { "placeName": "Seoul Forest", "category": "place", "address": "Seoul, Seongdong-gu", "description": "Large eco park with walking paths and deer enclosure.", "startTime": "09:30" },
-        { "placeName": "Gyeongbokgung Palace", "category": "place", "address": "Seoul, Jongno-gu", "description": "Historic palace of the Joseon dynasty.", "startTime": "13:30" }
-      ],
-      "moves": [
-        { "transportation": "버스", "duration_min": 20 },
-        { "transportation": "도보", "duration_min": 15 }
-      ]
-    }
-  ],
-
-  "teamMemo": { "content": "Make sure to book palace tickets online to avoid queues." }
+// ---------- small utils ----------
+const parseId = (v) => {
+  if (typeof v !== "string") return null;
+  const s = v.trim();
+  return /^\d+$/.test(s) ? parseInt(s, 10) : null;
 };
 
-// ---------- helpers: format + normalize ----------
-const toDate = (iso) => {
-  if (!iso) return "TBD";
-  // "YYYY-MM-DDTHH:mm:ss" -> "YYYY-MM-DD"
-  return iso.slice(0, 10);
-};
-const toTime = (iso) => {
-  if (!iso) return "TBD";
-  // "YYYY-MM-DDTHH:mm:ss" -> "HH:mm"
-  const t = iso.split("T")[1] || "";
-  return t.slice(0, 5) || "TBD";
+// "YYYY-MM-DD" 또는 "YYYY-MM-DDTHH:mm:ss" 모두 처리
+const toDate = (str) => {
+  if (!str) return "TBD";
+  const s = String(str);
+  // 날짜만 있는 경우 그대로 반환
+  if (s.length === 10 && /^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  // ISO 형태면 앞 10자리
+  return s.slice(0, 10);
 };
 
-// Map exampleTrip -> shape for TravelInfoCard
+const toTime = (str) => {
+  if (!str) return "TBD";
+  const s = String(str);
+  const parts = s.split("T");
+  if (parts.length < 2) return "TBD"; // 시간 정보가 없는 날짜만 들어온 경우
+  const time = parts[1].slice(0, 5);
+  return time || "TBD";
+};
+
+// 응답의 카테고리 철자 차이 흡수 (accommodation/accomodation 등)
+const normalizeCategory = (c) => {
+  const v = String(c || "").toLowerCase();
+  if (v.startsWith("accom")) return "accommodation";
+  if (["restaurant", "dining", "food", "맛집", "식당"].includes(v)) return "restaurant";
+  return "place";
+};
+
+// TravelInfoCard가 원하는 형태로 매핑
 const tripToInfoProject = (trip) => ({
   id: trip.project_id,
   title: trip.project_name,
-  description: trip.description,
+  description: trip.description || "",
   category: "travel",
-  status: "Active",
+  status: "Active", // 서버 status를 그대로 쓰고 싶으면: (trip.status || "Active")
   repeat: "none",
   startDate: toDate(trip.start_date),
   startTime: toTime(trip.start_date),
@@ -78,47 +60,171 @@ const tripToInfoProject = (trip) => ({
   placeAddress: trip.location || "",
   users: Array.isArray(trip.participants)
     ? trip.participants.map((p) => ({
-        name: p.username,
-        avatar: ProfilePic, // fallback; replace with real avatars when available
+        name: p.username || p.name || "user",
+        avatar: p.profileImage || ProfilePic,
       }))
     : [],
-  meetings: []
+  meetings: [],
 });
 
-// ---------- sample memos (unchanged) ----------
-const exampleMemos = [
-  { id: "1", type: "personal", project: "example project 1", content: "example project description. showing the first few sentences of the memo.", category: "meeting" },
-  { id: "2", type: "group", project: "example project 2", content: "example project description. showing the first few sentences of the memo.", category: "meeting" },
-  { id: "3", type: "personal", project: "example project 3", content: "example project description. showing the first few sentences of the memo.", category: "meeting" },
-  { id: "4", type: "group", project: "example project 4", content: "example project description. showing the first few sentences of the memo.", category: "meeting" },
-  { id: "5", type: "personal", project: "example project 5", content: "example project description. showing the first few sentences of the memo.", category: "meeting" },
-  { id: "6", type: "group", project: "example project 6", content: "example project description. showing the first few sentences of the memo.", category: "meeting" }
-];
-
-// ---------- component ----------
 const ProjectViewTravel = () => {
-  const infoProject = tripToInfoProject(exampleTrip);
+  const { projectId: pathId } = useParams();
+  const location = useLocation();
+  const query = useMemo(() => new URLSearchParams(location.search), [location.search]);
+
+  // /project/travel/:projectId  또는  /project/travel?projectId=34  둘 다 지원
+  const idFromPath = parseId(pathId);
+  const idFromQuery = parseId(query.get("projectId"));
+  const projectId = idFromPath ?? idFromQuery;
+
+  const [trip, setTrip] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [errMsg, setErrMsg] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const load = async () => {
+      if (!projectId) {
+        setLoading(false);
+        setErrMsg("프로젝트 ID가 없습니다. URL을 확인해 주세요.");
+        return;
+      }
+      setLoading(true);
+      setErrMsg("");
+
+      try {
+        // ✅ 스펙에 맞춘 엔드포인트: GET /api/travel/info/{project_id}
+        const data = await api.getSession(`/api/travel/project/${encodeURIComponent(projectId)}`);
+        // 실제 응답 예시:
+        // {
+        //   project: { projectId, projectName, category, status, startDate, endDate, confirmedAt },
+        //   participants: [{ name, profileImage }],
+        //   memo: [...]
+        // }
+
+        const p = data?.project || {};
+
+        // ViewPlannerCard와 TravelInfoCard 모두가 안전하게 렌더되도록 "옛 스키마 모양"으로 정규화
+        const normalized = {
+          // 예전 필드명으로 매핑
+          project_id: p.projectId ?? projectId,
+          project_name: p.projectName ?? "",
+          description: "", // 백엔드에 설명 필드가 없다면 빈 문자열
+          start_date: p.startDate || null, // "YYYY-MM-DD" or "YYYY-MM-DDTHH:mm:ss"
+          end_date: p.endDate || null,
+          location: p.location || "",
+
+          // participants: {username, profileImage} 형태로 통일
+          participants: Array.isArray(data?.participants)
+            ? data.participants.map((u, idx) => ({
+                id: u.id ?? idx,
+                username: u.name,
+                profileImage: u.profileImage,
+              }))
+            : [],
+
+          // ViewPlannerCard가 참조할 수 있도록 기본 형태 제공
+          datePlanners: Array.isArray(data?.datePlanners) ? data.datePlanners : [],
+
+          // 메모: 배열이면 첫 항목의 content를 팀 메모처럼 노출 (필요 시 로직 조정)
+          teamMemo: {
+            content: Array.isArray(data?.memo) && data.memo.length > 0
+              ? (data.memo[0]?.content || "")
+              : "",
+          },
+
+          // 원한다면 status도 보존
+          status: p.status || "INPROGRESS",
+          confirmedAt: p.confirmedAt || null,
+        };
+
+        // schedules 카테고리 안전화
+        normalized.datePlanners = normalized.datePlanners.map((dp) => ({
+          ...dp,
+          schedules: Array.isArray(dp?.schedules)
+            ? dp.schedules.map((s) => ({ ...s, category: normalizeCategory(s.category) }))
+            : [],
+        }));
+
+        if (!cancelled) setTrip(normalized);
+      } catch (e) {
+        if (!cancelled) setErrMsg(e?.message || "여행 정보를 불러오지 못했습니다.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId]);
+
+  const infoProject = useMemo(() => (trip ? tripToInfoProject(trip) : null), [trip]);
+
+  // Team memo -> TravelMemoCard format (간단 매핑)
+  const initialMemos = useMemo(() => {
+    const list = [];
+    if (trip?.teamMemo?.content) {
+      list.push({
+        id: "team-memo",
+        type: "group",
+        project: trip.project_name || `project ${projectId}`,
+        content: trip.teamMemo.content,
+        category: "travel",
+      });
+    }
+    return list;
+  }, [trip, projectId]);
+
+  if (loading) {
+    return (
+      <div className="screen">
+        <div className="project-view-div">로딩 중...</div>
+      </div>
+    );
+  }
+
+  if (errMsg) {
+    return (
+      <div className="screen">
+        <div className="project-view-div">
+          <p style={{ color: "crimson" }}>{errMsg}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!trip) {
+    return (
+      <div className="screen">
+        <div className="project-view-div">
+          <p>표시할 여행 정보가 없습니다.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="screen">
       <div className="project-view-div">
         <div className="layout">
-          {/* Use the mapped project for your info card */}
-          <TravelInfoCard project={infoProject} />
+          {/* 상단 요약 카드 */}
+          {infoProject && <TravelInfoCard project={infoProject} />}
 
-
-          {/* Memos as before */}
-          <TravelMemoCard initialMemos={exampleMemos} />
+          {/* 팀 메모 노출 */}
+          <  MemoCard initialMemos={initialMemos} />
         </div>
-    <div className="layout">
-              {/* Pass the FULL trip object to the planner view */}
-        <ViewPlannerCard project={exampleTrip} />
-            <button className="meet-button addfinish"
-            // onClick={handleFinished}
-            >mark as finished</button>
 
-    </div>
+        <div className="layout">
+          {/* 전체 trip 데이터(정규화)를 플래너 카드에 전달 */}
+          <ViewPlannerCard project={trip} />
 
+          <button className="meet-button addfinish">
+            mark as finished
+          </button>
+        </div>
       </div>
     </div>
   );
