@@ -1,21 +1,34 @@
+// pages/CreateCategory/MeetingCreatePage.jsx
+import React, { useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 
-
-import React, { useState } from 'react';
 import Step1BigMeetingStartProject from "../../components/MeetingCreatePage/BigMeetingStartProject";
 import Step2AddParticipants from "../../components/MeetingCreatePage/Add_Participants_meeting";
-
 import Step3DetailMeetingStartPage from "../../components/MeetingCreatePage/DetailMeetingStartPage";
 import Step4SelectDate from "../../components/MeetingCreatePage/SelectDate_meeting";
 import Step5MeetingSaveProject from "../../components/MeetingCreatePage/MeetingSaveProject";
 
+// helper
+const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 
 const MeetingCreatePage = () => {
-  const [step, setStep] = useState(1);
+  const location = useLocation();
+  const params = useMemo(() => new URLSearchParams(location.search), [location.search]);
+
+  // read step & projectId from query
+  const initialStep = useMemo(() => {
+    const s = Number(params.get("step"));
+    return clamp(Number.isFinite(s) ? s : 1, 1, 5);
+  }, [params]);
+
+  const initialProjectId = params.get("projectId");
+
+  const [step, setStep] = useState(initialStep);
   const [formData, setFormData] = useState({
     title: '',
     startDate: null,
     endDate: null,
-    // 다른 스텝에서 입력될 데이터들도 미리 여기에 포함
+    projectId: initialProjectId ?? null, // keep projectId around
   });
 
   const nextStep = () => setStep((prev) => prev + 1);
@@ -34,39 +47,41 @@ const MeetingCreatePage = () => {
           nextStep={nextStep}
         />
       )}
+
       {step === 2 && (
-        <Step2AddParticipants 
+        <Step2AddParticipants
           formData={formData}
           updateFormData={updateFormData}
           nextStep={nextStep}
           prevStep={prevStep}
         />
       )}
+
       {step === 3 && (
         <Step3DetailMeetingStartPage
-            formData={formData}
-            updateFormData={updateFormData}
-            nextStep={nextStep}
-            prevStep={prevStep}
+          formData={formData}
+          updateFormData={updateFormData}
+          nextStep={nextStep}
+          prevStep={prevStep}
         />
-        )}
+      )}
 
       {step === 4 && (
         <Step4SelectDate
-            formData={formData}
-            updateFormData={updateFormData}
-            nextStep={nextStep}
-            prevStep={prevStep}
+          formData={formData}
+          updateFormData={updateFormData}
+          nextStep={nextStep}
+          prevStep={prevStep}
         />
-        )}
-        {step === 5 && (
+      )}
+
+      {step === 5 && (
         <Step5MeetingSaveProject
-            formData={formData}
-            updateFormData={updateFormData}
-            prevStep={prevStep}
+          formData={formData}
+          updateFormData={updateFormData}
+          prevStep={prevStep}
         />
-        )}
-      
+      )}
     </div>
   );
 };
