@@ -118,6 +118,12 @@ public class TravelController {
         return ResponseEntity.ok("여행 날짜가 확정되었습니다!");
     }
 
+    // 여행 프로젝트 최종 종료
+    @GetMapping("/inviteUser/{projectId}/finished")
+    public ResponseEntity<String> travelProjectFinished(
+            @PathVariable Long projectId) {
+        return ResponseEntity.ok(travelService.projectFinished(projectId));
+    }
 
 }
 
