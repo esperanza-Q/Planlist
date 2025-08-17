@@ -37,11 +37,7 @@ const MeetingInfoCard =({ project }) =>{
             </div>
 
             <button className="meeting-edit-button" ><img src={edit_icon}/></button>
-            <button className="meet-button" >
-                <img src={google_meets}/>
-                <p>Create Google Meet</p>
-                
-            </button>
+
 
         </div>
 

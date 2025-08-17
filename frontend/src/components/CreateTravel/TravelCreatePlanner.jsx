@@ -4,7 +4,6 @@ import { eachDayOfInterval, format } from "date-fns";
 import { ReactComponent as BackIcon } from "../../assets/prev_arrow.svg";
 import { ReactComponent as ProjectNextIcon } from "../../assets/Project_next_button.svg";
 import PlaceMap from "../StandardCreatePage/PlaceMap";
-import MemoCard from "../ProjectView/MemoCard";
 import TravelPlannerCard from "./TravelPlannerCard";
 import { api } from "../../api/client";
 import "./TravelCreatePlanner.css";
@@ -16,36 +15,27 @@ const toApiCategory = (c) => {
   if (v === "restaurant") return "restaurant";
   // accept both "accommodation" (UI) and the backend's "accomodation"
   if (v === "accommodation" || v === "accomodation") return "accomodation";
-  // default safe fallback
   return "place";
 };
 
 // (optional) translate the transport selector to API text; adjust if your API expects English
 const toApiTransportation = (k) => {
   switch (k) {
-    case "walk":
-      return "도보";
-    case "bus":
-      return "버스";
-    case "subway":
-      return "지하철";
-    case "car":
-      return "자동차";
-    default:
-      return String(k || "");
+    case "walk": return "도보";
+    case "bus": return "버스";
+    case "subway": return "지하철";
+    case "car": return "자동차";
+    default: return String(k || "");
   }
 };
 
 const TravelPlannerCreate = ({ formData, updateFormData, nextStep, prevStep }) => {
-  // Places the user put into the daily itinerary via TravelPlannerCard
-  // Structure is a flat list coming from child: [{ name, address, time, category, date: 'MM/dd', ... }]
-  const [scheduledPlaces, setScheduledPlaces] = useState([]);
-  // The wishlist places the user saved earlier (for the map on the right)
-  const [selectedPlaces] = useState(formData.places || []);
+  const [scheduledPlaces, setScheduledPlaces] = useState([]);     // [{ name,address,time,category,date:'MM/dd', ... }]
+  const [selectedPlaces] = useState(formData.places || []);       // wishlist (right map)
   const [hoveredPlace, setHoveredPlace] = useState(null);
   const [posting, setPosting] = useState(false);
 
-  // Build a map from tab label (MM/dd) -> ISO (yyyy-MM-dd) for the selected trip range
+  // Map "MM/dd" labels -> ISO yyyy-MM-dd for the selected range
   const dateLabelToIso = useMemo(() => {
     if (!formData.startDate || !formData.endDate) return {};
     const days = eachDayOfInterval({
@@ -53,14 +43,11 @@ const TravelPlannerCreate = ({ formData, updateFormData, nextStep, prevStep }) =
       end: new Date(formData.endDate),
     });
     const map = {};
-    days.forEach((d) => {
-      map[format(d, "MM/dd")] = format(d, "yyyy-MM-dd");
-    });
+    days.forEach((d) => { map[format(d, "MM/dd")] = format(d, "yyyy-MM-dd"); });
     return map;
   }, [formData.startDate, formData.endDate]);
 
-  // If you later surface "moves" in the parent, you can pass them up from TravelPlannerCard.
-  // For now we send empty [] to the API (allowed).
+  // Build payload that matches DatePlannerBatchRequestDTO: { items: [...], teamMemo?: {...} }
   const buildPayload = () => {
     const byIsoDate = new Map(); // iso -> { schedules:[], moves:[] }
 
@@ -68,21 +55,21 @@ const TravelPlannerCreate = ({ formData, updateFormData, nextStep, prevStep }) =
       const iso = dateLabelToIso[p.date] || p.date; // tolerate already ISO
       if (!byIsoDate.has(iso)) byIsoDate.set(iso, { schedules: [], moves: [] });
 
-      // Validate required fields and map
-      const cat = toApiCategory(p.category);
       const startTime = (p.time || "").trim();
-
       byIsoDate.get(iso).schedules.push({
         placeName: p.name,
-        category: cat,
-        startTime, // API requires this; we'll validate before submit
+        category: toApiCategory(p.category),
+        startTime,                         // REQUIRED by API
       });
 
-      // If you later collect "traffic" entries for this day, push here:
-      // byIsoDate.get(iso).moves.push({ transportation: toApiTransportation(kind), duration_min: Number(duration) || 0 })
+      // If you add traffic rows in TravelPlannerCard later, push them here:
+      // byIsoDate.get(iso).moves.push({
+      //   transportation: toApiTransportation(kind),
+      //   duration_min: Number(duration) || 0,
+      // });
     }
 
-    // Validate times now and throw a structured error to show the user
+    // Validate times early so we mimic backend 400s
     for (const [iso, { schedules }] of byIsoDate.entries()) {
       for (const s of schedules) {
         if (!s.startTime) {
@@ -95,16 +82,15 @@ const TravelPlannerCreate = ({ formData, updateFormData, nextStep, prevStep }) =
       }
     }
 
-    // Build the request body in API shape
-    const datePlanners = Array.from(byIsoDate.entries()).map(([iso, val]) => ({
+    // ✨ The key fix: backend expects `items`, not `datePlanners`
+    const items = Array.from(byIsoDate.entries()).map(([iso, val]) => ({
       date: iso,
       schedules: val.schedules,
-      moves: val.moves, // currently []
+      moves: val.moves || [],            // ensure [] not null
     }));
 
     return {
-      projectId: formData.projectId,
-      datePlanners,
+      items,                              // <-- match DatePlannerBatchRequestDTO#getItems()
       teamMemo: {
         content: formData.teamMemo || "",
       },
@@ -124,7 +110,6 @@ const TravelPlannerCreate = ({ formData, updateFormData, nextStep, prevStep }) =
     try {
       payload = buildPayload();
     } catch (e) {
-      // mirror backend 400 message shape when possible
       if (e?._field === "startTime") {
         alert(
           `시간이 비어 있습니다.\n날짜: ${e._date}\n장소: ${e._placeName}\n\n각 장소의 시간을 입력해 주세요.`
@@ -135,22 +120,20 @@ const TravelPlannerCreate = ({ formData, updateFormData, nextStep, prevStep }) =
       return;
     }
 
-    const url = `/api/travel/${encodeURIComponent(formData.projectId)}/datePlanner/`;
+    const url = `/api/travel/${encodeURIComponent(formData.projectId)}/dateplanner/batch`;
 
     try {
       setPosting(true);
-      // helpful logs
       console.log("[TravelPlanner] POST →", url);
       console.log("[TravelPlanner] payload →", payload);
 
       const res = await api.postSession(url, payload);
       console.debug("[TravelPlanner] response ←", res);
 
-      // persist what we sent (and any server echo) and advance
+      // Save what we sent (and/or what server returned) and advance
       updateFormData({ planned: payload });
       nextStep();
     } catch (e) {
-      // Try to show backend-style messages if your api client attaches body/status
       const status = e?.status;
       const body = e?.body;
 
@@ -159,13 +142,10 @@ const TravelPlannerCreate = ({ formData, updateFormData, nextStep, prevStep }) =
           `서버 검증 실패: ${body?.message || "startTime이 필요합니다."}\n날짜: ${body?.date}\n장소: ${body?.placeName}`
         );
       } else if (status === 404 && body?.placeName) {
-        alert(
-          `위시리스트에 없는 장소입니다: ${body.placeName}\n먼저 장소를 저장한 뒤 다시 시도해 주세요.`
-        );
+        alert(`위시리스트에 없는 장소입니다: ${body.placeName}\n먼저 장소를 저장한 뒤 다시 시도해 주세요.`);
       } else {
         alert(e?.message || "일정 저장에 실패했습니다.");
       }
-
       console.error("[TravelPlanner] POST failed", { status, body, error: e });
     } finally {
       setPosting(false);
@@ -176,9 +156,7 @@ const TravelPlannerCreate = ({ formData, updateFormData, nextStep, prevStep }) =
     <div className="planner-home-container">
       <div className="planner-section-div">
         <div className="choose-title">
-          <button onClick={prevStep} className="prev-button">
-            <BackIcon />
-          </button>
+          <button onClick={prevStep} className="prev-button"><BackIcon /></button>
           <h2>{formData.title}</h2>
         </div>
 

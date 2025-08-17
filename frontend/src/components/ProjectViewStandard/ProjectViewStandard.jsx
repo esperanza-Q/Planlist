@@ -159,6 +159,9 @@ const ProjectViewStandard = () => {
       <div className="layout-standard">
         <div>
           <StandardInfoCard project={project} />
+            <button className="meet-button addfinish"
+            // onClick={handleFinished}
+            >mark as finished</button>
         </div>
         <MemoCard initialMemos={memos} />
       </div>

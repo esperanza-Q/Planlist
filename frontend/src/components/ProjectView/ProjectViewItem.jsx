@@ -19,6 +19,11 @@ const ProjectViewItem = ({ project }) => {
     return s === "in progress" || s.includes("in progress");
   };
 
+    const statusIsFinished = () => {
+    const s = norm(project?.status).replace(/[_-]/g, " ");
+    return s === "finished" || s.includes("finished");
+  };
+
   const handleClick = () => {
     const id = project?.id ?? project?.projectId;
     if (!id) {
@@ -30,13 +35,13 @@ const ProjectViewItem = ({ project }) => {
 
   
     if (category === "pt") {
-      if (!statusIsInProgress()) {
-             
-              navigate(`/project?category=PT&step=2&projectId=${encodeURIComponent(id)}`);
+      if (statusIsInProgress() || statusIsFinished()) {
+            navigate(`/project/pt?projectId=${encodeURIComponent(id)}`);
+
         return;
       }
-   
-         navigate(`/project/pt?projectId=${encodeURIComponent(id)}`);
+          navigate(`/project?category=PT&step=2&projectId=${encodeURIComponent(id)}`);
+
       return;
     }
     if (category === "travel") {
@@ -99,7 +104,12 @@ const ProjectViewItem = ({ project }) => {
       </div>
 
       <div className="category">{project.category}</div>
-      <div className="dates">{project.startDate} ~ {project.endDate}</div>
+      <div className="dates">
+  {project?.startDate
+    ? (project?.endDate ? `${project.startDate} ~ ${project.endDate}` : project.startDate)
+    : (project?.endDate || "date not selected")}
+</div>
+
     </div>
   );
 };
