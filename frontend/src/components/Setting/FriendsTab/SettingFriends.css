@@ -196,3 +196,7 @@
   animation: spin .6s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+.friend-avatar{
+    border-radius:50%;
+}

@@ -77,7 +77,7 @@ const normalize = (raw) => {
       invitee_id: p?.invitee_id ?? p?.inviteeId ?? `unknown-${i}`,
       projectTitle,
       creator,
-      profile_image: profilePic, // reuse user's pic for now
+      profile_image: p?.creatorProfileImage// reuse user's pic for now
     };
   });
 

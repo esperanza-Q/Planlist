@@ -38,7 +38,7 @@ const PTList = ({ project = {} }) => {
       alert("Missing project id.");
       return;
     }
-    navigate(`/project?category=pt&step=3&projectId=${encodeURIComponent(project.id)}`);
+    navigate(`/project/create/pt?step=3&projectId=${encodeURIComponent(project.id)}`);
   };
 
   const goSessionDetails = (plannerId, finalized) => {

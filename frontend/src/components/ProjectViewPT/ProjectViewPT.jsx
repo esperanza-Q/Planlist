@@ -24,6 +24,7 @@ const toBool = (v) => {
   return false;
 };
 
+
 const normalize = (payload) => {
   const proj = Array.isArray(payload?.projects) ? payload.projects[0] : null;
   const participants = Array.isArray(payload?.participants) ? payload.participants : [];
@@ -73,6 +74,18 @@ const ProjectViewPT = () => {
   const [err, setErr] = useState("");
   const [view, setView] = useState(null);
 
+  const handleFinished = async () => {
+  try{
+    const res = await api.getSession(
+              `/api/pt/inviteUser/${projectId}/finished`
+            );
+  }
+  catch (e){
+    console.error(e);
+  }
+}
+
+
   useEffect(() => {
     let alive = true;
 
@@ -110,6 +123,10 @@ const ProjectViewPT = () => {
         <div className="layout ProjectView">
           <PTInfoCard project={view} />
           <PTList project={view} />
+
+          <button className="meet-button addfinish"
+          onClick={handleFinished}
+          >mark as finished</button>
         </div>
          <MemoCard
            initialMemos={view.memos}
