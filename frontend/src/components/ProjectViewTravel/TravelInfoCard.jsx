@@ -5,7 +5,7 @@ import calendar_icon from "../../assets/calendar_icon.svg"
 
 const TravelInfoCard =({ project }) =>{
     return(
-        <div className="info-card">
+        <div className="info-card" style={{marginBottom:"0px"}}>
                     <h2 className="card-title">{project.title}</h2>
                     <p className="project-description">{project.description}</p>
                     <div className="info-container">
