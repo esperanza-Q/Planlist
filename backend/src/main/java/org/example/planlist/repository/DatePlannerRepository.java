@@ -1,6 +1,7 @@
 package org.example.planlist.repository;
 
 import org.example.planlist.entity.DatePlanner;
+import org.example.planlist.entity.MoveBetweenPlaces;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -56,5 +57,13 @@ public interface DatePlannerRepository extends JpaRepository<DatePlanner, Long> 
             DatePlanner.Category category,
             Long wishlistId
     );
+
+    @Query("""
+       SELECT dp
+       FROM DatePlanner dp
+       WHERE dp.project.projectId = :projectId
+       ORDER BY dp.date ASC, dp.visitTime ASC
+    """)
+    List<DatePlanner> findAllByProjectId(@Param("projectId") Long projectId);
 
 }
