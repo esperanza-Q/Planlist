@@ -40,6 +40,7 @@ const PTList = ({ project = {} }) => {
     }
     navigate(`/project/create/pt?step=3&projectId=${encodeURIComponent(project.id)}`);
   };
+  //http://localhost:3000/project/create/pt?step=3&projectId=35
 
   const goSessionDetails = (plannerId, finalized) => {
     if (!plannerId) return;
@@ -53,7 +54,10 @@ const PTList = ({ project = {} }) => {
         alert("Missing project id.");
         return;
       }
-      navigate(`/project?category=pt&step=3&projectId=${encodeURIComponent(project.id)}`);
+    navigate(
+      `/project/create/pt?step=4&projectId=${encodeURIComponent(project.id)}&plannerId=${encodeURIComponent(plannerId)}`
+    );
+      //http://localhost:3000/project/create/pt?step=3&projectId=35
     }
   };
 

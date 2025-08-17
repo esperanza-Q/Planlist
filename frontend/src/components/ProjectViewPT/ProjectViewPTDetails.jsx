@@ -88,7 +88,8 @@ const normalizeSession = (raw, plannerId) => {
 
   const comments = Array.isArray(d.comments)
     ? d.comments.map((c, i) => ({
-        id: i + 1,
+        // Use real server id for deletion
+        id: c?.commentId ?? c?.id ?? (i + 1),
         profilepic: c?.profileImage || c?.profile_image || DefaultProfilePic,
         user: c?.name ?? "user",
         text: c?.content ?? "",

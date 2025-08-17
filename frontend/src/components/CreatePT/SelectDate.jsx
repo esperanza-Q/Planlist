@@ -1,5 +1,5 @@
 // src/components/CreatePT/SelectDate.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import './SelectDate.css';
 import DetailTimeModal from '../StandardCreatePage/DetailTimeModalLinked';
 import RepeatingModal from '../StandardCreatePage/RepeatingModal';
@@ -9,7 +9,7 @@ import RepeatIcon from '../../icons/RepeatIcon';
 import CalendarAltIcon from "../../icons/CalendarAltIcon";
 import CalenderCheckIcon from "../../icons/CalenderCheckIcon";
 import { api } from '../../api/client';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 // ---------- helpers ----------
 const pad2 = (n) => String(n).padStart(2, '0');
@@ -113,6 +113,22 @@ const SelectDate = ({
     fd?.projectId ?? fd?.project?.id ?? fd?.project?.projectId ?? null;
 
   const navigate = useNavigate();
+  const { search } = useLocation();
+
+  // Read plannerId from query params
+  const plannerIdFromQS = useMemo(
+    () => new URLSearchParams(search).get("plannerId"),
+    [search]
+  );
+
+  // Single canonical plannerId (QS first, then fallbacks)
+  const plannerId =
+    plannerIdFromQS ??
+    formData?.plannerId ??
+    formData?.session?.plannerId ??
+    formData?.session?.id ??
+    null;
+
   const [selectedDate, setSelectedDate] = useState(formData.selectedDate || '');
   const [weekDates, setWeekDates] = useState([]);
   const [weekHeader, setWeekHeader] = useState(' ');
@@ -126,14 +142,8 @@ const SelectDate = ({
 
   const [slotsByDate, setSlotsByDate] = useState({});
 
-  // 🔌 Load schedule using plannerId saved in previous step
+  // 🔌 Load schedule using plannerId (from query param or fallback)
   useEffect(() => {
-    const plannerId =
-      formData?.plannerId ??
-      formData?.session?.plannerId ??
-      formData?.session?.id ??
-      null;
-
     const load = async () => {
       try {
         if (!plannerId) {
@@ -168,7 +178,7 @@ const SelectDate = ({
     };
 
     load();
-  }, [formData?.plannerId, formData?.session?.plannerId, formData?.session?.id]);
+  }, [plannerId]);
 
   const handleDateClick = (date) => {
     setSelectedDate(date);
@@ -182,12 +192,6 @@ const SelectDate = ({
       alert("Missing project id from previous step. Please start from the PT project first.");
       return;
     }
-
-    const plannerId =
-      formData?.plannerId ??
-      formData?.session?.plannerId ??
-      formData?.session?.id ??
-      null;
 
     if (!plannerId) {
       alert('Missing plannerId. Please create the session first.');
@@ -223,7 +227,7 @@ const SelectDate = ({
         body
       );
 
-      updateFormData({ selectedDate, chosenTimes, repeatConfig, selectedTimeBody: body });
+      updateFormData({ selectedDate, chosenTimes, repeatConfig, selectedTimeBody: body, plannerId });
       navigate(`/project/pt?projectId=${encodeURIComponent(projectId)}`);
     } catch (e) {
       console.error('Failed to submit selected time:', e);
@@ -301,4 +305,3 @@ const SelectDate = ({
 };
 
 export default SelectDate;
-  
