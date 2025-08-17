@@ -119,7 +119,7 @@ public class TravelController {
     }
 
     // 여행 프로젝트 최종 종료
-    @GetMapping("/inviteUser/{projectId}/finished")
+    @GetMapping("/{projectId}/finished")
     public ResponseEntity<String> travelProjectFinished(
             @PathVariable Long projectId) {
         return ResponseEntity.ok(travelService.projectFinished(projectId));

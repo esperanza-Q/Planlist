@@ -1,9 +1,11 @@
 package org.example.planlist.dto.DatePlannerDTO;
 
 import lombok.*;
+import org.example.planlist.dto.MoveBetweenPlacesDTO.MoveBetweenPlacesResponseDTO;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -26,7 +28,6 @@ public class DatePlannerResponseDTO {
     private Long wishlistId;
     private String wishlistName;
 
-    // 필요하면 참가자 정보도 간단히 추가 가능
-    // private Long participantId;
+    // ✅ 조회 시 함께 내려줄 교통수단
+    private List<MoveBetweenPlacesResponseDTO> transportations;
 }
-
