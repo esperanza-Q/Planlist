@@ -27,7 +27,7 @@ const normalize = (raw) => {
       email: serverEmail,
       // UI-only text (safe placeholder if missing)
       displayEmail: serverEmail ?? `friend${i}@example.com`,
-      profile_image: f?.profile_image ?? f?.profileImageUrl ?? ProfilePic,
+      profile_image: f?.profile_image ?? f?.profileImage ?? ProfilePic,
       raw: f, // <- keep everything for later disambiguation
     };
   };

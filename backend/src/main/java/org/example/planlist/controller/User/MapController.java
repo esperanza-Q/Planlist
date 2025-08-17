@@ -2,7 +2,7 @@ package org.example.planlist.controller.User;
 
 import org.example.planlist.dto.DatePlannerDTO.DatePlannerResponseDTO;
 import org.example.planlist.dto.WishlistDTO.WishlistResponseDTO;
-import org.example.planlist.service.DatePlannerService;
+import org.example.planlist.service.Travel.DatePlannerService;
 import org.example.planlist.service.WishlistService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
