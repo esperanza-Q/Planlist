@@ -1,5 +1,6 @@
 package org.example.planlist.service.Travel;
 
+import jakarta.persistence.Entity;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.example.planlist.dto.PtDTO.response.FreeTimeIntervalDTO;
@@ -273,5 +274,13 @@ public class TravelService {
         plannerProjectRepository.save(project);
     }
 
+    @Transactional
+    public String projectFinished(Long projectId) {
+        PlannerProject project = plannerProjectRepository.findById(projectId)
+                .orElseThrow(() -> new EntityNotFoundException("프로젝트를 찾을 수 없습니다."));
+
+        project.setStatus(PlannerProject.Status.FINISHED);
+        return "프로젝트 상태가 FINISHED로 변경되었습니다.";
+    }
 }
 
