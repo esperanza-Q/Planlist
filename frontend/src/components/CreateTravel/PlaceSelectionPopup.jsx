@@ -13,7 +13,7 @@ const PlaceSelectionPopup = ({ places, onSelect, onClose }) => {
       <div className="planner-popup-box ">
         
         <div className="tab category-tabs place-category-tabs">
-            {['all', 'place', 'dining', 'stay'].map(tab => (
+            {['all', 'place', 'restaurant', 'accommodation'].map(tab => (
               <button
                 key={tab}
                 className={`category-tab ${activeTab === tab ? 'active' : ''}`}
