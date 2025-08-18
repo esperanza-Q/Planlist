@@ -3,6 +3,7 @@ package org.example.planlist.controller.GoogleCalendar;
 import com.google.api.services.calendar.model.Event;
 import lombok.RequiredArgsConstructor;
 import org.example.planlist.security.CustomUserDetails;
+import org.example.planlist.security.SecurityUtil;
 import org.example.planlist.service.GoogleCalendar.GoogleCalendarService;
 import org.example.planlist.service.GoogleCalendar.PlannerCalendarService;
 import org.springframework.http.ResponseEntity;
@@ -40,13 +41,15 @@ public class CalendarController {
 
     @PostMapping("/add")
     public ResponseEntity<String> addEventToGoogleCalendar(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
+//            @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam Long projectId,
             @RequestParam(required = false) Long sessionId
     ) throws Exception {
 
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+
         String eventLink = plannerCalendarService.addProjectToGoogleCalendar(
-                userDetails.getUser().getId(),
+                currentUserId,
                 projectId,
                 sessionId
         );
