@@ -37,7 +37,6 @@ jobs:
 
       - name: Check build directory
         run: |
-          ls -al frontend/dist  # dist 디렉토리 확인
           ls -al frontend/build # build 디렉토리 확인
 
       - name: Upload artifact (frontend build)
