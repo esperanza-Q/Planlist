@@ -1,6 +1,6 @@
 package org.example.planlist.repository;
 
-import org.example.planlist.entity.PtSession;
+import org.example.planlist.entity.PlannerProject;
 import org.example.planlist.entity.StandardSession;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -11,4 +11,6 @@ public interface StandardSessionRepository extends JpaRepository<StandardSession
     Optional<StandardSession> findById(Long id);
 
     List<StandardSession> findByProject_ProjectId(Long projectId);
+
+    List<StandardSession> findByProject(PlannerProject project);
 }
