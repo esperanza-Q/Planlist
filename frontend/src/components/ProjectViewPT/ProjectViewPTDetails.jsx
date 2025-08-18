@@ -111,10 +111,7 @@ const ProjectViewPTDetails = () => {
 
 
 const projectId = query.get("projectId");   // ✅ now you have it
-  const plannerId = useMemo(
-    () => new URLSearchParams(search).get("plannerId") ?? "23",
-    [search]
-  );
+  const plannerId = query.get("plannerId")
 
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);

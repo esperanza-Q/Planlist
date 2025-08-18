@@ -34,6 +34,14 @@
   margin-bottom: 0.5rem;
 }
 
+.DetailTime-modal-header button{
+  border: 1px solid var(--Galaxy);
+  background-color: transparent;
+  border-radius: 100px;
+  color: var(--Galaxy);
+  cursor: pointer;
+}
+
 .DetailTime-modal-subheader {
   text-align: center;
   margin-bottom: 1rem;
@@ -84,3 +92,15 @@
   outline: 1px solid #1C2E4A;
 }
 
+
+
+/* 선택 불가능 시간대 */
+.DetailTime-time-slot.disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* 드래그 중 텍스트 선택 방지(선택 감도 향상) */
+.DetailTime-time-list {
+  user-select: none;
+}

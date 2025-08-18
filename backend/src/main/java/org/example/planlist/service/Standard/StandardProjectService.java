@@ -35,6 +35,10 @@ public class StandardProjectService {
                         .projectId(project.getProjectId())
                         .projectName(project.getProjectTitle())
                         .category(project.getCategory().name())
+                        .status(project.getStatus().name())
+                        .startDate(project.getStartDate())
+                        .endDate(project.getEndDate())
+                        .confirmedAt(project.getConfirmedAt())
                         .build()
         );
 
