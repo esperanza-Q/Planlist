@@ -28,7 +28,7 @@ const StandardInfoCard =({ project }) =>{
                 </div>
             </div>
             <div className="spacer" style={{height: '15px'}}></div>
-            <div className="info-container">
+            {/* <div className="info-container">
                 <img src={location_icon} className="icon"/>
                 <div className="info-text">
                     <div className="project-info">
@@ -45,7 +45,7 @@ const StandardInfoCard =({ project }) =>{
                         `${project.placeAddress}`}
                     </div>
                 </div>
-            </div>
+            </div> */}
             
             <div className="friends-section">
                 

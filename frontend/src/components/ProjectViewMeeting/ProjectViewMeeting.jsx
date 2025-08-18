@@ -38,39 +38,54 @@ const exampleMemos = [
 ];
 
 // 서버 응답 → 화면에서 쓰는 형태로 가볍게 정규화
+// 서버 응답(예시):
+// {
+//   participants:[{name,profileImage}], memo:[],
+//   meeting_session:[{plannerId,title,_finalized}],
+//   projects:[{projectId,projectName,category,status,startDate,endDate,confirmedAt}]
+// }
 const normalizeProject = (raw) => {
-  const d = raw?.data ?? raw ?? {};
-  const id = d.projectId ?? d.id ?? null;
-  const title = d.title ?? d.projectName ?? d.name ?? "Untitled Meeting Project";
-  const description = d.description ?? d.memo ?? "";
-  const status = d.status ?? "Active";
-  const repeat = d.repeat ?? d.recurring ?? "none";
-  const startDate = d.startDate ?? d.beginDate ?? d.start ?? null;
-  const endDate = d.endDate ?? d.finishDate ?? d.end ?? null;
+  const root = raw?.data ?? raw ?? {};
+  const proj = Array.isArray(root.projects) ? root.projects[0] : (root.project ?? {});
 
-  const users =
-    Array.isArray(d.participants) ? d.participants.map((p, i) => ({
-      name: p?.name ?? p?.nickname ?? p?.displayName ?? `Member ${i + 1}`,
-      avatar: p?.profileImage ?? p?.profile_image ?? ProfilePic,
-    })) :
-    Array.isArray(d.users) ? d.users.map((u, i) => ({
-      name: u?.name ?? `Member ${i + 1}`,
-      avatar: u?.avatar ?? u?.profileImage ?? ProfilePic,
-    })) : [];
+  const id        = proj?.projectId ?? proj?.id ?? null;
+  const title     = proj?.projectName ?? proj?.title ?? proj?.name ?? "Untitled Meeting Project";
+  const category  = (proj?.category ?? "MEETING").toString().toLowerCase(); // "meeting"
+  const status    = proj?.status ?? "INPROGRESS";
+  const startDate = proj?.startDate ?? null;
+  const endDate   = proj?.endDate ?? null;
 
-  const meetings =
-    Array.isArray(d.meetings) ? d.meetings :
-    Array.isArray(d.sessions) ? d.sessions.map((s, i) => s?.title ?? `meeting${i + 1}`) :
-    [];
+  const users = Array.isArray(root.participants)
+    ? root.participants.map((p, i) => ({
+        name: p?.name ?? `Member ${i + 1}`,
+        avatar: p?.profileImage ?? p?.profile_image ?? ProfilePic,
+      }))
+   : [];
+
+  // meeting_session → meetings(객체 배열)
+  const meetings = Array.isArray(root.meeting_session)
+    ? root.meeting_session.map((s, i) => ({
+        id: s?.plannerId ?? s?.id ?? `s-${i}`,
+        plannerId: s?.plannerId ?? s?.id ?? `s-${i}`,
+        title: s?.title ?? `meeting ${i + 1}`,
+        finalized: Boolean(s?._finalized ?? s?.finalized ?? false),
+      }))
+    : [];
 
   return {
-    id, title, description,
-    category: "meeting",
-    status, repeat,
-    startDate, endDate,
-    users, meetings,
+    id,
+    title,
+    description: "",
+    category,
+    status,
+    repeat: "none",
+    startDate,
+    endDate,
+    users,
+   meetings,
   };
 };
+
 
 const ProjectViewMeeting = () => {
   const { search } = useLocation();
@@ -78,6 +93,18 @@ const ProjectViewMeeting = () => {
   const projectId = query.get("projectId");
 
   const [project, setProject] = useState(sampleProject);
+  
+
+   const handleFinished = async () => {
+    try{
+      const res = await api.getSession(
+                `/api/meeting/inviteUser/${projectId}/finished`
+              );
+    }
+    catch (e){
+      console.error(e);
+    }
+  }
 
   useEffect(() => {
     if (!projectId) {
@@ -108,7 +135,10 @@ const ProjectViewMeeting = () => {
         <div className="layout ProjectViewMeeting">
           <MeetingInfoCard project={project} />
           <MeetingList project={project} />
-          <button className="meet-button addfinish">mark as finished</button>
+          <button className="meet-button addfinish"
+            onClick={handleFinished}
+          >
+            mark as finished</button>
         </div>
         <MemoCard initialMemos={exampleMemos} />
       </div>
