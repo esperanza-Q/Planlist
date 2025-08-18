@@ -5,6 +5,11 @@ import "./ProjectViewMeeting.css"
 
 import ProfilePic from "../../assets/ProfilePic.png"
 
+import React, { useEffect, useState } from "react";
+import { useLocation, useParams } from "react-router-dom";
+import { api } from "../../api/client";
+const useQuery = () => new URLSearchParams(useLocation().search);
+
 
 const sampleProject = {
   
@@ -77,8 +82,28 @@ const exampleMemos = [
   }
 ];
 
+
+
 const ProjectViewMeeting = () => {
-  
+
+      const query = useQuery();
+    const params = useParams();
+  const projectId = query.get("projectId") || params.projectId || null;
+
+  useEffect(()=> {
+    let alive=true;
+    (async() => {
+      try{
+        const data= await api.getSession(`/api/meeting/project/${projectId}`)
+        console.log(data);
+      }
+      catch(e){
+        console.error(e);
+      }
+    })();
+  });
+
+
 
   return (
     <div className="screen">

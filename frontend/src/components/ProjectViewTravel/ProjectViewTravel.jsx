@@ -121,7 +121,7 @@ const ProjectViewTravel = () => {
 
       try {
         // Your current endpoint (kept as-is)
-        const data = await api.getSession(`/api/travel/project/${encodeURIComponent(projectId)}`);
+        const data = await api.getSession(`/api/travel/project/${ projectId}`);
         // data shape (per your sample):
         // { project, participants, memo, projectDetails }
 

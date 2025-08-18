@@ -21,7 +21,10 @@ const CommentCard = ({ initialComments, sessionId }) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [isPosting, setIsPosting] = useState(false);
+  const sid = Number(sessionId) || sessionId;
   const [deleting, setDeleting] = useState(new Set()); // per-row busy state
+
+
 
   // sync from parent, normalized
   useEffect(() => {
@@ -48,10 +51,10 @@ const CommentCard = ({ initialComments, sessionId }) => {
 
     try {
       // POST /api/pt/session/writeComment?sessionId=...
-      await api.post(
-        `/api/pt/session/writeComment`,
-        { content: trimmed },
-        { params: { sessionId } }
+      await api.postSession(
+        `/api/pt/session/writeComment?sessionId=${sessionId}`,
+         
+        {content: trimmed}
       );
       // Keep your full reload pattern (or switch to re-fetch if available)
       window.location.reload();
