@@ -5,6 +5,7 @@ import { api } from "../../api/client";
 
 import MemoCard from "../../components/ProjectView/MemoCard";
 import StandardInfoCard from "../../components/ProjectViewStandard/StandardInfoCard";
+import StandardList from "../../components/ProjectViewStandard/StandardList";
 import "./ProjectViewStandard.css";
 
 import ProfilePic from "../../assets/ProfilePic.png";
@@ -24,7 +25,7 @@ const sampleProject = {
     { name: "B", avatar: ProfilePic },
     { name: "C", avatar: ProfilePic },
   ],
-  meetings: [],
+  meetings: [], // sessions list
 };
 
 const exampleMemos = [
@@ -49,7 +50,19 @@ const buildDescription = (loc) => {
   return a || "";
 };
 
-// Map **project** response -> StandardInfoCard + MemoCard shape
+const toBool = (v) => {
+  if (v === true) return true;
+  if (v === false) return false;
+  if (typeof v === "string") {
+    const s = v.trim().toLowerCase();
+    if (s === "true" || s === "1") return true;
+    if (s === "false" || s === "0") return false;
+  }
+  if (typeof v === "number") return v === 1;
+  return false;
+};
+
+// Map **project** response -> StandardInfoCard + MemoCard + sessions list
 const normalizeStandardProject = (raw) => {
   const root = raw?.data ?? raw ?? {};
 
@@ -75,7 +88,22 @@ const normalizeStandardProject = (raw) => {
       }))
     : [];
 
-  // memos can be an array or split into personal/group fields
+  // ---- sessions (make it like Meeting/PT)
+  // prefer standard-specific key, but be defensive:
+  const sessionsRaw =
+    (Array.isArray(root.standard_session) && root.standard_session) ||
+    (Array.isArray(root.sessions) && root.sessions) ||
+    (Array.isArray(root.meeting_session) && root.meeting_session) || // just in case
+    [];
+
+  const meetings = sessionsRaw.map((s, i) => ({
+    id: s?.plannerId ?? s?.id ?? `s-${i}`,
+    plannerId: s?.plannerId ?? s?.id ?? `s-${i}`,
+    title: s?.title ?? `session ${i + 1}`,
+    finalized: toBool(s?._finalized ?? s?.finalized ?? s?.is_finalized),
+  }));
+
+  // ---- memos
   let memos = [];
   if (Array.isArray(root.memo)) {
     memos = root.memo.map((m, i) => ({
@@ -117,7 +145,7 @@ const normalizeStandardProject = (raw) => {
       startDate,
       endDate,
       users,
-      meetings: [], // not used here
+      meetings, // ← sessions list used by StandardList
     },
     memos,
   };
@@ -136,16 +164,13 @@ const ProjectViewStandard = () => {
   const [project, setProject] = useState(sampleProject);
   const [memos, setMemos] = useState(exampleMemos);
 
-     const handleFinished = async () => {
-      try{
-        const res = await api.getSession(
-                  `/api/standard/inviteUser/${projectId}/finished`
-                );
-      }
-      catch (e){
-        console.error(e);
-      }
+  const handleFinished = async () => {
+    try {
+      await api.getSession(`/api/standard/inviteUser/${projectId}/finished`);
+    } catch (e) {
+      console.error(e);
     }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -171,7 +196,6 @@ const ProjectViewStandard = () => {
         console.error("Standard project fetch failed:", e);
         if (!cancelled) {
           setErr("Failed to load. Showing sample data.");
-          // keep sampleProject/exampleMemos as fallback
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -186,9 +210,8 @@ const ProjectViewStandard = () => {
       <div className="layout-standard">
         <div>
           <StandardInfoCard project={project} />
-          <button className="meet-button addfinish"
-            onClick={handleFinished}
-          >
+          <StandardList project={project} />
+          <button className="meet-button addfinish" onClick={handleFinished}>
             mark as finished
           </button>
         </div>

@@ -22,6 +22,7 @@ import ProjectViewMeeting from "./components/ProjectViewMeeting/ProjectViewMeeti
 import ProjectViewMeetingDetails from "./components/ProjectViewMeeting/ProjectViewMeetingDetails";
 
 import ProjectViewStandard from "./components/ProjectViewStandard/ProjectViewStandard";
+import ProjectViewStandardDetails from "./components/ProjectViewStandard/ProjectViewStandardDetails";
 import ProjectViewPT from "./components/ProjectViewPT/ProjectViewPT";
 import ProjectViewPTDetails from "./components/ProjectViewPT/ProjectViewPTDetails";
 import ProjectViewTravel from "./components/ProjectViewTravel/ProjectViewTravel";
@@ -124,6 +125,7 @@ function App() {
                 <Route path="/project/meeting" element={<ProjectViewMeeting />} />
                 <Route path="/project/meeting/details" element={<ProjectViewMeetingDetails />} />
                 <Route path="/project/standard" element={<ProjectViewStandard />} />
+                <Route path="/project/standard/details" element={<ProjectViewStandardDetails />} />
                 <Route path="/project/pt" element={<ProjectViewPT/>}/>
                 <Route path="/project/pt/:projectId" element={<ProjectViewPT />} />
                 <Route path="/project/pt/details" element={<ProjectViewPTDetails />}/>
