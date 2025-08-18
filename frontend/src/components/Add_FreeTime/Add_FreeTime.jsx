@@ -30,7 +30,20 @@ const WeeklyCalendar = () => {
       const newSet = new Set();
       const weekStart = new Date(currentWeekStart); weekStart.setHours(0,0,0,0);
       const dayMs = 24 * 60 * 60 * 1000;
-      const toHour = hhmm => Number(hhmm.split(":")[0]);
+      // 시작/종료 시각 파서: 종료가 23:59(또는 24:00)이면 24시로 취급
+    const parseHour = (hhmm, { isEnd } = { isEnd: false }) => {
+      const [hs, ms] = String(hhmm || "00:00").split(":");
+      const h = Number(hs), m = Number(ms);
+      if (isEnd) {
+        if ((h === 23 && m === 59) || (h === 24 && (isNaN(m) || m === 0))) return 24;
+        return h;
+      }
+      return h;
+    };
+    const isAllDayRange = (it) =>
+      it?.allDay === true ||
+      (it?.start === "00:00" && (it?.end === "23:59" || it?.end === "24:00"));
+
 
       freeTimeCalendar.forEach(item => {
         const dateObj = new Date(item.date);
@@ -38,11 +51,11 @@ const WeeklyCalendar = () => {
         const col = Math.floor((dateObj.getTime() - weekStart.getTime()) / dayMs);
         if (col < 0 || col > 6) return;
 
-        if (item.allDay) {
+        if (isAllDayRange(item)) {
           for (let h = 0; h < 24; h++) newSet.add(`${h}-${col}`);
         } else {
-          const s = toHour(item.start);
-          const e = toHour(item.end);
+            const s = parseHour(item.start, { isEnd: false });
+            const e = parseHour(item.end, { isEnd: true }); // [s, e) 범위
           for (let h = s; h < e; h++) newSet.add(`${h}-${col}`);
         }
       });
@@ -168,7 +181,7 @@ const handleSave = async (weekStart = currentWeekStart, selectedCellsSet = null,
 
       // 하루 전체 선택
       if (hours.length === 24) {
-        return [{ date: dateStr, start: "00:00", end: "23:59" }];
+        return [{ date: dateStr, start: "00:00", end: "23:59", allDay: true }];
       }
 
       // 연속 시간대 병합

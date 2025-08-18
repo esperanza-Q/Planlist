@@ -96,10 +96,10 @@ const ProjectOverview = () => {
         </div>
 
         <div className="overview-right">
-          {loading && <div className="overview-empty">불러오는 중…</div>}
+          {loading && <div className="overview-empty">Loading…</div>}
           {!loading && errorMsg && <div className="overview-error">{errorMsg}</div>}
           {!loading && !errorMsg && projects.length === 0 && (
-            <div className="overview-empty">표시할 프로젝트가 없어요.</div>
+            <div className="overview-empty">There are no projects to display</div>
           )}
 
           {!loading && !errorMsg && projects.length > 0 && (
