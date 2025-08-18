@@ -1,7 +1,7 @@
 package org.example.planlist.repository;
 
 import org.example.planlist.entity.MeetingSession;
-import org.example.planlist.entity.PtSession;
+import org.example.planlist.entity.PlannerProject;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -11,5 +11,6 @@ public interface MeetingSessionRepository extends JpaRepository<MeetingSession, 
     Optional<MeetingSession> findById(Long id);
 
     List<MeetingSession> findByProject_ProjectId(Long projectId);
+    List<MeetingSession> findByProject(PlannerProject project);
 }
 
