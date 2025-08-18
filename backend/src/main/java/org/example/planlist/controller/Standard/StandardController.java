@@ -2,6 +2,7 @@ package org.example.planlist.controller.Standard;
 
 import lombok.RequiredArgsConstructor;
 import org.example.planlist.dto.SharePlannerDTO.response.SharedPlannerResponseDTO;
+import org.example.planlist.dto.SharePlannerDTO.response.StandardSharedPlannerResponseDTO;
 import org.example.planlist.dto.StandardDTO.request.AddSessionRequestDTO;
 import org.example.planlist.dto.StandardDTO.request.StandardProjectCreateRequestDTO;
 import org.example.planlist.dto.StandardDTO.request.StandardProjectInviteRequestDTO;
@@ -13,7 +14,7 @@ import org.example.planlist.entity.PlannerSession;
 import org.example.planlist.repository.PlannerSessionRepository;
 import org.example.planlist.service.Standard.StandardProjectService;
 import org.example.planlist.service.Standard.StandardService;
-import org.example.planlist.service.SharePlanner.SharePlannerService;
+import org.example.planlist.service.StandardSharePlanner.StandardSharePlannerService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,7 +25,7 @@ public class StandardController {
 
     private final StandardService standardService;
     private final StandardProjectService standardProjectService;
-    private final SharePlannerService sharePlannerService;
+    private final StandardSharePlannerService standardSharePlannerService;
     private final PlannerSessionRepository plannerSessionRepository;
 
     @PostMapping("/createProject")
@@ -91,13 +92,13 @@ public class StandardController {
 
 
     @GetMapping("/project/sharePlanner")
-    public ResponseEntity<SharedPlannerResponseDTO> getSharedPlanner(
+    public ResponseEntity<StandardSharedPlannerResponseDTO> getSharedPlanner(
             @RequestParam Long plannerId
 //            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
 //            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
     ) {
 
-        SharedPlannerResponseDTO response = sharePlannerService.getSharedPlanner(plannerId);
+        StandardSharedPlannerResponseDTO response = standardSharePlannerService.getSharedPlanner(plannerId);
         return ResponseEntity.ok(response);
     }
 
@@ -106,7 +107,7 @@ public class StandardController {
             @RequestParam Long plannerId,
             @RequestBody SelectTimeRequestDTO dto) {
 
-        PlannerSession updated = sharePlannerService.updateSelectTime(plannerId, dto);
+        PlannerSession updated = standardSharePlannerService.updateSelectTime(plannerId, dto);
         return ResponseEntity.ok("일정을 선택 완료하였습니다!");
     }
 
