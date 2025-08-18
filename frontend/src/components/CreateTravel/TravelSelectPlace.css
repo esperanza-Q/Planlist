@@ -119,3 +119,29 @@
     left: 0px;
     margin-bottom: 20px;
 }
+
+.save-project-bottom-right {
+  position: fixed;
+  bottom: 2rem;
+  right: 3rem;
+}
+
+.save-project-save-button {
+  background: var(--Planetary);
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 0.7rem 2rem;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background 0.2s ease;
+    margin-left: 100px;
+    margin-bottom: 80px;
+}
+
+.save-project-save-button:hover {
+  background: #3554b8;
+}

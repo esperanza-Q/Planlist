@@ -2,6 +2,8 @@ import React, { useMemo, useState } from 'react';
 import './MemoModal.css';
 import { api } from '../../api/client';
 import { useLocation, useParams } from 'react-router-dom';
+import PlusIcon from '../../icons/PlusIcon';
+import XCircleIcon from '../../icons/XCircleIcon'
 
 /**
  * Props
@@ -195,13 +197,18 @@ const MemoModal = ({ onClose, onSave, projectId: propProjectId, projectName, for
             disabled={saving}
           />
 
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={onChangeFiles}
-            disabled={saving}
-          />
+          <label className="memo-upload-label">
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={onChangeFiles}
+              disabled={saving}
+              className="memo-image-input"
+            />
+            <PlusIcon /> Add Image
+          </label>
+          
 
           {files.length > 0 && (
             <ul className="memo-file-list">
@@ -213,8 +220,9 @@ const MemoModal = ({ onClose, onSave, projectId: propProjectId, projectName, for
                     onClick={() => removeFileAt(idx)}
                     disabled={saving}
                     style={{ marginLeft: 8 }}
+                    className='remove-input-button'
                   >
-                    제거
+                    <XCircleIcon className="remove-icon" />
                   </button>
                 </li>
               ))}

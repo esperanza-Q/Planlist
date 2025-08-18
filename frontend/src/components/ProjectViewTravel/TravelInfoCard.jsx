@@ -2,6 +2,9 @@ import edit_icon from "../../assets/edit_icon.svg"
 import google_meets from "../../assets/google_meet_logo.svg"
 import location_icon from "../../assets/location_icon.svg"
 import calendar_icon from "../../assets/calendar_icon.svg"
+import ProfilePic from "../../assets/ProfilePic.png"; 
+
+const FALLBACK_AVATAR = ProfilePic;
 
 const TravelInfoCard =({ project }) =>{
     return(
@@ -50,6 +53,9 @@ const TravelInfoCard =({ project }) =>{
                                 src={friend.avatar}
                                 alt={friend.name}
                                 className="friend-small-avatar"
+                                onError={(e) => {
+                                e.currentTarget.src = FALLBACK_AVATAR;
+                            }}
                             />
                             <span className="friend-small-name">{friend.name}</span>
                             </div>

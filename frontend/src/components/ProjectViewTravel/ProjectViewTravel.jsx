@@ -1,5 +1,5 @@
 // src/components/ProjectViewTravel/ProjectViewTravel.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import { api } from "../../api/client";
 
@@ -79,6 +79,7 @@ const ProjectViewTravel = () => {
   const [trip, setTrip] = useState(null);
   const [loading, setLoading] = useState(true);
   const [errMsg, setErrMsg] = useState("");
+  const EMPTY_MEMOS = useRef([]).current;
 
 
   const handleFinished = async () => {
@@ -106,7 +107,7 @@ const ProjectViewTravel = () => {
   }
 }
 
-
+  const [memoScope, setMemoScope] = useState({ projectId: null, projectName: undefined });
   useEffect(() => {
     let cancelled = false;
 
@@ -157,6 +158,8 @@ const ProjectViewTravel = () => {
           }
         });
 
+        
+
         const datePlanners = Object.values(byDate).sort((a, b) => a.date.localeCompare(b.date));
 
         // participants normalize
@@ -201,7 +204,24 @@ const ProjectViewTravel = () => {
     return () => { cancelled = true; };
   }, [projectId]);
 
-  const infoProject = useMemo(() => (trip ? tripToInfoProject(trip) : null), [trip]);
+      // ✅ 라우트 projectId가 바뀔 때 스코프 초기화
+    useEffect(() => {
+      setMemoScope({ projectId: null, projectName: undefined });
+    }, [projectId]);
+
+    const infoProject = useMemo(() => (trip ? tripToInfoProject(trip) : null), [trip]);
+
+   useEffect(() => {
+     if (!projectId || !trip) return;
+     const serverId = trip.project_id;
+     const name = (trip.project_name || infoProject?.title || "").trim();
+     if (serverId == null) return;
+     if (String(serverId) !== String(projectId)) return;
+     if (!name) return;
+     setMemoScope(prev =>
+       prev.projectId === projectId && prev.projectName ? prev : { projectId, projectName: name }
+     );
+  }, [projectId, trip, trip?.project_id, trip?.project_name, infoProject?.title]);
 
   const initialMemos = useMemo(() => {
     const list = [];
@@ -254,7 +274,14 @@ const ProjectViewTravel = () => {
             style={{marginTop:"20px", marginBottom:"20px"}}
             onClick={addGoogleCalendar}
           >add to google calendar</button>
-          <MemoCard initialMemos={initialMemos} />
+          {memoScope.projectId && memoScope.projectName && (
+             <MemoCard
+               projectId={memoScope.projectId}
+               projectName={memoScope.projectName}
+               initialMemos={initialMemos.length ? initialMemos : EMPTY_MEMOS}
+               key={`memo-travel-${memoScope.projectId}-${memoScope.projectName}`}
+             />
+          )}
         </div>
 
         <div className="layout">

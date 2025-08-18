@@ -104,24 +104,29 @@
 .recommended-start {
   
   border-radius: 50% 0 0 50%;
-  background-color: #BAD6EB;
+  background-color: var(--Planetary);
+  color: white;
   position: relative;
 }
 
 .recommended-single {
   border-radius: 50%;
-  background-color: #BAD6EB;
+  background-color: var(--Planetary);
+  color: white;
   position: relative;
+  
 }
 
 .recommended-end {
   border-radius: 0 50% 50% 0;
-  background-color: #BAD6EB;
+  background-color: var(--Planetary);
+  color: white;
   position: relative;
 }
 
 .recommended-in-range {
-  background-color: #BAD6EB;
+  background-color: var(--Planetary);
+  color: white;
  }
 
 .recommended-unselected{

@@ -1,5 +1,5 @@
 // src/pages/ProjectView/ProjectViewMeetingDetails.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { api } from "../../api/client";
 
@@ -35,6 +35,10 @@ const normalizeSessionToProject = (raw) => {
   // raw는 api 래퍼에 따라 {data: {...}} 또는 {...}
   const d = raw?.data ?? raw ?? {};
 
+  const plannerId  = d.plannerId ?? d.sessionId ?? d.id ?? null;
+  const projectId  = d.projectId ?? d.project?.id ?? d.project_id ?? null;
+  const projectName = d.projectName ?? d.project?.name ?? d.project_name ?? null;
+
   // 예상 가능한 필드들 방어적으로 흡수
   const title      = d.title ?? d.sessionTitle ?? d.name ?? "Untitled Session";
   const date       = toDate(d.date ?? d.startDate ?? d.sessionDate);
@@ -52,7 +56,10 @@ const normalizeSessionToProject = (raw) => {
     : [];
 
   return {
-    id: d.plannerId ?? d.sessionId ?? d.id ?? null,
+    id: plannerId,
+    plannerId,
+    projectId,
+    projectName,
     title,
     description: "",          // 세션 상세 설명 필드가 없으면 빈 값
     category: "meeting",
@@ -113,6 +120,8 @@ const ProjectViewMeetingDetails = () => {
     })();
   }, [sessionId]);
 
+  const EMPTY_MEMOS = useRef([]).current;
+
   return (
     <div className="screen">
       <div className="project-view-meeting detail">
@@ -123,7 +132,13 @@ const ProjectViewMeetingDetails = () => {
             <MeetingDetailInfoCard project={project} />
           )}
         </div>
-        <MemoCard initialMemos={exampleMemos} />
+         <MemoCard
+            projectId={project?.projectId ?? null}
+            plannerId={project?.plannerId ?? sessionId ?? null}
+            initialMemos={EMPTY_MEMOS}
+            key={`memo-meeting-detail-${project?.plannerId ?? sessionId}`}
+            projectName={project?.title}
+        />
       </div>
     </div>
   );
