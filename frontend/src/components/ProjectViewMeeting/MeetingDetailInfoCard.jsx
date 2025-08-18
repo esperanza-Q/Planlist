@@ -26,7 +26,7 @@ const MeetingInfoCard =({ project }) =>{
                 </div>
             </div>
             <div className="spacer" style={{height: '15px'}}></div>
-            <div className="info-container">
+            {/* <div className="info-container">
                 <img src={location_icon} className="icon"/>
                 <div className="info-text">
                     <div className="project-info">
@@ -43,7 +43,7 @@ const MeetingInfoCard =({ project }) =>{
                         `${project.placeAddress}`}
                     </div>
                 </div>
-            </div>
+            </div> */}
             
             <div className="friends-section">
                 
@@ -62,11 +62,6 @@ const MeetingInfoCard =({ project }) =>{
             </div>
 
             <button className="meeting-edit-button" ><img src={edit_icon}/></button>
-            <button className="meet-button" >
-                <img src={google_meets}/>
-                <p>Create Google Meet</p>
-                
-            </button>
 
         </div>
 

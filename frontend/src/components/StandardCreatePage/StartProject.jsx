@@ -54,7 +54,7 @@ const StartProject = ({ formData, updateFormData, nextStep }) => {
           <CubeAltIcon className="BigMeeting-Start-start-project-icon" />
         </div>
 
-        <h2>Start Meeting Project</h2>
+        <h2>Start Standard Project</h2>
         <p className="BigMeeting-Start-orm-description">
           Welcome Project! Please enter your details.
         </p>

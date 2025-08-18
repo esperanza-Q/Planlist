@@ -1,11 +1,11 @@
-// src/pages/ProjectView/ProjectViewMeetingDetails.jsx
+// src/pages/ProjectView/ProjectViewStandardDetails.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { api } from "../../api/client";
+import StandardDetailInfoCard from "../../components/ProjectViewMeeting/MeetingDetailInfoCard";
 
-import MeetingDetailInfoCard from "../../components/ProjectViewMeeting/MeetingDetailInfoCard";
 import MemoCard from "../ProjectView/MemoCard";
-import "./ProjectViewMeeting.css";
+import "./ProjectViewStandard.css";
 
 import ProfilePic from "../../assets/ProfilePic.png";
 
@@ -16,6 +16,7 @@ const toDate = (d) => {
   const dt = new Date(d);
   return isNaN(dt) ? null : dt.toISOString().slice(0, 10);
 };
+
 const toTime = (t) => {
   if (!t) return null;
   // accept "10:00", "10:00:00", Date string
@@ -30,20 +31,22 @@ const toTime = (t) => {
   return `${hh}:${mm}`;
 };
 
-// 서버 응답(세션) → MeetingDetailInfoCard에서 쓰는 형태로 매핑
+// 서버 응답(세션) → StandardDetailInfoCard에서 쓰는 형태로 매핑
+// (keys are defensive: accepts multiple likely server shapes)
 const normalizeSessionToProject = (raw) => {
-  // raw는 api 래퍼에 따라 {data: {...}} 또는 {...}
   const d = raw?.data ?? raw ?? {};
 
-  // 예상 가능한 필드들 방어적으로 흡수
   const title      = d.title ?? d.sessionTitle ?? d.name ?? "Untitled Session";
   const date       = toDate(d.date ?? d.startDate ?? d.sessionDate);
   const startTime  = toTime(d.startTime ?? d.beginTime ?? d.start);
   const endTime    = toTime(d.endTime ?? d.finishTime ?? d.end);
-  const placeName  = d.placeName ?? d.locationName ?? d.place ?? "";
-  const placeAddr  = d.placeAddress ?? d.locationAddress ?? d.address ?? "";
 
-  // 참가자
+  // location variations
+  const loc        = d.location ?? {};
+  const placeName  = d.placeName ?? loc.place_name ?? loc.name ?? "";
+  const placeAddr  = d.placeAddress ?? loc.address ?? loc.place_address ?? "";
+
+  // participants
   const users = Array.isArray(d.participants)
     ? d.participants.map((p, i) => ({
         name: p?.name ?? `Member ${i + 1}`,
@@ -54,8 +57,8 @@ const normalizeSessionToProject = (raw) => {
   return {
     id: d.plannerId ?? d.sessionId ?? d.id ?? null,
     title,
-    description: "",          // 세션 상세 설명 필드가 없으면 빈 값
-    category: "meeting",
+    description: "",
+    category: "standard",
     status: "Active",
     repeat: "none",
     startDate: date,
@@ -65,24 +68,24 @@ const normalizeSessionToProject = (raw) => {
     placeName: placeName || "—",
     placeAddress: placeAddr || "—",
     users,
-    meetings: [],            // 상세 화면에선 사용 안 함
+    meetings: [],
   };
 };
 
 const exampleMemos = [
-  { id: "1", type: "personal", project: "example project 1", content: "example memo...", category: "meeting" },
-  { id: "2", type: "group",    project: "example project 2", content: "example memo...", category: "meeting" },
+  { id: "1", type: "personal", project: "example project 1", content: "example memo...", category: "standard" },
+  { id: "2", type: "group",    project: "example project 2", content: "example memo...", category: "standard" },
 ];
 
-const ProjectViewMeetingDetails = () => {
+const ProjectViewStandardDetails = () => {
   const { search } = useLocation();
   const query = useMemo(() => new URLSearchParams(search), [search]);
-  // MeetingList에서 plannerId를 넘겼으니 우선 사용. (sessionId로 넘어오는 경우도 지원)
+  // Accept both ?plannerId= and ?sessionId=
   const sessionId = query.get("plannerId") || query.get("sessionId");
 
-  const [loading, setLoading]   = useState(true);
-  const [error, setError]       = useState(null);
-  const [project, setProject]   = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState(null);
+  const [project, setProject] = useState(null);
 
   useEffect(() => {
     if (!sessionId) {
@@ -94,18 +97,18 @@ const ProjectViewMeetingDetails = () => {
     (async () => {
       setLoading(true);
       setError(null);
-      const url = `/api/meeting/session?sessionId=${encodeURIComponent(sessionId)}`;
       try {
-        console.log("[MeetingDetails] GET →", url);
-        const res = await api.getSession(
-          `/api/meeting/session`, { params: { sessionId: sessionId } }
-        );
-        console.log("[MeetingDetails] response ←", res);
+        // GET /api/standard/session?sessionId=...
+        console.log("[StandardDetails] GET → /api/standard/session", { sessionId });
+        const res = await api.getSession(`/api/standard/session`, {
+          params: { sessionId },
+        });
+        console.log("[StandardDetails] response ←", res);
 
         const normalized = normalizeSessionToProject(res);
         setProject(normalized);
       } catch (e) {
-        console.error("[MeetingDetails] fetch failed", e);
+        console.error("[StandardDetails] fetch failed", e);
         setError("세션 정보를 불러오지 못했습니다.");
       } finally {
         setLoading(false);
@@ -120,7 +123,7 @@ const ProjectViewMeetingDetails = () => {
           {loading && <div style={{ padding: 12 }}>Loading…</div>}
           {error && <div style={{ padding: 12, color: "crimson" }}>{error}</div>}
           {!loading && !error && project && (
-            <MeetingDetailInfoCard project={project} />
+            <StandardDetailInfoCard project={project} />
           )}
         </div>
         <MemoCard initialMemos={exampleMemos} />
@@ -129,4 +132,4 @@ const ProjectViewMeetingDetails = () => {
   );
 };
 
-export default ProjectViewMeetingDetails;
+export default ProjectViewStandardDetails;

@@ -21,6 +21,7 @@ const MeetingCreatePage = () => {
   }, [params]);
 
   const initialProjectId = params.get("projectId");
+  const initialPlannerId = params.get("plannerId");
 
   const [step, setStep] = useState(initialStep);
   const [formData, setFormData] = useState({
@@ -28,6 +29,7 @@ const MeetingCreatePage = () => {
     startDate: null,
     endDate: null,
     projectId: initialProjectId ?? null, // keep projectId around
+     plannerId: initialPlannerId ?? null,
   });
 
   const nextStep = () => setStep((prev) => prev + 1);

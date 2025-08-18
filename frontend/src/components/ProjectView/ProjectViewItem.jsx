@@ -79,11 +79,13 @@ const ProjectViewItem = ({ project }) => {
     }
 
     if (category === "standard") {
-      if (!statusIsInProgress()) {
-        navigate(`/project?category=STANDARD&step=2&projectId=${encodeURIComponent(id)}`);
+      if (statusIsInProgress() || statusIsFinished()) {
+              navigate(`/project/standard?projectId=${encodeURIComponent(id)}`);
+
         return;
       }
-      navigate(`/project/standard?projectId=${encodeURIComponent(id)}`);
+              navigate(`/project?category=STANDARD&step=2&projectId=${encodeURIComponent(id)}`);
+
       return;
     }
   };

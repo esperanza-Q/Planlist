@@ -1,51 +1,42 @@
+// src/pages/ProjectView/ProjectViewStandard.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { api } from "../../api/client";
 
 import MemoCard from "../../components/ProjectView/MemoCard";
 import StandardInfoCard from "../../components/ProjectViewStandard/StandardInfoCard";
+import StandardList from "../../components/ProjectViewStandard/StandardList";
 import "./ProjectViewStandard.css";
 
 import ProfilePic from "../../assets/ProfilePic.png";
 
-// Fallback sample (kept in case of errors)
+// ---- fallback samples (used if fetch fails) ----
 const sampleProject = {
   id: 1,
   title: "Team Branding Workshop",
-  description: "Weekly catch-up and planning meeting.",
+  description: "Seoul HQ · Main hall",
   category: "standard",
   status: "Active",
-  repeat: "weekly",
+  repeat: "none",
   startDate: "2025-07-01",
-  endDate: "2025-07-07",
+  endDate: "2025-07-01",
   users: [
     { name: "A", avatar: ProfilePic },
     { name: "B", avatar: ProfilePic },
     { name: "C", avatar: ProfilePic },
   ],
-  meetings: ["meeting1", "meeting2"],
+  meetings: [], // sessions list
 };
 
 const exampleMemos = [
-  {
-    id: "pm",
-    type: "personal",
-    project: "example project",
-    content: "개인 메모 예시",
-    category: "standard",
-  },
-  {
-    id: "gm",
-    type: "group",
-    project: "example project",
-    content: "그룹 메모 예시",
-    category: "standard",
-  },
+  { id: "pm", type: "personal", project: "example project", content: "개인 메모 예시", category: "standard" },
+  { id: "gm", type: "group",    project: "example project", content: "그룹 메모 예시", category: "standard" },
 ];
 
-// --- helpers to normalize the backend payload -> UI props ---
+// ---- helpers ----
 const normalizeRepeat = (rep) => {
   if (!rep) return "none";
+  if (typeof rep === "string") return rep;
   const t = rep.type ?? "none";
   const c = rep.count ? ` x${rep.count}` : "";
   return `${t}${c}`;
@@ -53,73 +44,133 @@ const normalizeRepeat = (rep) => {
 
 const buildDescription = (loc) => {
   if (!loc) return "";
-  const a = [loc.place_name, loc.address].filter(Boolean).join(" · ");
+  const a = [loc.place_name, loc.address, loc.placeName, loc.place_address]
+    .filter(Boolean)
+    .join(" · ");
   return a || "";
 };
 
-const normalizeStandard = (raw) => {
-  const proj = {
-    id: raw?.planner_id ?? raw?.plannerId ?? null,
-    title: raw?.title ?? "",
-    description: buildDescription(raw?.location),
-    category: "standard",
-    status: "Active",
-    repeat: normalizeRepeat(raw?.repeat),
-    startDate: raw?.start_date ?? raw?.start_week_date ?? "",
-    endDate: raw?.start_week_date ?? raw?.start_date ?? "",
-    users: Array.isArray(raw?.participants)
-      ? raw.participants.map((p) => ({
-          name: p?.name ?? "",
-          avatar: ProfilePic, // no image in payload; use a default
-        }))
-      : [],
-    meetings: Array.isArray(raw?.references)
-      ? raw.references
-          .map((r) => r?.filename || r?.url)
-          .filter(Boolean)
-          .slice(0, 8)
-      : [],
+const toBool = (v) => {
+  if (v === true) return true;
+  if (v === false) return false;
+  if (typeof v === "string") {
+    const s = v.trim().toLowerCase();
+    if (s === "true" || s === "1") return true;
+    if (s === "false" || s === "0") return false;
+  }
+  if (typeof v === "number") return v === 1;
+  return false;
+};
+
+// Map **project** response -> StandardInfoCard + MemoCard + sessions list
+const normalizeStandardProject = (raw) => {
+  const root = raw?.data ?? raw ?? {};
+
+  // project object (support both array & single)
+  const projObj = Array.isArray(root.projects) ? root.projects[0] : (root.project ?? {});
+
+  const projectId = projObj?.projectId ?? projObj?.id ?? root?.projectId ?? null;
+  const title =
+    projObj?.projectName ?? projObj?.title ?? root?.title ?? "Untitled Standard Project";
+  const category =
+    (projObj?.category ?? root?.category ?? "STANDARD").toString().toLowerCase();
+  const status = projObj?.status ?? root?.status ?? "Active";
+  const startDate = projObj?.startDate ?? projObj?.start_date ?? root?.startDate ?? null;
+  const endDate = projObj?.endDate ?? projObj?.end_date ?? root?.endDate ?? startDate;
+
+  const repeat = normalizeRepeat(projObj?.repeat ?? root?.repeat);
+  const description = buildDescription(root?.location);
+
+  const users = Array.isArray(root.participants)
+    ? root.participants.map((p, i) => ({
+        name: p?.name ?? `Member ${i + 1}`,
+        avatar: p?.profileImage ?? p?.profile_image ?? ProfilePic,
+      }))
+    : [];
+
+  // ---- sessions (make it like Meeting/PT)
+  // prefer standard-specific key, but be defensive:
+  const sessionsRaw =
+    (Array.isArray(root.standard_session) && root.standard_session) ||
+    (Array.isArray(root.sessions) && root.sessions) ||
+    (Array.isArray(root.meeting_session) && root.meeting_session) || // just in case
+    [];
+
+  const meetings = sessionsRaw.map((s, i) => ({
+    id: s?.plannerId ?? s?.id ?? `s-${i}`,
+    plannerId: s?.plannerId ?? s?.id ?? `s-${i}`,
+    title: s?.title ?? `session ${i + 1}`,
+    finalized: toBool(s?._finalized ?? s?.finalized ?? s?.is_finalized),
+  }));
+
+  // ---- memos
+  let memos = [];
+  if (Array.isArray(root.memo)) {
+    memos = root.memo.map((m, i) => ({
+      id: String(m?.noteId ?? m?.id ?? i + 1),
+      type: String(m?.share ?? "PERSONAL").toLowerCase() === "group" ? "group" : "personal",
+      project: title,
+      content: m?.content ?? "",
+      category: "standard",
+    }));
+  } else {
+    if (root?.personal_memo) {
+      memos.push({
+        id: "personal",
+        type: "personal",
+        project: title,
+        content: root.personal_memo,
+        category: "standard",
+      });
+    }
+    if (root?.group_memo) {
+      memos.push({
+        id: "group",
+        type: "group",
+        project: title,
+        content: root.group_memo,
+        category: "standard",
+      });
+    }
+  }
+
+  return {
+    project: {
+      id: projectId,
+      title,
+      description,
+      category,
+      status,
+      repeat,
+      startDate,
+      endDate,
+      users,
+      meetings, // ← sessions list used by StandardList
+    },
+    memos,
   };
-
-  const memos = [];
-  if (raw?.personal_memo) {
-    memos.push({
-      id: "personal",
-      type: "personal",
-      project: proj.title || "project",
-      content: raw.personal_memo,
-      category: "standard",
-    });
-  }
-  if (raw?.group_memo) {
-    memos.push({
-      id: "group",
-      type: "group",
-      project: proj.title || "project",
-      content: raw.group_memo,
-      category: "standard",
-    });
-  }
-
-  return { project: proj, memos };
 };
 
 const ProjectViewStandard = () => {
   const { search } = useLocation();
-  const { projectId: routeId } = useParams(); // supports /project/:projectId
-  const params = useMemo(() => new URLSearchParams(search), [search]);
+  const { projectId: routeProjectId } = useParams(); // allow /project/:projectId fallback
+  const qs = useMemo(() => new URLSearchParams(search), [search]);
 
-  // Accept planner id from multiple shapes: /project/:projectId OR ?projectId= OR ?plannerId=
-  const plannerId =
-    routeId ||
-    params.get("projectId") ||
-    params.get("plannerId") ||
-    null;
+  // Accept projectId from query or route
+  const projectId = qs.get("projectId") || routeProjectId || null;
 
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
   const [project, setProject] = useState(sampleProject);
   const [memos, setMemos] = useState(exampleMemos);
+
+  const handleFinished = async () => {
+    try {
+      await api.getSession(`/api/standard/inviteUser/${projectId}/finished`);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -128,12 +179,15 @@ const ProjectViewStandard = () => {
       setLoading(true);
       setErr(null);
       try {
-        if (!plannerId) {
-          throw new Error("Missing plannerId");
+        if (!projectId) {
+          throw new Error("Missing projectId");
         }
-        // GET /api/standard/{planner_id}
-        const res = await api.getsE(`/api/standard/${encodeURIComponent(plannerId)}`);
-        const { project: p, memos: m } = normalizeStandard(res || {});
+        const url = `/api/standard/project/${encodeURIComponent(projectId)}`;
+        console.log("[Standard] GET →", url);
+        const res = await (api.getSession ? api.getSession(url) : api.get(url));
+        console.log("[Standard] response ←", res);
+
+        const { project: p, memos: m } = normalizeStandardProject(res || {});
         if (!cancelled) {
           setProject((prev) => ({ ...prev, ...p }));
           setMemos(m.length ? m : []);
@@ -142,36 +196,30 @@ const ProjectViewStandard = () => {
         console.error("Standard project fetch failed:", e);
         if (!cancelled) {
           setErr("Failed to load. Showing sample data.");
-          // keep the existing sampleProject & exampleMemos
         }
       } finally {
         if (!cancelled) setLoading(false);
       }
     })();
 
-    return () => {
-      cancelled = true;
-    };
-  }, [plannerId]);
+    return () => { cancelled = true; };
+  }, [projectId]);
 
   return (
     <div className="screen">
       <div className="layout-standard">
         <div>
           <StandardInfoCard project={project} />
-            <button className="meet-button addfinish"
-            // onClick={handleFinished}
-            >mark as finished</button>
+          <StandardList project={project} />
+          <button className="meet-button addfinish" onClick={handleFinished}>
+            mark as finished
+          </button>
         </div>
         <MemoCard initialMemos={memos} />
       </div>
 
-      {loading && (
-        <div style={{ padding: 12, opacity: 0.7 }}>Loading…</div>
-      )}
-      {err && (
-        <div style={{ padding: 12, color: "crimson" }}>{err}</div>
-      )}
+      {loading && <div style={{ padding: 12, opacity: 0.7 }}>Loading…</div>}
+      {err && <div style={{ padding: 12, color: "crimson" }}>{err}</div>}
     </div>
   );
 };

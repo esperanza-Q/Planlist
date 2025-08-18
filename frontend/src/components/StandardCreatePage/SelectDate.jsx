@@ -10,7 +10,8 @@ import CalendarAltIcon from "../../icons/CalendarAltIcon";
 import CalenderCheckIcon from "../../icons/CalenderCheckIcon";
 import { api } from '../../api/client';
 
-import { useNavigate } from 'react-router-dom';
+ import { useLocation, useNavigate } from 'react-router-dom';
+import { useMemo } from 'react';
 
 // ---------- helpers ----------
 const pad2 = (n) => String(n).padStart(2, '0');
@@ -104,6 +105,9 @@ const SelectDate = ({
   updateFormData = () => {},
 
 }) => {
+  const { search } = useLocation();
+  const qs = useMemo(() => new URLSearchParams(search), [search]);
+  const plannerIdFromQS = qs.get("plannerId");
   
   const getProjectId = (fd) =>
     fd?.projectId ?? fd?.project?.id ?? fd?.project?.projectId ?? null;
@@ -127,7 +131,12 @@ const SelectDate = ({
       formData?.plannerId ??
       formData?.session?.plannerId ??
       formData?.session?.id ??
+      plannerIdFromQS ??
       null;
+    // If it came from the URL, persist it into formData once
+    if (plannerIdFromQS && !formData?.plannerId) {
+      updateFormData({ plannerId: plannerIdFromQS });
+    }
 
     const load = async () => {
       try {
@@ -163,8 +172,12 @@ const SelectDate = ({
     };
 
     load();
-  }, [formData?.plannerId, formData?.session?.plannerId, formData?.session?.id]);
-
+  }, [
+    formData?.plannerId,
+    formData?.session?.plannerId,
+    formData?.session?.id,
+    plannerIdFromQS
+  ]);
   const handleDateClick = (date) => {
     setSelectedDate(date);
     setModalOpen(true);
