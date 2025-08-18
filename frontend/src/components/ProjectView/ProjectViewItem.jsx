@@ -58,11 +58,13 @@ const ProjectViewItem = ({ project }) => {
     }
 
     if (category === "travel") {
-      if (!statusIsInProgress()) {
-        navigate(`/project?category=Travel&step=2&projectId=${encodeURIComponent(id)}`);
+      if (statusIsInProgress() || statusIsFinished()) {
+              navigate(`/project/travel?projectId=${encodeURIComponent(id)}`);
+
         return;
       }
-      navigate(`/project/travel?projectId=${encodeURIComponent(id)}`);
+              navigate(`/project?category=Travel&step=2&projectId=${encodeURIComponent(id)}`);
+
       return;
     }
 
