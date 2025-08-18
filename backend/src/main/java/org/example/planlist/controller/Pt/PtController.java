@@ -1,19 +1,25 @@
 package org.example.planlist.controller.Pt;
 
 import lombok.RequiredArgsConstructor;
+import org.example.planlist.apiPayload.exception.GeneralException;
 import org.example.planlist.dto.PtDTO.request.PtProjectCreateRequestDTO;
 import org.example.planlist.dto.PtDTO.request.PtProjectInviteRequestDTO;
 import org.example.planlist.dto.PtDTO.request.AddSessionRequestDTO;
 import org.example.planlist.dto.SharePlannerDTO.request.SelectTimeRequestDTO;
 import org.example.planlist.dto.PtDTO.response.*;
 import org.example.planlist.dto.SharePlannerDTO.response.SharedPlannerResponseDTO;
+import org.example.planlist.entity.PlannerProject;
 import org.example.planlist.entity.PlannerSession;
+import org.example.planlist.entity.User;
+import org.example.planlist.repository.PlannerProjectRepository;
 import org.example.planlist.repository.PlannerSessionRepository;
+import org.example.planlist.security.SecurityUtil;
 import org.example.planlist.service.PT.PtProjectService;
 import org.example.planlist.service.PT.PtService;
 import org.example.planlist.service.SharePlanner.SharePlannerService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.example.planlist.apiPayload.code.ErrorStatus;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,6 +30,7 @@ public class PtController {
     private final PtProjectService ptProjectService;
     private final SharePlannerService sharePlannerService;
     private final PlannerSessionRepository plannerSessionRepository;
+    private final PlannerProjectRepository plannerProjectRepository;
 
     @PostMapping("/createProject")
     public ResponseEntity<PtProjectCreateResponseDTO> createProject(
@@ -58,6 +65,11 @@ public class PtController {
             @PathVariable Long projectId,
             @PathVariable Long userId
     ){
+        PlannerProject project = plannerProjectRepository.findById(projectId).orElseThrow();
+
+        if(userId == project.getCreator().getId()){
+            throw new GeneralException(ErrorStatus.CANNOT_DELETE_CREATOR);
+        }
 
         ptService.deletePtInvite(projectId, userId);
 

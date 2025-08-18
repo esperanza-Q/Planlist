@@ -69,7 +69,7 @@ public class StandardController {
     }
 
 
-    @GetMapping("/project")
+    @GetMapping("/project/{projectId}")
     public ResponseEntity<StandardProjectDetailResponseDTO> getStandardProjectDetail(
             @RequestParam Long projectId) {
         return ResponseEntity.ok(standardProjectService.getStandardProjectDetail(projectId));
