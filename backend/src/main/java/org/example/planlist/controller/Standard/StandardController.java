@@ -81,6 +81,12 @@ public class StandardController {
         return ResponseEntity.ok(standardService.projectConfirm(projectId));
     }
 
+    @GetMapping("/inviteUser/{projectId}/finished")
+    public ResponseEntity<String> projectFinished(
+            @PathVariable Long projectId) {
+        return ResponseEntity.ok(standardService.projectFinished(projectId));
+    }
+
     @PostMapping("/project/addSession")
     public ResponseEntity<AddSessionResponseDTO> addStandardSession(
             @RequestBody AddSessionRequestDTO addSessionRequestDTO) {
