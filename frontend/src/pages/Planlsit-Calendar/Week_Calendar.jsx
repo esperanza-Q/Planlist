@@ -7,16 +7,16 @@ import { api } from '../../api/client';
 const hours = Array.from({ length: 24 }, (_, i) => i);
 
 const CATEGORY_COLOR_MAP = {
-  PT: 'blue',
+  PT: 'red',
   MEETING: 'green',
-  STUDY: 'purple',
+  Travel: 'purple',
   DEFAULT: 'blue',
 };
 
 const WeekCalendar = ({ currentDate }) => {
   const navigate = useNavigate();
 
-  // 1) 주 시작/끝을 memoize (월요일 시작)
+  // 1) 주 시작/끝(월요일 시작)
   const weekStart = useMemo(() => startOfWeek(currentDate, { weekStartsOn: 1 }), [currentDate]);
   const weekEnd = useMemo(() => addDays(weekStart, 6), [weekStart]);
 
@@ -33,95 +33,98 @@ const WeekCalendar = ({ currentDate }) => {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  const getHour = (timeStr) => parseInt(String(timeStr || '00:00').split(':')[0], 10) || 0;
+  // ✅ DayCalendar와 동일한 라우팅 규칙 적용
+  const routeForEvent = (event) => {
+    const id = encodeURIComponent(event.projectId);
+    const cat = String(event.category || '').trim().toLowerCase();
 
-  useEffect(() => {
-  const controller = new AbortController();
-  const fetchWeek = async () => {
-    setLoading(true);
-    setErrorMsg('');
-    try {
-      const res = await api.get('/api/planlistCalendar/week', {
-        params: { startDate: startStr, endDate: endStr },
-        signal: controller.signal,
-        timeout: 10000,
-      });
-
-      // 인터셉터 유무 모두 대응
-      const payload = res?.data ?? res;
-      console.log('Week API payload:', payload);
-
-      // ---- 다양한 응답 구조를 모두 커버 ----
-      // 1) [{ date, planlistCalendar: [...] }, ...] 형태
-      let dayBlocks = Array.isArray(payload) ? payload : null;
-
-      // 2) { all: [{ date, planlistCalendar: [...] }, ...], week: '...' } 형태
-      if (!dayBlocks && Array.isArray(payload?.all)) {
-        dayBlocks = payload.all;
-      }
-
-      // 3) { date, planlistCalendar: [...] } 단일 객체
-      if (!dayBlocks && payload && typeof payload === 'object' && payload?.date) {
-        dayBlocks = [payload];
-      }
-
-      // 4) { planlistCalendar: [...] }만 있는 형태
-      if (!dayBlocks && Array.isArray(payload?.planlistCalendar)) {
-        dayBlocks = [{ date: startStr, planlistCalendar: payload.planlistCalendar }];
-      }
-
-      // 최종 안전 가드
-      dayBlocks = Array.isArray(dayBlocks) ? dayBlocks : [];
-
-      // 주간 범위(weekStart~weekEnd)에 해당하는 날짜만 필터(서버가 더 넓게 줄 수 있으므로)
-      const allowed = new Set(
-        Array.from({ length: 7 }, (_, i) => format(addDays(weekStart, i), 'yyyy-MM-dd'))
-      );
-      const filteredBlocks = dayBlocks.filter(b => b?.date && allowed.has(b.date));
-
-      // 평탄화   표준 이벤트 형태로 매핑
-      const mapped = filteredBlocks.flatMap(dayBlock => {
-        const date = dayBlock?.date; // "YYYY-MM-DD"
-        const list = Array.isArray(dayBlock?.planlistCalendar) ? dayBlock.planlistCalendar : [];
-
-        return list.map(it => ({
-          id: it.sessionId,
-          projectId: it.projectId,
-          sessionId: it.sessionId,
-          title: it.title,
-          date,                 // "YYYY-MM-DD"
-          startTime: it.start,  // "HH:mm" or "HH:mm:ss"도 허용(아래 getHour에서 분리 처리)
-          endTime: it.end,
-          color: CATEGORY_COLOR_MAP[it.category] || CATEGORY_COLOR_MAP.DEFAULT,
-          category: it.category,
-        }));
-      });
-
-      setEvents(mapped);
-    } catch (err) {
-      if (err.name === 'CanceledError' || err.code === 'ERR_CANCELED') return;
-      const status = err?.response?.status;
-      const body = err?.response?.data;
-      setErrorMsg(
-        status
-          ? `요청 실패 (HTTP ${status}) ${typeof body === 'string' ? body : body?.message || ''}`
-          : `네트워크 오류: ${err.message}`
-      );
-      console.error('Week API error:', {
-        url: '/api/planlistCalendar/week',
-        params: { startDate: startStr, endDate: endStr },
-        status,
-        body,
-        message: err?.message,
-      });
-    } finally {
-      setLoading(false);
+    switch (cat) {
+      case 'pt':
+        return `/project/pt?projectId=${id}`;
+      case 'meeting':
+        return `/project/meeting?projectId=${id}`;
+      case 'travel':
+        return `/project/travel?projectId=${id}`;
+      case 'standard':
+        return `/project/standard?projectId=${id}`;
+      default:
+        return `/project?projectId=${id}`;
     }
   };
 
-  fetchWeek();
-  return () => controller.abort();
-}, [startStr, endStr, weekStart]); // weekStart도 의존성에 포함 권장
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const fetchWeek = async () => {
+      setLoading(true);
+      setErrorMsg('');
+      try {
+        const res = await api.get('/api/planlistCalendar/week', {
+          params: { startDate: startStr, endDate: endStr },
+          signal: controller.signal,
+          timeout: 10000,
+        });
+
+        const payload = res?.data ?? res;
+        console.log('Week API payload:', payload);
+
+        // 응답 형태 유연 처리
+        let dayBlocks = Array.isArray(payload) ? payload : null;
+        if (!dayBlocks && Array.isArray(payload?.all)) dayBlocks = payload.all;
+        if (!dayBlocks && payload && typeof payload === 'object' && payload?.date) dayBlocks = [payload];
+        if (!dayBlocks && Array.isArray(payload?.planlistCalendar)) {
+          dayBlocks = [{ date: startStr, planlistCalendar: payload.planlistCalendar }];
+        }
+        dayBlocks = Array.isArray(dayBlocks) ? dayBlocks : [];
+
+        // 주간 범위 내만 사용
+        const allowed = new Set(
+          Array.from({ length: 7 }, (_, i) => format(addDays(weekStart, i), 'yyyy-MM-dd'))
+        );
+        const filteredBlocks = dayBlocks.filter((b) => b?.date && allowed.has(b.date));
+
+        // 표준 이벤트로 매핑
+        const mapped = filteredBlocks.flatMap((dayBlock) => {
+          const date = dayBlock?.date;
+          const list = Array.isArray(dayBlock?.planlistCalendar) ? dayBlock.planlistCalendar : [];
+          return list.map((it) => ({
+            id: it.sessionId,
+            projectId: it.projectId,
+            sessionId: it.sessionId,
+            title: it.title,
+            date, // YYYY-MM-DD
+            startTime: it.start,
+            endTime: it.end,
+            color: CATEGORY_COLOR_MAP[it.category] || CATEGORY_COLOR_MAP.DEFAULT,
+            category: it.category,
+          }));
+        });
+
+        setEvents(mapped);
+      } catch (err) {
+        if (err.name === 'CanceledError' || err.code === 'ERR_CANCELED') return;
+        const status = err?.response?.status;
+        const body = err?.response?.data;
+        setErrorMsg(
+          status
+            ? `요청 실패 (HTTP ${status}) ${typeof body === 'string' ? body : body?.message || ''}`
+            : `네트워크 오류: ${err.message}`
+        );
+        console.error('Week API error:', {
+          url: '/api/planlistCalendar/week',
+          params: { startDate: startStr, endDate: endStr },
+          status,
+          body,
+          message: err?.message,
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWeek();
+    return () => controller.abort();
+  }, [startStr, endStr, weekStart]);
 
   return (
     <div className="week-calendar">
@@ -141,58 +144,62 @@ const WeekCalendar = ({ currentDate }) => {
         </div>
 
         <div className="body-row">
-    {/* 좌측 시간 컬럼 (배경 눈금) */}
-    <div className="time-column">
-      {hours.map((hour) => (
-        <div className="time-slot" key={hour}>
-          {hour === 0 ? '12 AM' : hour < 12 ? `${hour} AM` : hour === 12 ? '12 PM' : `${hour - 12} PM`}
-        </div>
-      ))}
-    </div>
- 
-    {/* 요일별 컬럼 */}
-    {days.map((day) => {
-      const dayStr = format(day, 'yyyy-MM-dd');
-      const dayEvents = events.filter((ev) => ev.date === dayStr);
- 
-      // 분 단위 파싱 & 블록 위치 계산
-      const toMin = (t) => {
-        const [h, m] = String(t || '00:00').split(':').map(Number);
-        return (Number.isFinite(h) ? h : 0) * 60 + (Number.isFinite(m) ? m : 0);
-      };
-      const HOUR_PX = 60; // 한 시간 높이(px) — CSS 변수로 빼도 됨
-      const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
- 
-      return (
-        <div key={dayStr} className="week-day-column">
-          {/* 배경 그리드(24시간 눈금) */}
-          <div className="week-day-grid">
-            {hours.map((h) => <div key={h} className="grid-hour" />)}
+          {/* 좌측 시간 컬럼 */}
+          <div className="time-column">
+            {hours.map((hour) => (
+              <div className="time-slot" key={hour}>
+                {hour === 0 ? '12 AM' : hour < 12 ? `${hour} AM` : hour === 12 ? '12 PM' : `${hour - 12} PM`}
+              </div>
+            ))}
           </div>
- 
-          {/* 이벤트 블록(절대 배치) */}
-          {dayEvents.map((ev) => {
-            const s = clamp(toMin(ev.startTime), 0, 24 * 60);
-            const e = clamp(toMin(ev.endTime || ev.startTime), 0, 24 * 60);
-            const top = (s / 60) * HOUR_PX;
-            const height = Math.max(14, ((e - s) / 60) * HOUR_PX); // 최소 높이 14px
+
+          {/* 요일별 컬럼 */}
+          {days.map((day) => {
+            const dayStr = format(day, 'yyyy-MM-dd');
+            const dayEvents = events.filter((ev) => ev.date === dayStr);
+
+            const toMin = (t) => {
+              const [h, m] = String(t || '00:00').split(':').map(Number);
+              return (Number.isFinite(h) ? h : 0) * 60 + (Number.isFinite(m) ? m : 0);
+            };
+            const HOUR_PX = 60;
+            const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
+
             return (
-              <div
-                key={ev.id}
-                className={`week-event-block event event-${ev.color || 'blue'}`}
-                style={{ top: `${top}px`, height: `${height}px` }}
-                onClick={() => navigate(`/event/${ev.id}`)}
-                title={`${ev.title} (${ev.startTime}–${ev.endTime})`}
-              >
-                <div className="event-title">• {ev.title}</div>
-                <div className="event-time">{ev.startTime} → {ev.endTime}</div>
+              <div key={dayStr} className="week-day-column">
+                {/* 배경 그리드 */}
+                <div className="week-day-grid">
+                  {hours.map((h) => (
+                    <div key={h} className="grid-hour" />
+                  ))}
+                </div>
+
+                {/* 이벤트 블록 */}
+                {dayEvents.map((ev) => {
+                  const s = clamp(toMin(ev.startTime), 0, 24 * 60);
+                  const e = clamp(toMin(ev.endTime || ev.startTime), 0, 24 * 60);
+                  const top = (s / 60) * HOUR_PX;
+                  const height = Math.max(14, ((e - s) / 60) * HOUR_PX);
+                  return (
+                    <div
+                      key={ev.id}
+                      className={`week-event-block event event-${ev.color || 'blue'}`}
+                      style={{ top: `${top}px`, height: `${height}px` }}
+                      // ✅ 카테고리별 라우팅
+                      onClick={() => navigate(routeForEvent(ev))}
+                      title={`${ev.title} (${ev.startTime}–${ev.endTime})`}
+                    >
+                      <div className="event-title">• {ev.title}</div>
+                      <div className="event-time">
+                        {ev.startTime} → {ev.endTime}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             );
           })}
         </div>
-      );
-    })}
-  </div>
       </div>
     </div>
   );

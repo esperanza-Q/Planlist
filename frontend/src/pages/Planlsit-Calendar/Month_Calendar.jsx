@@ -15,14 +15,33 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../../api/client';
 
 const CATEGORY_COLOR_MAP = {
-  PT: 'blue',
+  PT: 'red',
   MEETING: 'green',
-  STUDY: 'purple',
+  Travel: 'purple',
   DEFAULT: 'blue',
 };
 
 const MonthCalendar = ({ currentDate }) => {
   const navigate = useNavigate();
+
+  // ✅ 카테고리별 라우팅 헬퍼 (Day/Week와 동일 규칙)
+  const routeForEvent = (event) => {
+    const id = encodeURIComponent(event.projectId);
+    const cat = String(event.category || '').trim().toLowerCase();
+
+    switch (cat) {
+      case 'pt':
+        return `/project/pt?projectId=${id}`;
+      case 'meeting':
+        return `/project/meeting?projectId=${id}`;
+      case 'travel':
+        return `/project/travel?projectId=${id}`;
+      case 'standard':
+        return `/project/standard?projectId=${id}`;
+      default:
+        return `/project?projectId=${id}`;
+    }
+  };
 
   // 월력 범위(월요일 시작)
   const monthStart = useMemo(() => startOfMonth(currentDate), [currentDate]);
@@ -81,7 +100,6 @@ const MonthCalendar = ({ currentDate }) => {
 
         setEventsByDate(map);
       } catch (err) {
-        // 요청 취소는 무시
         if (err.name === 'CanceledError' || err.code === 'ERR_CANCELED') return;
         const status = err?.response?.status;
         const body = err?.response?.data;
@@ -136,7 +154,8 @@ const MonthCalendar = ({ currentDate }) => {
                   <div
                     key={`${event.id}-${event.startTime}-${event.endTime}`}
                     className={`month-event event-${event.color || 'blue'}`}
-                    onClick={() => navigate(`/event/${event.id}`)}
+                    // ✅ 카테고리별 라우팅으로 변경
+                    onClick={() => navigate(routeForEvent(event))}
                     title={`${event.title} (${event.startTime}–${event.endTime})`}
                   >
                     • {event.title}

@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../../api/client';
 import './Day_Calendar.css';
 import { format as fmt } from 'date-fns';
-
 const CATEGORY_COLOR_MAP = {
-  PT: 'blue',
+  PT: 'red',
   MEETING: 'green',
-  STUDY: 'purple',
+  Travel: 'purple',
   DEFAULT: 'blue',
 };
+
 
 const DayCalendar = ({ currentDate }) => {
   const navigate = useNavigate();
@@ -84,6 +84,23 @@ const DayCalendar = ({ currentDate }) => {
     fetchDay();
   }, [ymd]);
 
+   // ✅ 카테고리별 라우팅 헬퍼
+  const routeForEvent = (event) => {
+    const id = encodeURIComponent(event.projectId);
+    const cat = String(event.category || "").trim().toLowerCase();
+
+    switch (cat) {
+      case "pt":
+        return `/project/pt?projectId=${id}`;
+      case "meeting":
+        return `/project/meeting?projectId=${id}`;
+      case "travel":
+        return `/project/travel?projectId=${id}`;
+      case "standard":
+        return `/project/standard?projectId=${id}`;
+    }
+  };
+
   return (
     <div className="day-calendar-container">
       <div className="day-calendar-header">
@@ -118,9 +135,10 @@ const DayCalendar = ({ currentDate }) => {
                   key={event.id}
                   className={`day-event-block event event-${event.color || 'blue'}`}
                   style={{ top: `${top}px`, height: `${height}px` }}
-                  onClick={() => navigate(`/event/${event.id}`)}
+                  onClick={() => navigate(routeForEvent(event))}
                   title={`${event.title} (${event.startTime}–${event.endTime})`}
-                >
+                  >
+                  
                   <div className="day-event-title">• {event.title}</div>
                   <div className="day-event-time">
                     {event.startTime} → {event.endTime}
