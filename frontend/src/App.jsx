@@ -44,30 +44,24 @@ function App() {
   const sidebarRef = useRef(null);
   const toggleSidebar = () => setSidebarOpen(prev => !prev);
 
+  // 1) 인증 체크: 최초 1회만
   useEffect(() => {
-     (async () => {
-      try {
-        await api.get("/api/users/me");     // <- 실제 사용자 조회 엔드포인트로 변경
-        setIsAuthenticated(true);
-      } catch (e) {
-        setIsAuthenticated(false);
-      } finally {
-        setCheckingAuth(false);
-      }
+    (async () => {
+      try { await api.get("/api/users/me"); setIsAuthenticated(true); }
+      catch { setIsAuthenticated(false); }
+      finally { setCheckingAuth(false); }
     })();
-
-    const handleClickOutside = (event) => {
-      if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
+  }, []);
+ 
+  // 2) 바깥 클릭 핸들러: 사이드바 열릴 때만 등록
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (sidebarRef.current && !sidebarRef.current.contains(e.target)) {
         setSidebarOpen(false);
       }
     };
-
-    if (isSidebarOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    if (isSidebarOpen) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isSidebarOpen]);
 
   

@@ -253,8 +253,7 @@ input[type="file"] {
   align-items: center;
   gap: 0.5rem;
   transition: background 0.2s ease;
-    margin-right: 100px;
-    margin-bottom: 80px;
+  margin-top: 80px;
 }
 
 .save-project-save-button:hover {
