@@ -1,0 +1,27 @@
+.category-tabs{
+    top:0px;
+    left: 0px;
+    margin-bottom: 20px;
+}
+
+.place-title{
+    position:relative;
+}
+
+.remove-button{
+    position:absolute;
+    border:none;
+    background:transparent;
+    left: 390px;
+    top:18px;
+}
+
+.choose-title{
+    color:#354FAE;
+}
+
+/*--final map--*/
+
+.date-tabs{
+    margin-bottom: 20px;
+}

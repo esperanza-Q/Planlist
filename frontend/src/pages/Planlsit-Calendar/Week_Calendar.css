@@ -1,0 +1,120 @@
+:root {
+  --hour-height: 60px; /* HOUR_PX와 일치 */
+}
+
+
+.week-calendar {
+  font-family: 'IBM Plex Sans KR', sans-serif;
+  width: 1185px;
+  margin: 0px 367px;
+
+}
+
+.week-calendar-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0px 0px 35px 0px;
+  text-align: end;
+
+}
+
+.week-calendar-grid {
+  display: grid;
+  grid-template-columns: 80px repeat(7, 1fr);
+  column-gap: 8px;
+}
+
+.header-row, .row { grid-column: 1 / -1; 
+  display: grid; 
+  grid-template-columns: 80px repeat(7, 1fr); 
+}
+
+  
+
+.body-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 80px repeat(7, 1fr);
+  align-items: start;
+}
+
+.time-column {
+  display: grid;
+  grid-template-rows: repeat(24, var(--hour-height));
+}
+
+/* 각 요일 컬럼 */
+.week-day-column {
+  position: relative;
+  height: calc(24 * var(--hour-height));
+  border-left: 1px solid #eee;
+}
+
+.week-day-grid {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: repeat(24, var(--hour-height));
+}
+.grid-hour {
+  border-top: 1px solid #f0f0f0;
+}
+
+.time-slot {
+  font-size: 12px;
+  padding-right: 6px;
+  text-align: right;
+  color: #666;
+}
+
+.time-cell {
+  padding: 6px;
+  font-weight: bold;
+  font-size: 12px;
+  color: #666;
+  border-right: 1px solid #ddd;
+}
+
+.day-header {
+  padding: 8px;
+  text-align: center;
+  font-weight: 600;
+  border-bottom: 1px solid #ddd;
+}
+
+.week-cell {
+  height: 60px;
+  border-bottom: 1px solid #f0f0f0;
+  border-left: 1px solid #f5f5f5;
+  position: relative;
+  padding: 2px;
+}
+
+
+/* 이벤트 블록 */
+.week-event-block {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  overflow: hidden;
+}
+.week-event-block .event-title {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.week-event-block .event-time {
+  font-size: 11px; opacity: 0.75;
+}
+
+
+
+
+.event-green { background-color: #d6f5d6; border: solid 1px var(--Green-border); color: #007f00;}
+.event-blue { background-color: #cce5ff; border: solid 1px var(--Universe); color: #004a9f; }
+.event-yellow { background-color: #fff7c2; border: solid 1px var(--Yellow-border) ; color: #a68b00; }
+.event-red { background-color: #ffd1d1; border: solid 1px var(--point-Red); color: #b30000;  }
+.event-purple {background-color: #e0dbef; border: solid 1px #9986b3;}
