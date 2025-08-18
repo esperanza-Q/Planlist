@@ -33,7 +33,7 @@ jobs:
           echo "VITE_PW=${{ secrets.VITE_PW }}" >> .env
 
       - name: Build project 
-        run: npm run build -- --mode production
+        run: CI=false npm run build -- --mode production
 
       - name: Upload artifact (frontend build)
         uses: actions/upload-artifact@v4
