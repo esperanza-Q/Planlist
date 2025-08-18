@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ main ]  
+    branches: [ main ]
 
 jobs:
   frontend-ci:
@@ -12,32 +12,53 @@ jobs:
         working-directory: frontend
 
     steps:
-      - name: Checkout source 
-        uses: actions/checkout@v3
+      - name: Checkout source
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
+      - name: Sanity check (files)
+        run: |
+          pwd && ls -la
+          test -f package.json || (echo "ERR: frontend/package.json 없음" && exit 1)
+          test -f package-lock.json || (echo "ERR: frontend/package-lock.json 없음" && exit 1)
+
       - name: Install dependencies
         run: npm ci
-        working-directory: frontend
 
-
-      - name: Set environment variables
+      - name: Create .env for Vite
         run: |
-          echo "VITE_ID=${{ secrets.VITE_ID }}" >> .env
-          echo "VITE_PW=${{ secrets.VITE_PW }}" >> .env
+          printf "VITE_ID=%s\nVITE_PW=%s\n" "${{ secrets.VITE_ID }}" "${{ secrets.VITE_PW }}" > .env
 
-      - name: Build project 
-        run: npm run build -- --mode production
+      - name: Build project
+        run: |
+          # Vite면 dist, CRA면 build가 생성됨
+          CI=false npm run build -- --mode production || CI=false npm run build
 
-      - name: Upload artifact (frontend build)
-        uses: actions/upload-artifact@v3
+      - name: Detect build output dir
+        id: out
+        run: |
+          if [ -d dist ]; then
+            echo "dir=dist" >> $GITHUB_OUTPUT
+          elif [ -d build ]; then
+            echo "dir=build" >> $GITHUB_OUTPUT
+          else
+            echo "ERR: dist/build 디렉토리 없음"
+            ls -la
+            exit 1
+          fi
+
+      - name: List build dir
+        run: ls -al ${{ steps.out.outputs.dir }}
+
+      - name: Upload artifact (frontend)
+        uses: actions/upload-artifact@v4
         with:
           name: frontend-dist
-          path: frontend/dist
+          path: ${{ github.workspace }}/frontend/${{ steps.out.outputs.dir }}
           if-no-files-found: error

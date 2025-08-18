@@ -1,5 +1,5 @@
 // src/pages/ProjectView/ProjectViewMeeting.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { api } from "../../api/client";
 
@@ -11,7 +11,7 @@ import "./ProjectViewMeeting.css";
 import ProfilePic from "../../assets/ProfilePic.png";
 
 const sampleProject = {
-  id: 1,
+  id: null,
   title: "Team Branding Workshop",
   description: "Weekly catch-up and planning meeting.",
   category: "meeting",
@@ -37,6 +37,8 @@ const exampleMemos = [
   { id: "6", type: "group",    project: "example project 6", content: "example project description. showing the first few sentences of the memo.", category: "meeting" },
 ];
 
+
+
 // 서버 응답 → 화면에서 쓰는 형태로 가볍게 정규화
 // 서버 응답(예시):
 // {
@@ -57,7 +59,7 @@ const normalizeProject = (raw) => {
 
   const users = Array.isArray(root.participants)
     ? root.participants.map((p, i) => ({
-        name: p?.name ?? `Member ${i + 1}`,
+        name: p?.name ?? `Member ${i +  1}`,
         avatar: p?.profileImage ?? p?.profile_image ?? ProfilePic,
       }))
    : [];
@@ -71,6 +73,7 @@ const normalizeProject = (raw) => {
         finalized: Boolean(s?._finalized ?? s?.finalized ?? false),
       }))
     : [];
+  
 
   return {
     id,
@@ -93,7 +96,7 @@ const ProjectViewMeeting = () => {
   const projectId = query.get("projectId");
 
   const [project, setProject] = useState(sampleProject);
-  
+  const [memoScope, setMemoScope] = useState({ projectId: null, projectName: undefined });
 
    const handleFinished = async () => {
     try{
@@ -105,6 +108,15 @@ const ProjectViewMeeting = () => {
       console.error(e);
     }
   }
+  
+
+  const effectiveProjectName = useMemo(() => {
+  // 서버가 준 project.id가 라우트 projectId와 정확히 일치할 때만 이름 필터 사용
+  const fromServerId = project?.id;
+  if (fromServerId == null) return undefined;
+  if (String(fromServerId) !== String(projectId)) return undefined;
+  return project?.title || undefined;
+}, [project?.id, project?.title, projectId]);
 
   useEffect(() => {
     if (!projectId) {
@@ -121,13 +133,38 @@ const ProjectViewMeeting = () => {
 
         // 화면에 보여줄 데이터도 최신으로 갱신(선택)
         const normalized = normalizeProject(res);
-        setProject((prev) => ({ ...prev, ...normalized }));
+        setProject(normalized); 
       } catch (e) {
         console.error("[Meeting] fetch failed; falling back to sampleProject", e);
         // 실패 시 sample 유지
       }
     })();
   }, [projectId]);
+
+  const readyForMemo = useMemo(() => {
+    if (!projectId) return false;
+    if (project?.id == null) return false;             // 서버 응답 전
+    if (String(project.id) !== String(projectId)) return false; // 다른 프로젝트 데이터
+    if (!project?.title) return false;                 // 이름 필터용 제목 없음
+    return true;
+  }, [projectId, project?.id, project?.title]);
+
+   useEffect(() => {
+    setMemoScope({ projectId: null, projectName: undefined });
+  }, [projectId]);
+  
+  // ✅ 서버 응답이 라우트와 일치하면, 그때 단 한 번 스코프 확정
+  useEffect(() => {
+    const serverId = project?.id;
+    const name = project?.title;
+    if (!projectId || serverId == null || String(serverId) !== String(projectId) || !name) return;
+    setMemoScope(prev =>
+      prev.projectId === projectId && prev.projectName ? prev : { projectId, projectName: name }
+    );
+ }, [projectId, project?.id, project?.title]);
+
+ const EMPTY_MEMOS = useRef([]).current;
+
 
   return (
     <div className="screen">
@@ -140,7 +177,14 @@ const ProjectViewMeeting = () => {
           >
             mark as finished</button>
         </div>
-        <MemoCard initialMemos={exampleMemos} />
+             {memoScope.projectId && (
+          <MemoCard
+            projectId={memoScope.projectId}
+            projectName={memoScope.projectName}
+            initialMemos={EMPTY_MEMOS}   
+            key={`memo-meeting-${memoScope.projectId}`}
+          />
+        )}
       </div>
     </div>
   );
