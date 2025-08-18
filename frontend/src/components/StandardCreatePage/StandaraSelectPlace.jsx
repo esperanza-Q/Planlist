@@ -141,10 +141,14 @@ const StandardSelectPlace = ({ formData, updateFormData, nextStep, prevStep }) =
 
       <div className="travel-choose-content">
         <div className="travel-map-section" style={{ height: '600px' }}>
-          <PlaceMap
+          {/* <PlaceMap
             selectedPlace={hoveredPlace}
             selectedPlaces={selectedPlaces}
             places={placesToDisplay}
+          /> */}
+           <PlaceMap
+              places={placesToDisplay}
+              hoveredPlace={hoveredPlace}
           />
         </div>
 

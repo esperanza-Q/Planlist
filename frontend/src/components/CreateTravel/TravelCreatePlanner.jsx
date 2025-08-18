@@ -266,7 +266,7 @@ const buildPayload = () => {
 
       <div className="planner-section-div">
         <div className="map-section">
-          <PlaceMap selectedPlace={hoveredPlace} places={selectedPlaces} />
+         
         </div>
 
         {/* Controlled TravelMemoCard */}
