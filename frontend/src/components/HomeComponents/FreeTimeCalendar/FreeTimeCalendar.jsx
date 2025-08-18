@@ -41,23 +41,46 @@ const CalendarSection = () => {
       const res = await api.get(`/api/home/freeTimeCalendar/getFreeTime?startDate=${toISODate(gridStart)}&endDate=${toISODate(gridEnd)}`);
       const items = res?.freeTimeCalendar ?? [];
 
-      const map = new Map();
-      items.forEach((entry) => {
-      const d = toISODate(entry.date);
-      if (!d) return; // 유효하지 않은 날짜는 무시
-      if (!map.has(d)) map.set(d, { full: false, partial: false });
-      const rec = map.get(d);
-      if (entry.allDay) rec.full = true;
-      else rec.partial = true;
-    });
+        // ---------- helpers ----------
+      const isAllDayRange = (it) =>
+        it?.allDay === true ||
+        (it?.start === "00:00" && (it?.end === "23:59" || it?.end === "24:00"));
+ 
+      // 종료가 23:59(또는 24:00)이면 24로 처리해서 [s, e) 구간으로 계산
+      const parseHour = (hhmm, { isEnd } = { isEnd: false }) => {
+        const [hs, ms] = String(hhmm || "00:00").split(":");
+        const h = Number(hs), m = Number(ms);
+        if (isEnd) {
+          if ((h === 23 && m === 59) || (h === 24 && (isNaN(m) || m === 0))) return 24;
+          return h;
+        }
+        return h;
+      };
+      const keyOf = (dateLike) => toISODate(new Date(dateLike));
+
+            // 날짜별 커버리지 집계 (시간 단위 Set로 모으고, allDay/연속 커버 판단)
+      const perDay = new Map(); // d -> { full:boolean, hours:Set<number> }
+      for (const entry of items) {
+        const d = keyOf(entry.date);
+        if (!d) continue;
+        if (!perDay.has(d)) perDay.set(d, { full: false, hours: new Set() });
+        const rec = perDay.get(d);
+        if (isAllDayRange(entry)) {
+          rec.full = true;
+          continue;
+        }
+        const s = parseHour(entry.start, { isEnd: false });
+        const e = parseHour(entry.end,   { isEnd: true  }); // [s, e)
+        for (let h = s; h < e; h++) rec.hours.add(h);
+     }
 
       const full = [];
       const partial = [];
-      for (const [d, { full: f, partial: p }] of map.entries()) {
-        if (f) full.push(d);
-        else if (p) partial.push(d);
+      for (const [d, rec] of perDay.entries()) {
+        if (rec.full || rec.hours.size === 24) full.push(d);
+        else if (rec.hours.size > 0) partial.push(d);
       }
-
+ 
       setFullDates(full);
       setPartialDates(partial);
     } catch (e) {
