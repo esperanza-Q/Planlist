@@ -11,4 +11,5 @@ import lombok.*;
 public class MeetingSessionDTO {
     private Long plannerId;
     private String title;
+    private boolean is_finalized;
 }

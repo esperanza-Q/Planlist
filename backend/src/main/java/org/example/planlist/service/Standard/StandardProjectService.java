@@ -5,8 +5,11 @@ import lombok.RequiredArgsConstructor;
 import org.example.planlist.dto.StandardDTO.response.*;
 import org.example.planlist.dto.StandardDTO.response.StandardProjectDetailResponseDTO;
 import org.example.planlist.dto.StandardDTO.response.StandardSessionDTO;
+import org.example.planlist.entity.Note;
 import org.example.planlist.entity.PlannerProject;
+import org.example.planlist.entity.User;
 import org.example.planlist.repository.*;
+import org.example.planlist.security.SecurityUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,12 +53,19 @@ public class StandardProjectService {
                 .map(s -> StandardSessionDTO.builder()
                         .plannerId(s.getId())
                         .title(s.getTitle())
+                        .is_finalized(s.getIsFinalized())
                         .build())
                 .toList();
 
         // Memo
+        User user = SecurityUtil.getCurrentUser();
+
         List<MemoDTO> memos = noteRepo.findByProject_ProjectId(projectId)
                 .stream()
+                .filter(n ->
+                        n.getUser().getId().equals(user.getId()) // 내가 작성한 노트
+                                || n.getShare() == Note.Share.GROUP     // 남이 작성했지만 GROUP인 노트
+                )
                 .map(n -> MemoDTO.builder()
                         .noteId(n.getNoteId())
                         .title(n.getTitle())
