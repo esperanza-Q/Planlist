@@ -2,6 +2,9 @@ package org.example.planlist.dto.MeetingDTO.response;
 
 import lombok.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -11,4 +14,8 @@ public class ProjectInfoDTO {
     private Long projectId;
     private String projectName;
     private String category;
+    private String status;
+    private LocalDate startDate;
+    private LocalDate endDate;
+    private LocalDateTime confirmedAt;
 }
