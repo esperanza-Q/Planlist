@@ -71,7 +71,7 @@ public class StandardController {
 
     @GetMapping("/project/{projectId}")
     public ResponseEntity<StandardProjectDetailResponseDTO> getStandardProjectDetail(
-            @RequestParam Long projectId) {
+            @PathVariable Long projectId) {
         return ResponseEntity.ok(standardProjectService.getStandardProjectDetail(projectId));
     }
 
