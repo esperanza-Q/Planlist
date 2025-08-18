@@ -61,7 +61,28 @@ const DetailTimeModal = ({
     return `${h - 12}pm`;
   };
 
+  // ⬇️ 추가: 선택 가능 시간(= full 또는 partial)인지 판별
+  const isSelectable = (h) => (availabilityMap[h] || 0) > 0;
+
+  // ⬇️ 추가: start→end 방향으로 연속된 선택 가능 구간만 반환
+  const getContiguousSelectableRange = (start, end) => {
+    if (!isSelectable(start)) return [];               // 시작점이 불가면 선택 안 함
+    const dir = end >= start ? 1 : -1;                 // 드래그 방향
+    const result = [start];
+    let cur = start + dir;
+    while (true) {
+      if ((dir === 1 && cur > end) || (dir === -1 && cur < end)) break;
+      if (!isSelectable(cur)) break;                   // 불가 시간을 만나면 중단
+      result.push(cur);
+      cur += dir;
+    }
+    // 오름차순 정렬 (UI에서 편하게 쓰도록)
+    return result.sort((a, b) => a - b);
+  };
+
   const handleMouseDown = (index) => {
+    // ⬇️ 시작점이 selectable 아니면 무시
+    if (!isSelectable(index)) return;
     isDragging.current = true;
     startIndex.current = index;
     setSelectedTimes([index]);
@@ -69,7 +90,8 @@ const DetailTimeModal = ({
 
   const handleMouseEnter = (index) => {
     if (!isDragging.current || startIndex.current === null) return;
-    const range = getRange(startIndex.current, index);
+    // ⬇️ 드래그 중엔 연속된 selectable 구간까지만 선택
+    const range = getContiguousSelectableRange(startIndex.current, index);
     setSelectedTimes(range);
   };
 
@@ -81,6 +103,7 @@ const DetailTimeModal = ({
       onSave({ date, time: times, availableCount: maxAvailable });
     }
   };
+
 
   const getRange = (start, end) => {
     const [min, max] = [Math.min(start, end), Math.max(start, end)];
@@ -106,6 +129,7 @@ const DetailTimeModal = ({
             const isFull = availableCount === totalParticipants;
             const isPartial = availableCount > 0 && availableCount < totalParticipants;
             const isSelected = selectedTimes.includes(i);
+            const selectable = availableCount > 0;
 
             return (
               <div
@@ -113,9 +137,13 @@ const DetailTimeModal = ({
                 className={`DetailTime-time-slot 
                   ${isFull ? 'full' : ''} 
                   ${isPartial ? 'partial' : ''} 
-                  ${isSelected ? 'selected' : ''}`}
+                  ${isSelected ? 'selected' : ''}
+                  ${!selectable ? 'disabled' : ''}`}
                 onMouseDown={() => handleMouseDown(i)}
                 onMouseEnter={() => handleMouseEnter(i)}
+                
+                style={!selectable ? { pointerEvents: 'none' } : undefined}
+                title={!selectable ? '선택 불가 시간' : undefined}
               >
                 <span className="DetailTime-time-label">{formatHourLabel(i)}</span>
               </div>
