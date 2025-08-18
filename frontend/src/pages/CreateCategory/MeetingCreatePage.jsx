@@ -6,7 +6,6 @@ import Step1BigMeetingStartProject from "../../components/MeetingCreatePage/BigM
 import Step2AddParticipants from "../../components/MeetingCreatePage/Add_Participants_meeting";
 import Step3DetailMeetingStartPage from "../../components/MeetingCreatePage/DetailMeetingStartPage";
 import Step4SelectDate from "../../components/MeetingCreatePage/SelectDate_meeting";
-import Step5MeetingSaveProject from "../../components/MeetingCreatePage/MeetingSaveProject";
 
 // helper
 const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
@@ -75,13 +74,6 @@ const MeetingCreatePage = () => {
         />
       )}
 
-      {step === 5 && (
-        <Step5MeetingSaveProject
-          formData={formData}
-          updateFormData={updateFormData}
-          prevStep={prevStep}
-        />
-      )}
     </div>
   );
 };
