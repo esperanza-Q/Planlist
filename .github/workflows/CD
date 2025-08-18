@@ -53,3 +53,4 @@ jobs:
             export JWT_SECRET=${{ secrets.JWT_SECRET }}
             docker compose up -d --build --no-deps spring
             docker image prune -f
+
