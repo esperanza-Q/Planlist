@@ -82,6 +82,12 @@ public class MeetingController {
         return ResponseEntity.ok(meetingService.projectConfirm(projectId));
     }
 
+    @GetMapping("/inviteUser/{projectId}/finished")
+    public ResponseEntity<String> projectFinished(
+            @PathVariable Long projectId) {
+        return ResponseEntity.ok(meetingService.projectFinished(projectId));
+    }
+
     @PostMapping("/project/addSession")
     public ResponseEntity<AddSessionResponseDTO> addMeetingSession(
             @RequestBody AddSessionRequestDTO addSessionRequestDTO) {
