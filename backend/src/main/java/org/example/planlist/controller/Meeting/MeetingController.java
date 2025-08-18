@@ -70,7 +70,7 @@ public class MeetingController {
     }
 
 
-    @GetMapping("/project")
+    @GetMapping("/project/{projectId}")
     public ResponseEntity<MeetingProjectDetailResponseDTO> getMeetingProjectDetail(
             @RequestParam Long projectId) {
         return ResponseEntity.ok(meetingProjectService.getMeetingProjectDetail(projectId));
