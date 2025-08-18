@@ -268,9 +268,6 @@ const TravelSelectPlace = ({ formData, updateFormData, nextStep, prevStep }) => 
   return (
     <div className="travel-choose-place-container">
       <div className="travel-choose-title">
-        <button onClick={prevStep} className="prev-button">
-          <BackIcon />
-        </button>
         <h2>{formData.title}</h2>
       </div>
 

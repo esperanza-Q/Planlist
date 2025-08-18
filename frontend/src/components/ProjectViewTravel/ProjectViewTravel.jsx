@@ -1,74 +1,55 @@
-// src/components/Travel/ProjectViewTravel.jsx
+// src/components/ProjectViewTravel/ProjectViewTravel.jsx
+import React, { useEffect, useMemo, useState } from "react";
+import { useParams, useLocation } from "react-router-dom";
+import { api } from "../../api/client";
+
 import ViewPlannerCard from "./ViewPlannerCard";
 import "./ProjectViewTravel.css";
 import TravelInfoCard from "./TravelInfoCard";
 import ProfilePic from "../../assets/ProfilePic.png";
-import TravelMemoCard from "./TravelMemoCard";
+import MemoCard from "../../components/ProjectView/MemoCard";
 
-// ---------- your trip mock ----------
-const exampleTrip = {
-  "project_id": 99,
-  "project_name": "Seoul 2-Day Cultural Trip",
-  "description": "Exploring iconic Seoul landmarks and enjoying a comfortable stay.",
-  "start_date": "2025-08-27T09:00:00",
-  "end_date": "2025-08-28T20:00:00",
-  "location": "Seoul",
-
-  "creator": { "id": 7, "username": "haemin" },
-  "participants": [
-    { "id": 7, "username": "alice" },
-    { "id": 8, "username": "bob" },
-    { "id": 9, "username": "michael" }
-  ],
-
-  "datePlanners": [
-    {
-      "date": "2025-08-27",
-      "schedules": [
-        { "placeName": "Namsan Tower", "category": "place", "address": "Seoul, Yongsan-gu", "description": "Famous tower offering panoramic views of Seoul.", "startTime": "10:00" },
-        { "placeName": "Lotte Hotel", "category": "accomodation", "address": "Seoul, Jung-gu", "description": "Luxury hotel in the heart of Seoul.", "startTime": "18:00" }
-      ],
-      "moves": [
-        { "transportation": "지하철", "duration_min": 25 },
-        { "transportation": "도보", "duration_min": 10 }
-      ]
-    },
-    {
-      "date": "2025-08-28",
-      "schedules": [
-        { "placeName": "Seoul Forest", "category": "place", "address": "Seoul, Seongdong-gu", "description": "Large eco park with walking paths and deer enclosure.", "startTime": "09:30" },
-        { "placeName": "Gyeongbokgung Palace", "category": "place", "address": "Seoul, Jongno-gu", "description": "Historic palace of the Joseon dynasty.", "startTime": "13:30" }
-      ],
-      "moves": [
-        { "transportation": "버스", "duration_min": 20 },
-        { "transportation": "도보", "duration_min": 15 }
-      ]
-    }
-  ],
-
-  "teamMemo": { "content": "Make sure to book palace tickets online to avoid queues." }
+// ---------- small utils ----------
+const parseId = (v) => {
+  if (typeof v !== "string") return null;
+  const s = v.trim();
+  return /^\d+$/.test(s) ? parseInt(s, 10) : null;
 };
 
-// ---------- helpers: format + normalize ----------
-const toDate = (iso) => {
-  if (!iso) return "TBD";
-  // "YYYY-MM-DDTHH:mm:ss" -> "YYYY-MM-DD"
-  return iso.slice(0, 10);
+// "YYYY-MM-DD" or "YYYY-MM-DDTHH:mm:ss"
+const toDate = (str) => {
+  if (!str) return "TBD";
+  const s = String(str);
+  if (s.length === 10 && /^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  return s.slice(0, 10);
 };
-const toTime = (iso) => {
-  if (!iso) return "TBD";
-  // "YYYY-MM-DDTHH:mm:ss" -> "HH:mm"
-  const t = iso.split("T")[1] || "";
-  return t.slice(0, 5) || "TBD";
+const toTime = (str) => {
+  if (!str) return "TBD";
+  const s = String(str);
+  const parts = s.split("T");
+  if (parts.length < 2) return "TBD";
+  return parts[1].slice(0, 5) || "TBD";
 };
 
-// Map exampleTrip -> shape for TravelInfoCard
+// category normalization
+const normalizeCategory = (c) => {
+  const v = String(c || "").toLowerCase();
+  if (v.startsWith("accom")) return "accommodation";
+  if (["restaurant", "dining", "food", "맛집", "식당", "restaurant".toUpperCase()].includes(v)) return "restaurant";
+  if (v === "place" || v === "PLACE".toLowerCase()) return "place";
+  // also accept server’s UPPERCASE
+  if (v === "restaurant") return "restaurant";
+  if (v === "place") return "place";
+  return "place";
+};
+
+// Map to TravelInfoCard shape
 const tripToInfoProject = (trip) => ({
   id: trip.project_id,
   title: trip.project_name,
-  description: trip.description,
+  description: trip.description || "",
   category: "travel",
-  status: "Active",
+  status: trip.status || "Active",
   repeat: "none",
   startDate: toDate(trip.start_date),
   startTime: toTime(trip.start_date),
@@ -78,47 +59,211 @@ const tripToInfoProject = (trip) => ({
   placeAddress: trip.location || "",
   users: Array.isArray(trip.participants)
     ? trip.participants.map((p) => ({
-        name: p.username,
-        avatar: ProfilePic, // fallback; replace with real avatars when available
+        name: p.username || p.name || "user",
+        avatar: p.profileImage || ProfilePic,
       }))
     : [],
-  meetings: []
+  meetings: [],
 });
 
-// ---------- sample memos (unchanged) ----------
-const exampleMemos = [
-  { id: "1", type: "personal", project: "example project 1", content: "example project description. showing the first few sentences of the memo.", category: "meeting" },
-  { id: "2", type: "group", project: "example project 2", content: "example project description. showing the first few sentences of the memo.", category: "meeting" },
-  { id: "3", type: "personal", project: "example project 3", content: "example project description. showing the first few sentences of the memo.", category: "meeting" },
-  { id: "4", type: "group", project: "example project 4", content: "example project description. showing the first few sentences of the memo.", category: "meeting" },
-  { id: "5", type: "personal", project: "example project 5", content: "example project description. showing the first few sentences of the memo.", category: "meeting" },
-  { id: "6", type: "group", project: "example project 6", content: "example project description. showing the first few sentences of the memo.", category: "meeting" }
-];
-
-// ---------- component ----------
 const ProjectViewTravel = () => {
-  const infoProject = tripToInfoProject(exampleTrip);
+  const { projectId: pathId } = useParams();
+  const location = useLocation();
+  const query = useMemo(() => new URLSearchParams(location.search), [location.search]);
+
+  // support /project/travel/:projectId and /project/travel?projectId=34
+  const idFromPath = parseId(pathId);
+  const idFromQuery = parseId(query.get("projectId"));
+  const projectId = idFromPath ?? idFromQuery;
+
+  const [trip, setTrip] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [errMsg, setErrMsg] = useState("");
+
+
+  const handleFinished = async () => {
+  try{
+    const res = await api.getSession(
+              `/api/travel/${projectId}/finished`
+            );
+    alert("project status changed: finished");
+  }
+  catch (e){
+    console.error(e);
+  }
+}
+
+  const addGoogleCalendar = async () => {
+  try{
+    //POST  /api/google-calendar/project/{projectId}/travel
+    const res = await api.postSession(
+              `/api/google-calendar/project/${projectId}/travel`
+            );
+    alert("project added to google calendar");
+  }
+  catch (e){
+    console.error(e);
+  }
+}
+
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const load = async () => {
+      if (!projectId) {
+        setLoading(false);
+        setErrMsg("프로젝트 ID가 없습니다. URL을 확인해 주세요.");
+        return;
+      }
+      setLoading(true);
+      setErrMsg("");
+
+      try {
+        // Your current endpoint (kept as-is)
+        const data = await api.getSession(`/api/travel/project/${encodeURIComponent(projectId)}`);
+        // data shape (per your sample):
+        // { project, participants, memo, projectDetails }
+
+        const p = data?.project || {};
+
+        // 🔁 NEW: map projectDetails → datePlanners
+        const details = Array.isArray(data?.projectDetails) ? data.projectDetails : [];
+        const byDate = {};
+        details.forEach((row, idx) => {
+          const d = row.date; // "YYYY-MM-DD"
+          if (!d) return;
+
+          if (!byDate[d]) byDate[d] = { date: d, schedules: [], moves: [] };
+
+          // schedule row
+          byDate[d].schedules.push({
+            placeName: row.wishlistName || row.placeName || "",
+            category: normalizeCategory(row.category),
+            address: row.address || "",
+            description: row.memo || "", // server memo field
+            startTime: toTime(row.visitTime), // from ISO
+          });
+
+          // attach any transport rows (kept in order)
+          if (Array.isArray(row.transportations)) {
+            row.transportations.forEach((t) => {
+              byDate[d].moves.push({
+                transportation: t.transportation || t.kind || t.type || "",
+                duration_min:
+                  t.duration_min ?? t.durationMin ?? t.duration ?? null,
+              });
+            });
+          }
+        });
+
+        const datePlanners = Object.values(byDate).sort((a, b) => a.date.localeCompare(b.date));
+
+        // participants normalize
+        const normParticipants = Array.isArray(data?.participants)
+          ? data.participants.map((u, i) => ({
+              id: u.id ?? i,
+              username: u.name ?? u.username ?? `user${i}`,
+              profileImage: u.profileImage,
+            }))
+          : [];
+
+        // build the object ViewPlannerCard expects
+        const normalized = {
+          project_id: p.projectId ?? projectId,
+          project_name: p.projectName ?? "",
+          description: "",
+          start_date: p.startDate || null,
+          end_date: p.endDate || null,
+          location: p.location || "",
+          status: p.status || "INPROGRESS",
+          confirmedAt: p.confirmedAt || null,
+          participants: normParticipants,
+          datePlanners, // 👈 mapped above
+          // keep a simple team memo view from memo array if you like
+          teamMemo: {
+            content:
+              Array.isArray(data?.memo) && data.memo.length > 0
+                ? `[${data.memo.length} memos]` // no content in sample; show count hint
+                : "",
+          },
+        };
+
+        if (!cancelled) setTrip(normalized);
+      } catch (e) {
+        if (!cancelled) setErrMsg(e?.message || "여행 정보를 불러오지 못했습니다.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    load();
+    return () => { cancelled = true; };
+  }, [projectId]);
+
+  const infoProject = useMemo(() => (trip ? tripToInfoProject(trip) : null), [trip]);
+
+  const initialMemos = useMemo(() => {
+    const list = [];
+    if (trip?.teamMemo?.content) {
+      list.push({
+        id: "team-memo",
+        type: "group",
+        project: trip.project_name || `project ${projectId}`,
+        content: trip.teamMemo.content,
+        category: "travel",
+      });
+    }
+    return list;
+  }, [trip, projectId]);
+
+  if (loading) {
+    return (
+      <div className="screen">
+        <div className="project-view-div">로딩 중...</div>
+      </div>
+    );
+  }
+
+  if (errMsg) {
+    return (
+      <div className="screen">
+        <div className="project-view-div">
+          <p style={{ color: "crimson" }}>{errMsg}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!trip) {
+    return (
+      <div className="screen">
+        <div className="project-view-div">
+          <p>표시할 여행 정보가 없습니다.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="screen">
       <div className="project-view-div">
         <div className="layout">
-          {/* Use the mapped project for your info card */}
-          <TravelInfoCard project={infoProject} />
-
-
-          {/* Memos as before */}
-          <TravelMemoCard initialMemos={exampleMemos} />
+          {infoProject && <TravelInfoCard project={infoProject} />}
+          <button className="meet-button addfinish"
+            style={{marginTop:"20px", marginBottom:"20px"}}
+            onClick={addGoogleCalendar}
+          >add to google calendar</button>
+          <MemoCard initialMemos={initialMemos} />
         </div>
-    <div className="layout">
-              {/* Pass the FULL trip object to the planner view */}
-        <ViewPlannerCard project={exampleTrip} />
-            <button className="meet-button addfinish"
-            // onClick={handleFinished}
-            >mark as finished</button>
 
-    </div>
-
+        <div className="layout">
+          <ViewPlannerCard project={trip} />
+          
+          <button className="meet-button addfinish"
+            onClick={handleFinished}
+          >mark as finished</button>
+        </div>
       </div>
     </div>
   );

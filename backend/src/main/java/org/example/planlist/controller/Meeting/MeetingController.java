@@ -8,11 +8,13 @@ import org.example.planlist.dto.MeetingDTO.response.MeetingProjectDetailResponse
 import org.example.planlist.dto.MeetingDTO.request.AddSessionRequestDTO;
 import org.example.planlist.dto.SharePlannerDTO.request.SelectTimeRequestDTO;
 import org.example.planlist.dto.MeetingDTO.response.*;
+import org.example.planlist.dto.SharePlannerDTO.response.MeetingSharedPlannerResponseDTO;
 import org.example.planlist.dto.SharePlannerDTO.response.SharedPlannerResponseDTO;
 import org.example.planlist.entity.PlannerSession;
 import org.example.planlist.repository.PlannerSessionRepository;
 import org.example.planlist.service.Meeting.MeetingProjectService;
 import org.example.planlist.service.Meeting.MeetingService;
+import org.example.planlist.service.MeetingSharePlanner.MeetingSharePlannerService;
 import org.example.planlist.service.SharePlanner.SharePlannerService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +26,7 @@ public class MeetingController {
 
     private final MeetingService meetingService;
     private final MeetingProjectService meetingProjectService;
-    private final SharePlannerService sharePlannerService;
+    private final MeetingSharePlannerService meetingSharePlannerService;
     private final PlannerSessionRepository plannerSessionRepository;
 
     @PostMapping("/createProject")
@@ -80,6 +82,12 @@ public class MeetingController {
         return ResponseEntity.ok(meetingService.projectConfirm(projectId));
     }
 
+    @GetMapping("/inviteUser/{projectId}/finished")
+    public ResponseEntity<String> projectFinished(
+            @PathVariable Long projectId) {
+        return ResponseEntity.ok(meetingService.projectFinished(projectId));
+    }
+
     @PostMapping("/project/addSession")
     public ResponseEntity<AddSessionResponseDTO> addMeetingSession(
             @RequestBody AddSessionRequestDTO addSessionRequestDTO) {
@@ -92,13 +100,13 @@ public class MeetingController {
 
 
     @GetMapping("/project/sharePlanner")
-    public ResponseEntity<SharedPlannerResponseDTO> getSharedPlanner(
+    public ResponseEntity<MeetingSharedPlannerResponseDTO> getSharedPlanner(
             @RequestParam Long plannerId
 //            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
 //            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
     ) {
 
-        SharedPlannerResponseDTO response = sharePlannerService.getSharedPlanner(plannerId);
+        MeetingSharedPlannerResponseDTO response = meetingSharePlannerService.getSharedPlanner(plannerId);
         return ResponseEntity.ok(response);
     }
 
@@ -107,7 +115,7 @@ public class MeetingController {
             @RequestParam Long plannerId,
             @RequestBody SelectTimeRequestDTO dto) {
 
-        PlannerSession updated = sharePlannerService.updateSelectTime(plannerId, dto);
+        PlannerSession updated = meetingSharePlannerService.updateSelectTime(plannerId, dto);
         return ResponseEntity.ok("일정을 선택 완료하였습니다!");
     }
 
