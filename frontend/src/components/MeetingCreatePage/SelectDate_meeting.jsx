@@ -106,8 +106,7 @@ const parseSharePlanner = (data) => {
 const SelectDate = ({
   formData = {},
   updateFormData = () => {},
-  nextStep = () => {},
-  prevStep = () => {},
+
 }) => {
   
   const getProjectId = (fd) =>
@@ -221,7 +220,7 @@ const handleNext = async () => {
       // Persist what we submitted (handy if the next step needs it)
       updateFormData({ selectedDate, chosenTimes, repeatConfig, selectedTimeBody: body });
       
-      nextStep();  
+      navigate(`/project/meeting?projectId=${encodeURIComponent(projectId)}`);
       } catch (e) {
       console.error('Failed to submit selected time:', e);
       alert('Failed to submit selected time. Please try again.');

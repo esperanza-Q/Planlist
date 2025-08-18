@@ -6,7 +6,6 @@ import Step2AddParticipants from "../../components/StandardCreatePage/AddPartici
 import Step3Subtitlte from "../../components/StandardCreatePage/DetailStandardStartPage";
 import Step4SelectDate from "../../components/StandardCreatePage/SelectDate";
 import Step5ChoosePlace from "../../components/StandardCreatePage/StandaraSelectPlace";
-import Step6SaveProject from "../../components/StandardCreatePage/SaveProject";
 
 const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 
@@ -85,13 +84,6 @@ const StandardCreatePage = () => {
         />
       )}
 
-      {step === 6 && (
-        <Step6SaveProject
-          formData={formData}
-          updateFormData={updateFormData}
-          prevStep={prevStep}
-        />
-      )}
     </div>
   );
 };
